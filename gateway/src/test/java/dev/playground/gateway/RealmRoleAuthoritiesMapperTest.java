@@ -7,6 +7,7 @@ import java.util.Map;
 import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 
@@ -17,14 +18,14 @@ class RealmRoleAuthoritiesMapperTest {
     @Test
     void mapsUserRealmRole() {
         assertThat(mapper.mapAuthorities(List.of(authorityWithRoles("user"))))
-                .extracting(authority -> authority.getAuthority())
+                .extracting(GrantedAuthority::getAuthority)
                 .containsExactly("ROLE_user");
     }
 
     @Test
     void mapsAdminRealmRoles() {
         assertThat(mapper.mapAuthorities(List.of(authorityWithRoles("user", "admin"))))
-                .extracting(authority -> authority.getAuthority())
+                .extracting(GrantedAuthority::getAuthority)
                 .containsExactlyInAnyOrder("ROLE_user", "ROLE_admin");
     }
 
