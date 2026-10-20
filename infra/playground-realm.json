@@ -67,6 +67,21 @@
         "offline_access",
         "microprofile-jwt"
       ],
+      "protocolMappers": [
+        {
+          "name": "realm roles for gateway authorization",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ],
       "attributes": {
         "post.logout.redirect.uris": "+",
         "backchannel.logout.url": "http://host.docker.internal:8181/logout/connect/back-channel/gateway",

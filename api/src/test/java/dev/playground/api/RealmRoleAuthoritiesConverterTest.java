@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 class RealmRoleAuthoritiesConverterTest {
@@ -23,7 +24,7 @@ class RealmRoleAuthoritiesConverterTest {
                 .build();
 
         assertThat(converter.convert(jwt))
-                .extracting(authority -> authority.getAuthority())
+                .extracting(GrantedAuthority::getAuthority)
                 .containsExactlyInAnyOrder("ROLE_user", "ROLE_admin");
     }
 

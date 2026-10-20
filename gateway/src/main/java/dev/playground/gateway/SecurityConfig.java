@@ -16,6 +16,11 @@ import org.springframework.security.config.web.server.OidcBackChannelServerLogou
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.AuthorizationCodeReactiveOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.DelegatingReactiveOAuth2AuthorizedClientProvider;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.ReactiveOAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.WebClientReactiveAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeReactiveAuthenticationManager;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcReactiveOAuth2UserService;
 import org.springframework.security.oauth2.client.RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler;
 import org.springframework.security.oauth2.client.RefreshTokenReactiveOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
@@ -23,6 +28,7 @@ import org.springframework.security.oauth2.client.oidc.server.session.InMemoryRe
 import org.springframework.security.oauth2.client.oidc.server.session.ReactiveOidcSessionRegistry;
 import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcClientInitiatedServerLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
 import org.springframework.security.oauth2.client.web.server.DefaultServerOAuth2AuthorizationRequestResolver;
@@ -45,7 +51,8 @@ public class SecurityConfig {
     @Bean
     SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,
             ReactiveClientRegistrationRepository clientRegistrations,
-            ServerOAuth2AuthorizedClientRepository authorizedClients) {
+            ServerOAuth2AuthorizedClientRepository authorizedClients,
+            ReactiveAuthenticationManager oidcAuthenticationManager) {
         // Keycloak enforces PKCE S256 for the gateway client, so always apply
         // it. The code_verifier travels in the authorization request attributes
         // and is sent back on the token request.
@@ -66,6 +73,7 @@ public class SecurityConfig {
             // parallel requests do not lose the session cookie.
             .securityContextRepository(new StableSessionSecurityContextRepository())
             .oauth2Login((login) -> login
+                .authenticationManager(oidcAuthenticationManager)
                 .authorizationRequestResolver(authorizationRequestResolver)
                 .authorizedClientRepository(authorizedClients))
             .exceptionHandling((exceptions) -> exceptions
@@ -89,6 +97,22 @@ public class SecurityConfig {
     @Bean
     GrantedAuthoritiesMapper realmRoleAuthoritiesMapper() {
         return new RealmRoleAuthoritiesMapper();
+    }
+
+    @Bean
+    ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
+            authorizationCodeTokenResponseClient() {
+        return new WebClientReactiveAuthorizationCodeTokenResponseClient();
+    }
+
+    @Bean
+    ReactiveAuthenticationManager oidcAuthenticationManager(
+            ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenClient) {
+        OidcAuthorizationCodeReactiveAuthenticationManager manager =
+                new OidcAuthorizationCodeReactiveAuthenticationManager(
+                        tokenClient, new OidcReactiveOAuth2UserService());
+        manager.setAuthoritiesMapper(realmRoleAuthoritiesMapper());
+        return manager;
     }
 
     @Bean
