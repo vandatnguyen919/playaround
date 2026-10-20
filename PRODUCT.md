@@ -265,11 +265,18 @@ the Redis session, clears the cookie, and kills the Keycloak SSO session, since
 signing in again shows the login form. Keycloak `start-dev` re-runs a Quarkus
 build on every start and is slow on a loaded dev machine; the compose
 healthcheck allows up to 8 minutes. The Keycloakify theme is now implemented in `/keycloak-theme` with Tailwind
-and shadcn/ui styling. Its Login 07 page posts to Keycloak's login action and
-maps the realm's identity-provider list to social buttons. The generated JAR
+and shadcn/ui styling. The login and register pages share one look: both sit on
+the same `AuthShell` (silk-wave panel plus form column) and use the same shadcn
+field chrome (icon inputs, show/hide password, inline field errors). The login
+page posts to Keycloak's login action and maps the realm's identity-provider
+list to social buttons with real provider icons. The generated JAR
 is mounted into the Keycloak container, and the imported realm selects it with
 `loginTheme: "keycloak-theme"`. Google and GitHub use placeholder credentials
-by default; real provider testing remains blocked until credentials are set.
+by default. Their realm import configuration uses environment placeholders,
+explicit email scopes, and Keycloak's standard `first broker login` flow for
+existing-account linking or new-account creation. The OAuth app setup and
+callback URLs are documented in README.md. Real provider testing remains
+blocked until local credentials are set.
 
 Role-based authorization is now wired through the BFF and API. Keycloak
 `realm_access.roles` map to `ROLE_user` and `ROLE_admin`. `/api/me` and
@@ -279,7 +286,24 @@ Role-based authorization is now wired through the BFF and API. Keycloak
 401 and 403 responses. Focused API and gateway tests cover role mapping and
 anonymous, user, and admin authorization behavior.
 
-Next useful step: registration with full name, email, password (feature 2).
+Registration is done and verified (2026-10-20). The Register 07 page in
+`/keycloak-theme` shows Full name, Email, Password and Confirm password (Full
+name first), and renders validation errors in the shadcn field style (client
+side and Keycloak server errors such as "Email already exists." and the
+password mismatch message). `verifyEmail` is on and mail goes to Mailpit
+(http://localhost:8025). Flow checked: register, themed "Check your email"
+page, Verify email message in Mailpit, link marks the user verified, login
+through the BFF shows the full name from the `name` claim. The realm JSON
+holds the user profile (`fullName`, no `firstName`/`lastName`), the `name`
+mapper, and the registration flow. Decisions made while building it:
+`registrationEmailAsUsername` is true (email is the username); the
+"Password Validation" step has `always_set_password_on_register_form` set, since
+with `verifyEmail` on Keycloak otherwise drops the password field and asks for
+it after verification. Checked on a fresh import.
+
+Next useful step: Google and GitHub login (feature 3), blocked on real OAuth
+credentials, or forgot password with an OTP code.
+
 Note: the Keycloak access token carries name, email, preferred_username and
 realm roles but no `sub` claim; the profile endpoint returns those four.
 

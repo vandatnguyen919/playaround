@@ -147,6 +147,90 @@ provider credentials are placeholders for local email/password testing. Set
 `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, and
 `GITHUB_CLIENT_SECRET` in `infra/.env` to enable those providers.
 
+### Registration and email verification
+
+The theme has a Register page (shadcn Register 07) with Full name, Email,
+Password and Confirm password. Email is the username. Verification mail goes to
+Mailpit at http://localhost:8025. Try it: open http://localhost:5174, click Sign in, then
+Register, submit, open the "Verify email" message in Mailpit, click the link,
+and sign in.
+
+The realm import holds the settings (`registrationAllowed`, `verifyEmail`, the
+`fullName` user profile attribute, and the registration flow). Import is
+skipped when the realm already exists, so an old Keycloak volume keeps its old
+settings. Wipe the volume to pick the changes up.
+
+### Create the Google and GitHub OAuth apps
+
+Do not put provider credentials in `playground-realm.json`, source code, or
+chat. Copy `infra/.env.example` to `infra/.env`, then fill in the four
+provider variables locally.
+
+Both providers must use this callback URL. It is the Keycloak broker endpoint,
+not the gateway callback:
+
+```
+http://localhost:8080/realms/playground/broker/google/endpoint
+http://localhost:8080/realms/playground/broker/github/endpoint
+```
+
+#### Google
+
+1. Open Google Cloud Console and create or select a project.
+2. Configure the OAuth consent screen. For this local demo, an External
+   audience in Testing mode is sufficient. Add the Google account used for
+   testing as a test user.
+3. Create an OAuth client under **APIs & Services > Credentials**. Choose
+   **Web application**.
+4. Add the Google callback URL above to **Authorized redirect URIs**.
+5. Copy the generated client ID and client secret to
+   `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+
+The imported provider requests `openid profile email`.
+
+#### GitHub
+
+1. Open GitHub **Settings > Developer settings > OAuth Apps** and choose
+   **New OAuth App**.
+2. Set an application name and homepage URL such as
+   `http://localhost:5174/`.
+3. Set **Authorization callback URL** to the GitHub callback URL above.
+4. Register the app, copy its client ID to `GITHUB_CLIENT_ID`, and generate
+   a new client secret for `GITHUB_CLIENT_SECRET`.
+
+The imported provider requests `read:user user:email`. GitHub accounts must
+expose a usable email address for the existing-account linking check. If the
+primary email is private, keep the `user:email` scope and confirm that the
+provider returns an email address before testing account linking.
+
+Restart Keycloak after changing `infra/.env`. Realm import runs only when the
+realm is first created, so an existing local realm must be deleted from the
+Keycloak admin console, or its local data volume must be removed, before
+changing imported provider settings takes effect. Do not remove a volume that
+contains data you need.
+
+### First broker login: link or create
+
+Both providers use Keycloak's standard `first broker login` flow. It handles
+the first social login as follows:
+
+- If no Keycloak user has the provider's verified email, Keycloak reviews the
+  profile and creates a new user. The new user receives the realm's `user`
+  role through the normal realm defaults.
+- If a user with that email already exists, Keycloak does not silently merge
+  accounts. It asks the person to authenticate to the existing account, then
+  asks for confirmation before linking the Google or GitHub identity to it.
+  Use the existing password user (`alice` or `admin`) to exercise this branch.
+- If the person declines the link or cannot authenticate the existing account,
+  the broker login stops and no account is linked.
+
+After either branch succeeds, Keycloak returns to the same gateway OAuth
+callback. The gateway creates the same Redis-backed `SESSION` cookie and
+relays the access token to the API, so `/bff/user`, role checks, logout, and
+CSRF behavior are the same as for password login. Verify both a new social
+account and linking to an existing password account. The provider credentials
+are required for this live check.
+
 **Test users** (from `infra/playground-realm.json`, dev only):
 
 | Username | Password | Roles |

@@ -5,6 +5,8 @@ import UserProfileFormFields from 'keycloakify/login/UserProfileFormFields'
 import type { KcContext } from './KcContext'
 import { useI18n } from './i18n'
 import Login from './pages/Login'
+import Register from './pages/Register'
+import { Info, LoginVerifyEmail } from './pages/StatusPages'
 
 export default function KcPage({ kcContext }: { kcContext: KcContext }) {
   const { i18n } = useI18n({ kcContext })
@@ -13,6 +15,12 @@ export default function KcPage({ kcContext }: { kcContext: KcContext }) {
     <Suspense>
       {kcContext.pageId === 'login.ftl' ? (
         <Login kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'register.ftl' ? (
+        <Register kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'login-verify-email.ftl' ? (
+        <LoginVerifyEmail kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'info.ftl' ? (
+        <Info kcContext={kcContext} i18n={i18n} />
       ) : (
         <DefaultPage
           kcContext={kcContext}
