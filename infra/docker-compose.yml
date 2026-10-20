@@ -10,8 +10,13 @@ services:
       KC_HEALTH_ENABLED: "true"
       # Resolved into playground-realm.json (${GATEWAY_CLIENT_SECRET})
       GATEWAY_CLIENT_SECRET: ${GATEWAY_CLIENT_SECRET:-gateway-dev-secret}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-google-client-id-not-configured}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-google-client-secret-not-configured}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-github-client-id-not-configured}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-github-client-secret-not-configured}
     volumes:
       - ./playground-realm.json:/opt/keycloak/data/import/playground-realm.json:ro
+      - ../keycloak-theme/dist_keycloak/keycloak-theme-for-kc-all-other-versions.jar:/opt/keycloak/providers/keycloak-theme.jar:ro
     ports:
       - "8080:8080"
     healthcheck:

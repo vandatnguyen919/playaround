@@ -264,8 +264,12 @@ logout (CSRF POST, then top-level navigation to Keycloak's end session) removes
 the Redis session, clears the cookie, and kills the Keycloak SSO session, since
 signing in again shows the login form. Keycloak `start-dev` re-runs a Quarkus
 build on every start and is slow on a loaded dev machine; the compose
-healthcheck allows up to 8 minutes. The Keycloakify mockups still live in
-`/keycloak-theme`.
+healthcheck allows up to 8 minutes. The Keycloakify theme is now implemented in `/keycloak-theme` with Tailwind
+and shadcn/ui styling. Its Login 07 page posts to Keycloak's login action and
+maps the realm's identity-provider list to social buttons. The generated JAR
+is mounted into the Keycloak container, and the imported realm selects it with
+`loginTheme: "keycloak-theme"`. Google and GitHub use placeholder credentials
+by default; real provider testing remains blocked until credentials are set.
 
 Role-based authorization is now wired through the BFF and API. Keycloak
 `realm_access.roles` map to `ROLE_user` and `ROLE_admin`. `/api/me` and

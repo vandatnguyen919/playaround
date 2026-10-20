@@ -127,6 +127,26 @@ Ports in use: Keycloak 8080, Mailpit 8025/1025, Redis 6379, gateway 8181, API
 8182, SPA dev server 5174. (8081/8082 were already taken on the dev machine,
 which is why the two apps use 8181/8182.)
 
+### Keycloakify login theme
+
+The Keycloak login page is built from `/keycloak-theme` with Keycloakify 11,
+Tailwind v4, and the existing shadcn/ui primitives. Build the theme before
+starting Keycloak so the provider volume exists:
+
+```
+cd keycloak-theme
+npm install
+npm run build-keycloak-theme
+cd ..
+docker compose -f infra/docker-compose.yml up -d --wait
+```
+
+The realm import sets `loginTheme` to `keycloak-theme`. Google and GitHub
+buttons are rendered from Keycloak's identity-provider list. The default
+provider credentials are placeholders for local email/password testing. Set
+`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, and
+`GITHUB_CLIENT_SECRET` in `infra/.env` to enable those providers.
+
 **Test users** (from `infra/playground-realm.json`, dev only):
 
 | Username | Password | Roles |

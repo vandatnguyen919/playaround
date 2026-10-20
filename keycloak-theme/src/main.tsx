@@ -1,10 +1,15 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import MockupsApp from './MockupsApp.tsx'
+import KcPage from './login/KcPage'
+import type { KcContext } from './login/KcContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <MockupsApp />
+    {window.kcContext ? (
+      <KcPage kcContext={window.kcContext as KcContext} />
+    ) : (
+      <h1>No Keycloak context</h1>
+    )}
   </StrictMode>,
 )
