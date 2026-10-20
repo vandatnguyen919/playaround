@@ -1,0 +1,49 @@
+name: authn-authz-playground
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.1
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:-admin}
+      KC_HEALTH_ENABLED: "true"
+      # Resolved into playground-realm.json (${GATEWAY_CLIENT_SECRET})
+      GATEWAY_CLIENT_SECRET: ${GATEWAY_CLIENT_SECRET:-gateway-dev-secret}
+    volumes:
+      - ./playground-realm.json:/opt/keycloak/data/import/playground-realm.json:ro
+    ports:
+      - "8080:8080"
+    healthcheck:
+      # No curl/wget in the image; probe the management port with bash /dev/tcp
+      test:
+        [
+          "CMD-SHELL",
+          "exec 3<>/dev/tcp/127.0.0.1/9000; echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3; grep -q '200 OK' <&3",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      # First boot runs a Quarkus build; allow plenty of time before failing
+      start_period: 180s
+
+  redis:
+    image: redis:8.10-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.31.6
+    ports:
+      - "8025:8025" # Web UI + API
+      - "1025:1025" # SMTP
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8025/api/v1/info || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
