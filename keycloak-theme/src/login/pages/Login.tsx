@@ -50,6 +50,8 @@ export default function Login({
   const credentialError =
     usernameError !== undefined && usernameError === passwordError ? usernameError : undefined
   const globalError = fieldGlobalError ?? credentialError
+  // Errors are shown inline above; this carries info and success messages such as "email sent".
+  const notice = kcContext.message && kcContext.message.type !== 'error' ? kcContext.message : undefined
   const showUsernameError = usernameError !== undefined && usernameError !== globalError
   const showPasswordError = passwordError !== undefined && passwordError !== globalError
 
@@ -62,6 +64,14 @@ export default function Login({
           <FieldError className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2">
             {globalError}
           </FieldError>
+        ) : null}
+
+        {notice ? (
+          <p
+            role="status"
+            className="rounded-lg border bg-muted px-3 py-2 text-sm text-foreground"
+            dangerouslySetInnerHTML={{ __html: kcSanitize(notice.summary) }}
+          />
         ) : null}
 
         {providers.length > 0 ? (

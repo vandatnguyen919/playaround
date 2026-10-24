@@ -1,0 +1,96 @@
+{
+  "runId": "2026-10-21T17:03:17.600Z",
+  "checks": [
+    "enumeration",
+    "reset"
+  ],
+  "results": [
+    {
+      "name": "unknown email lands on the login page",
+      "ok": true,
+      "detail": "pageId=login.ftl"
+    },
+    {
+      "name": "known email lands on the login page",
+      "ok": true,
+      "detail": "pageId=login.ftl"
+    },
+    {
+      "name": "known and unknown email get the same message",
+      "ok": true,
+      "detail": "message=\"You should receive an email shortly with further instructions.\""
+    },
+    {
+      "name": "unknown email gets no mail",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "reset request accepted",
+      "ok": true,
+      "detail": "pageId=login.ftl"
+    },
+    {
+      "name": "reset email arrives in Mailpit",
+      "ok": true,
+      "detail": "waited up to 15s"
+    },
+    {
+      "name": "email contains a reset link",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "link opens the Set new password page",
+      "ok": true,
+      "detail": "pageId=login-update-password.ftl"
+    },
+    {
+      "name": "page is rendered by the keycloak-theme login theme",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "mismatched passwords are rejected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "new password is accepted (themed confirmation page)",
+      "ok": true,
+      "detail": "pageId=info.ftl"
+    },
+    {
+      "name": "new password signs in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "old password no longer signs in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "reset link cannot be used twice",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "evidence": {
+    "enumeration": {
+      "known": {
+        "pageId": "login.ftl",
+        "message": "You should receive an email shortly with further instructions."
+      },
+      "unknown": {
+        "pageId": "login.ftl",
+        "message": "You should receive an email shortly with further instructions."
+      }
+    },
+    "mail": {
+      "subject": "Reset password",
+      "from": "keycloak@playground.local",
+      "to": "verify-4c83d03e@example.com"
+    }
+  }
+}

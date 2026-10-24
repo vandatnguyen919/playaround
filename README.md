@@ -160,6 +160,26 @@ The realm import holds the settings (`registrationAllowed`, `verifyEmail`, the
 skipped when the realm already exists, so an old Keycloak volume keeps its old
 settings. Wipe the volume to pick the changes up.
 
+### Forgot password and verify
+
+The login page links to Forgot Password (themed after shadcn Forgot Password
+07). Keycloak emails a reset link to Mailpit at http://localhost:8025. The link
+opens Set new password (themed after Reset Password 07). Unknown and known
+emails get the same reply, so the page does not reveal which accounts exist.
+The realm `smtpServer` block in `playground-realm.json` points at
+`mailpit:1025`.
+
+With Keycloak and Mailpit up and the theme jar built, run:
+
+```
+node verify.mjs              (macOS/Linux: ./verify)
+node verify.mjs enumeration  (one named check; also: reset)
+```
+
+It creates a throwaway user, runs the flow over HTTP, deletes the user, and exits
+nonzero on any failure. Evidence from the latest run (mail text, last pages,
+`run.json`) is in `.shipit/verify/evidence/forgot-password/`.
+
 ### Create the Google and GitHub OAuth apps
 
 Do not put provider credentials in `playground-realm.json`, source code, or
