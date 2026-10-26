@@ -155,3 +155,13 @@
     @apply bg-background text-foreground;}
   html {
     @apply font-sans;}}
+/* The login theme draws its own show/hide toggle on password fields; hide the
+   browser's native reveal and clear buttons (Edge) so only one appears. Separate rules:
+   a browser that does not know one of these selectors drops the whole rule it is in. */
+input::-ms-reveal {
+  display: none;
+}
+
+input::-ms-clear {
+  display: none;
+}

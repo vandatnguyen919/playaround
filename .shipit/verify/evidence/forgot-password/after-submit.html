@@ -1,0 +1,351 @@
+<!DOCTYPE html><html lang="en"><head><script>
+
+
+const kcContext = {
+    "messageHeader": "accountUpdatedTitle",
+    "social": {
+        /* class: org.keycloak.forms.login.freemarker.model.IdentityProviderBean */
+        "baseURI": {
+            "path": "\/",
+            "rawPath": "\/",
+            "rawSchemeSpecificPart": "\/?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+            "opaque": false,
+            "query": "client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+            "schemeSpecificPart": "\/?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+            "port": -1,
+            "absolute": false,
+            "rawQuery": "client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+        },
+        "providers": [
+            {
+                /* class: org.keycloak.forms.login.freemarker.model.IdentityProviderBean$IdentityProvider */
+                "displayName": "GitHub",
+                "providerId": "github",
+                "loginUrl": "\/realms/playground/broker/github/login?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+                "iconClasses": "fa fa-github",
+                "alias": "github",
+                "themeConfig": {
+                },
+            },
+            {
+                /* class: org.keycloak.forms.login.freemarker.model.IdentityProviderBean$IdentityProvider */
+                "displayName": "Google",
+                "providerId": "google",
+                "loginUrl": "\/realms/playground/broker/google/login?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+                "iconClasses": "fa fa-google",
+                "alias": "google",
+                "themeConfig": {
+                },
+            },
+        ],
+    },
+    "auth": {
+        /* class: org.keycloak.forms.login.freemarker.model.AuthenticationContextBean */
+        "showResetCredentials": false,
+        "authenticationSelections": [
+        ],
+        "showUsername": false,
+        "showTryAnotherWayLink": false,
+        /*auth.attemptedUsername excluded*/
+    },
+    "message": {
+        /* class: org.keycloak.theme.beans.MessageBean */
+        "summary": "Your account has been updated.",
+        "type": "success",
+        "error": false,
+        "success": true,
+        "warning": false,
+    },
+    "title": "Sign in to authn-authz-playground",
+    "login": {
+        /* class: org.keycloak.forms.login.freemarker.model.LoginBean */
+    },
+    "pageId": "info",
+    "url": {
+        /* class: org.keycloak.forms.login.freemarker.model.UrlBean */
+        "oauthAction": "\/realms/playground/login-actions/consent?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+        "resourcesPath": "\/resources/6gd52/login/keycloak-theme",
+        "loginUrl": "\/realms/playground/login-actions/authenticate?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+        "resourcesCommonPath": "\/resources/6gd52/common/keycloak",
+        "firstBrokerLoginUrl": "\/realms/playground/login-actions/first-broker-login?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+        "registrationUrl": "\/realms/playground/login-actions/registration?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+        "logoutConfirmAction": "\/realms/playground/protocol/openid-connect/logout/logout-confirm?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+        "registrationAction": "\/realms/playground/login-actions/registration?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+        "loginResetCredentialsUrl": "\/realms/playground/login-actions/reset-credentials?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+        "ssoLoginInOtherTabsUrl": "\/realms/playground/login-actions/restart?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9&skip_logout=true",
+        "resourcesUrl": "\/resources/6gd52?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9/login/keycloak-theme",
+        "loginRestartFlowUrl": "\/realms/playground/login-actions/restart?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9&skip_logout=false",
+        "resourcesCommonUrl": "\/resources/6gd52?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9/common/keycloak",
+        "oauth2DeviceVerificationAction": "\/realms/playground/device?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9",
+    },
+    "themeResources": {
+        /* class: org.keycloak.theme.ThemeResources */
+        "stylesCommon": [
+            {
+                /* class: org.keycloak.theme.ThemeResourceDescriptor */
+                "path": "vendor/patternfly-v4/patternfly.min.css",
+            },
+            {
+                /* class: org.keycloak.theme.ThemeResourceDescriptor */
+                "path": "vendor/patternfly-v3/css/patternfly.min.css",
+            },
+            {
+                /* class: org.keycloak.theme.ThemeResourceDescriptor */
+                "path": "vendor/patternfly-v3/css/patternfly-additions.min.css",
+            },
+            {
+                /* class: org.keycloak.theme.ThemeResourceDescriptor */
+                "path": "lib/pficon/pficon.css",
+            },
+        ],
+        "favicons": [
+        ],
+        "styles": [
+            {
+                /* class: org.keycloak.theme.ThemeResourceDescriptor */
+                "path": "css/login.css",
+            },
+        ],
+        "scripts": [
+        ],
+    },
+    "messagesPerField": {
+        /* class: org.keycloak.theme.beans.MessagesPerFieldBean */
+        "get": function (fieldName) { if(fieldName === 'firstName'){ return ''; } if(fieldName === 'lastName'){ return ''; } if(fieldName === 'email'){ return ''; } if(fieldName === 'username'){ return ''; } if(fieldName === 'password'){ return ''; } if(fieldName === 'password-confirm'){ return ''; } if(fieldName === 'global'){ return decodeHtmlEntities("Your account has been updated."); } if(fieldName === 'totp'){ return ''; } if(fieldName === 'userLabel'){ return ''; } if(fieldName === 'recoveryCodeInput'){ return ''; } if(fieldName === 'termsAccepted'){ return ''; } },
+        "existsError": function (fieldName) { if(fieldName === 'firstName' ){ return false; }if(fieldName === 'lastName' ){ return false; }if(fieldName === 'email' ){ return false; }if(fieldName === 'username' ){ return false; }if(fieldName === 'password' ){ return false; }if(fieldName === 'password-confirm' ){ return false; }if(fieldName === 'global' ){ return false; }if(fieldName === 'totp' ){ return false; }if(fieldName === 'userLabel' ){ return false; }if(fieldName === 'recoveryCodeInput' ){ return false; }if(fieldName === 'termsAccepted' ){ return false; }},
+    },
+    "templateName": "info.ftl",
+    "client": {
+        /* class: org.keycloak.forms.login.freemarker.model.ClientBean */
+        "clientId": "gateway",
+        "description": "Server-side confidential OAuth2 client for the BFF gateway. The browser never sees its tokens.",
+        "name": "BFF Gateway",
+        "attributes": {
+            "post.logout.redirect.uris": "+",
+            "oauth2.device.authorization.grant.enabled": "false",
+            "client.secret.creation.time": "2026-10-18T00:00:00Z",
+            "pkce.code.challenge.method": "S256",
+            "backchannel.logout.url": "http://host.docker.internal:8181/logout/connect/back-channel/gateway",
+            "backchannel.logout.session.required": "true",
+        },
+    },
+    "passwordPolicies": {
+        /* class: org.keycloak.forms.login.freemarker.model.PasswordPoliciesBean */
+        "notEmail": false,
+        "notUsername": false,
+    },
+    "realm": {
+        /* class: org.keycloak.forms.login.freemarker.model.RealmBean */
+        "displayName": "authn-authz-playground",
+        "registrationAllowed": true,
+        "displayNameHtml": "authn-authz-playground",
+        "resetPasswordAllowed": true,
+        "resetCredentialsActionTokenLifespanMinutes": 5,
+        "password": true,
+        "actionTokenGeneratedByUserLifespanMinutes": 5,
+        "internationalizationEnabled": false,
+        "idpVerifyAccountLinkActionTokenLifespanMinutes": 5,
+        "verifyEmailActionTokenLifespanMinutes": 5,
+        "loginWithEmailAllowed": true,
+        "duplicateEmailsAllowed": false,
+        "editUsernameAllowed": false,
+        "name": "playground",
+        "rememberMe": false,
+        "registrationEmailAsUsername": true,
+        "identityFederationEnabled": true,
+    },
+    "darkMode": true,
+    "scripts": [
+    ],
+    "lang": "en",
+    "properties": {
+        "parent": "keycloak",
+        "styles": "css/login.css",
+        "stylesCommon": "vendor/patternfly-v4/patternfly.min.css vendor/patternfly-v3/css/patternfly.min.css vendor/patternfly-v3/css/patternfly-additions.min.css lib/pficon/pficon.css",
+        "KEYCLOAKIFY_SPA_DEV_SERVER_PORT": "",
+        "abstract": "true",
+        "darkMode": "true",
+    },
+};
+kcContext.keycloakifyVersion = "11.16.3";
+kcContext.themeVersion = "0.0.0";
+kcContext.themeType = "login";
+kcContext.themeName = "keycloak-theme";
+kcContext.pageId = "info.ftl";
+kcContext.ftlTemplateFileName = "info.ftl";
+
+
+kcContext["x-keycloakify"] = {};
+
+kcContext["x-keycloakify"].resourcesPath = "/resources/6gd52/login/keycloak-theme";
+
+{
+    var messages = {};
+        messages["accountUpdatedTitle"] = decodeHtmlEntities("Account updated");
+    kcContext["x-keycloakify"].messages = messages;
+}
+
+if( 
+    kcContext.url instanceof Object &&
+    typeof kcContext.url.resourcesPath === "string"
+){
+    kcContext.url.resourcesCommonPath = kcContext.url.resourcesPath + "/resources-common";
+}
+
+if( kcContext.messagesPerField ){
+    var existsError_singleFieldName = kcContext.messagesPerField.existsError;
+    kcContext.messagesPerField.existsError = function (){
+        for( let i = 0; i < arguments.length; i++ ){
+            if( existsError_singleFieldName(arguments[i]) ){
+                return true;
+            }
+        }
+        return false;
+    };
+    kcContext.messagesPerField.exists = function (fieldName) {
+        return kcContext.messagesPerField.get(fieldName) !== "";
+    };
+    kcContext.messagesPerField.printIfExists = function (fieldName, text) {
+        return kcContext.messagesPerField.exists(fieldName) ? text : undefined;
+    };
+    kcContext.messagesPerField.getFirstError = function () {
+        for( let i = 0; i < arguments.length; i++ ){
+            const fieldName = arguments[i];
+            if( kcContext.messagesPerField.existsError(fieldName) ){
+                return kcContext.messagesPerField.get(fieldName);
+            }
+        }
+    };
+}
+attributes_to_attributesByName: {
+    if( !kcContext.profile ){
+        break attributes_to_attributesByName;
+    }
+    if( !kcContext.profile.attributes ){
+        break attributes_to_attributesByName;
+    }
+    var attributes = kcContext.profile.attributes;
+    delete kcContext.profile.attributes;
+    kcContext.profile.attributesByName = {};
+    attributes.forEach(function(attribute){
+        kcContext.profile.attributesByName[attribute.name] = attribute;
+    });
+}
+
+redirect_to_dev_server: {
+
+    switch(kcContext.themeType){
+        case "login":
+            break redirect_to_dev_server;
+        case "account":
+            if( kcContext.pageId !== "index.ftl" ){
+                break redirect_to_dev_server;
+            }
+            break;
+        case "admin":
+            break;
+        default: 
+            break redirect_to_dev_server;
+    }
+
+    const devSeverPort = kcContext.properties.KEYCLOAKIFY_SPA_DEV_SERVER_PORT;
+
+    if( !devSeverPort ){
+        break redirect_to_dev_server;
+    }
+
+    const redirectUrl = new URL(window.location.href);
+
+    const keycloakServerPort = redirectUrl.port;
+
+    redirectUrl.port = devSeverPort;
+
+    delete kcContext.msgJSON;
+
+    console.log(kcContext);
+
+    redirectUrl.searchParams.set("kcContext", JSON.stringify(kcContext));
+    redirectUrl.searchParams.set("keycloakServerPort", keycloakServerPort);
+
+    window.location.href = redirectUrl.toString();
+
+}
+
+// See: https://github.com/keycloakify/keycloakify/issues/1044
+normalize_current_language_tag: {
+    const locale = kcContext.locale;
+
+    if( !locale ){
+        break normalize_current_language_tag;
+    }
+
+    const currentLanguageTag = locale.currentLanguageTag;
+    const supported = locale.supported;
+
+    if( typeof currentLanguageTag !== "string" || !Array.isArray(supported) ){
+        break normalize_current_language_tag;
+    }
+
+    const supportedLanguageTags = supported
+        .map(function(supportedLocale){
+            return supportedLocale && supportedLocale.languageTag;
+        })
+        .filter(function(languageTag){
+            return typeof languageTag === "string";
+        });
+
+    if( supportedLanguageTags.indexOf(currentLanguageTag) !== -1 ){
+        break normalize_current_language_tag;
+    }
+
+    const normalizedCurrentLanguageTag = currentLanguageTag
+        .toLowerCase()
+        .replace(/_/g, "-");
+    const matchingLanguageTags = supportedLanguageTags.filter(function(languageTag){
+        return languageTag.toLowerCase().replace(/_/g, "-") === normalizedCurrentLanguageTag;
+    });
+
+    if( matchingLanguageTags.length === 1 ){
+        locale.currentLanguageTag = matchingLanguageTags[0];
+        break normalize_current_language_tag;
+    }
+
+    console.error(
+        "Keycloak returned a locale.currentLanguageTag that does not exactly match a supported locale, and Keycloakify could not correct it unambiguously. Please open an issue with Keycloak and include this diagnostic context.",
+        {
+            currentLanguageTag: currentLanguageTag,
+            normalizedCurrentLanguageTag: normalizedCurrentLanguageTag,
+            matchingLanguageTags: matchingLanguageTags,
+            supportedLanguageTags: supportedLanguageTags,
+            locale: locale
+        }
+    );
+}
+
+window.kcContext = kcContext;
+
+function decodeHtmlEntities(htmlStr){
+    var element = decodeHtmlEntities.element;
+    if (!element) {
+        element = document.createElement("textarea");
+        decodeHtmlEntities.element = element;
+    }
+    element.innerHTML = htmlStr;
+    return element.value;
+}
+
+
+</script>
+<base href="/resources/6gd52/login/keycloak-theme/dist/">
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/resources/6gd52/login/keycloak-theme/dist/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>keycloak-theme</title>
+    <script type="module" crossorigin="" src="/resources/6gd52/login/keycloak-theme/dist/assets/index-D4p5gnlt.js"></script>
+    <link rel="stylesheet" crossorigin="" href="/resources/6gd52/login/keycloak-theme/dist/assets/index-z4HdkjQq.css">
+  <SCRIPT> if (typeof history.replaceState === 'function') {  history.replaceState({}, "some title", "http://localhost:8080/realms/playground/login-actions/required-action?client_id=gateway&tab_id=ZFiUxeFbxqI&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvcGxheWdyb3VuZC9hY2NvdW50LyIsInJ0IjoiY29kZSJ9"); }</SCRIPT></head>
+  <body>
+    <div id="root"></div>
+  
+
+</body></html>

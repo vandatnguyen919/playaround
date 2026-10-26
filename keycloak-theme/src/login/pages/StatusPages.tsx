@@ -3,6 +3,7 @@ import type { PageProps } from 'keycloakify/login/pages/PageProps'
 
 import { buttonVariants } from '@/components/ui/button'
 import { AuthShell, PageHeading } from '@/mockups/AuthShell'
+import { maskEmail } from '../lib/maskEmail'
 import type { KcContext } from '../KcContext'
 import type { I18n } from '../i18n'
 
@@ -24,7 +25,7 @@ export function LoginVerifyEmail({ kcContext, i18n }: StatusProps<'login-verify-
       <div className="space-y-6">
         <PageHeading
           title="Check your email"
-          description={msg('emailVerifyInstruction1', kcContext.user?.email ?? '')}
+          description={msg('emailVerifyInstruction1', maskEmail(kcContext.user?.email ?? ''))}
         />
         <p className="text-sm text-muted-foreground">{msg('emailVerifyInstruction2')}</p>
         <a href={kcContext.url.loginAction} className={linkButtonClass}>

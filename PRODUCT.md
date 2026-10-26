@@ -304,6 +304,27 @@ it after verification. Checked on a fresh import.
 Next useful step: Google and GitHub login (feature 3), blocked on real OAuth
 credentials, or forgot password with an OTP code.
 
+Legacy profile completion is now themed (2026-10-21). Keycloak 26.8.1 renders
+the `login-update-profile.ftl` page for the `VERIFY_PROFILE` required action;
+Keycloakify 11.16.3 exposes that page ID and does not expose a separate
+`update-user-profile.ftl` page. The page reuses the registration shell and
+field validation. Decision: keep this themed page as the fallback for users
+created before `fullName` existed, rather than add a realm-wide migration.
+This keeps the recovery path idempotent and lets each user confirm or correct
+their name. The imported `alice` fixture represents that legacy shape with
+`firstName` and `lastName` only.
+
+Forgot password (link flow) is themed and verified (2026-10-21). The realm
+`smtpServer` points at Mailpit (`mailpit:1025`). `LoginResetPassword` mirrors
+Forgot Password 07 and `LoginUpdatePassword` mirrors Reset Password 07, both on
+`AuthShell`. `Login.tsx` shows Keycloak's "email sent" notice. A known and an
+unknown email get the same page and message, so the flow does not reveal whether
+an account exists. `./verify` (see README) checks this end to end against the
+running stack, including that the new password signs in and the old one does
+not. Visual match to the two shadcnstudio blocks is still a human review. The
+`alice` fixture was reset to `alice1234` by re-importing the realm. The OTP reset
+(feature 5) is still open; this link flow stays as its fallback.
+
 Note: the Keycloak access token carries name, email, preferred_username and
 realm roles but no `sub` claim; the profile endpoint returns those four.
 
