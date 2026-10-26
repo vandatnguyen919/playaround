@@ -102,6 +102,14 @@
         "description": "Application administrator"
       },
       {
+        "name": "offline_access",
+        "description": "${role_offline-access}"
+      },
+      {
+        "name": "uma_authorization",
+        "description": "${role_uma_authorization}"
+      },
+      {
         "name": "default-roles-playground",
         "description": "${role_default-roles}",
         "composite": true,
