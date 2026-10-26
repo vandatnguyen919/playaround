@@ -1,5 +1,5 @@
 {
-  "runId": "2026-10-21T17:03:17.600Z",
+  "runId": "2026-10-24T10:35:57.274Z",
   "checks": [
     "enumeration",
     "reset"
@@ -90,7 +90,7 @@
     "mail": {
       "subject": "Reset password",
       "from": "keycloak@playground.local",
-      "to": "verify-4c83d03e@example.com"
+      "to": "verify-9aeafa0b@example.com"
     }
   }
 }

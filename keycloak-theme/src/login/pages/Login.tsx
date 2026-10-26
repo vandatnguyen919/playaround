@@ -88,7 +88,10 @@ export default function Login({
                     onClick={() => window.location.assign(provider.loginUrl)}
                   >
                     <Icon className="size-4" />
-                    <span dangerouslySetInnerHTML={{ __html: kcSanitize(provider.displayName) }} />
+                    <span>
+                      Login with{' '}
+                      <span dangerouslySetInnerHTML={{ __html: kcSanitize(provider.displayName) }} />
+                    </span>
                   </Button>
                 )
               })}
