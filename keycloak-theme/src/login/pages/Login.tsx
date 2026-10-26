@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ComponentType } from 'react'
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
 import { kcSanitize } from 'keycloakify/lib/kcSanitize'
 import type { PageProps } from 'keycloakify/login/pages/PageProps'
@@ -19,6 +19,7 @@ import {
   RequiredLabel,
   SubmitButton,
 } from '@/mockups/AuthShell'
+import { PasswordInput } from '../components/PasswordInput'
 import type { KcContext } from '../KcContext'
 import type { I18n } from '../i18n'
 
@@ -36,7 +37,6 @@ export default function Login({
   const { realm, url, login, social, messagesPerField, registrationDisabled } = kcContext
   const { msg, msgStr } = i18n
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
   const providers = social?.providers ?? []
   const productName = kcContext.client.name ?? kcContext.realm.displayName
 
@@ -123,26 +123,15 @@ export default function Login({
             <Label htmlFor="password">
               <RequiredLabel>Password</RequiredLabel>
             </Label>
-            <div className="relative">
-              <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
-                placeholder="••••••••••••••••"
-                aria-invalid={!!passwordError}
-                className="h-11 pl-9 pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((visible) => !visible)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                <span className="sr-only">{showPassword ? msgStr('hidePassword') : msgStr('showPassword')}</span>
-              </button>
-            </div>
+            <PasswordInput
+              id="password"
+              name="password"
+              autoComplete="current-password"
+              placeholder="••••••••••••••••"
+              aria-invalid={!!passwordError}
+              showLabel={msgStr('showPassword')}
+              hideLabel={msgStr('hidePassword')}
+            />
             {showPasswordError ? <FieldError>{passwordError}</FieldError> : null}
           </Field>
 
