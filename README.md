@@ -160,6 +160,23 @@ The realm import holds the settings (`registrationAllowed`, `verifyEmail`, the
 skipped when the realm already exists, so an old Keycloak volume keeps its old
 settings. Wipe the volume to pick the changes up.
 
+### Default `user` role
+
+The realm import makes `user` part of the realm default roles
+(`default-roles-playground`), so every new user gets it with no manual step:
+self-registered users and users created by a first Google or GitHub login alike.
+A realm imported before this change keeps its old default roles. Fix it once,
+without wiping the volume:
+
+```
+node infra/fix-default-roles.mjs --dry-run   (shows what would change)
+node infra/fix-default-roles.mjs
+```
+
+The script adds `user` to the default role composite, which covers every
+existing user too, then grants `user` directly to anyone who still lacks it.
+Running it again changes nothing.
+
 ### Forgot password and verify
 
 The login page links to Forgot Password (themed after shadcn Forgot Password
@@ -234,9 +251,13 @@ contains data you need.
 Both providers use Keycloak's standard `first broker login` flow. It handles
 the first social login as follows:
 
-- If no Keycloak user has the provider's verified email, Keycloak reviews the
-  profile and creates a new user. The new user receives the realm's `user`
-  role through the normal realm defaults.
+- If no Keycloak user has the provider's verified email, Keycloak creates a
+  new user. The new user receives the realm's `user` role through the realm
+  default roles. An attribute importer mapper on each provider copies the
+  provider's `name` into `fullName`, so the Review Profile page is skipped
+  (the flow's review setting is `missing`). It still appears, themed as
+  "Confirm your details" (`idp-review-user-profile.ftl`), when the provider sends no
+  name, for example a GitHub account without a display name.
 - If a user with that email already exists, Keycloak does not silently merge
   accounts. It asks the person to authenticate to the existing account, then
   asks for confirmation before linking the Google or GitHub identity to it.

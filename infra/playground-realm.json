@@ -69,6 +69,28 @@
       }
     }
   ],
+  "identityProviderMappers": [
+    {
+      "name": "name to fullName",
+      "identityProviderAlias": "google",
+      "identityProviderMapper": "google-user-attribute-mapper",
+      "config": {
+        "syncMode": "IMPORT",
+        "jsonField": "name",
+        "userAttribute": "fullName"
+      }
+    },
+    {
+      "name": "name to fullName",
+      "identityProviderAlias": "github",
+      "identityProviderMapper": "github-user-attribute-mapper",
+      "config": {
+        "syncMode": "IMPORT",
+        "jsonField": "name",
+        "userAttribute": "fullName"
+      }
+    }
+  ],
   "roles": {
     "realm": [
       {
@@ -78,8 +100,32 @@
       {
         "name": "admin",
         "description": "Application administrator"
+      },
+      {
+        "name": "default-roles-playground",
+        "description": "${role_default-roles}",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "offline_access",
+            "uma_authorization",
+            "user"
+          ],
+          "client": {
+            "account": [
+              "view-profile",
+              "manage-account"
+            ]
+          }
+        }
       }
     ]
+  },
+  "defaultRole": {
+    "name": "default-roles-playground",
+    "description": "${role_default-roles}",
+    "composite": true,
+    "clientRole": false
   },
   "clients": [
     {
