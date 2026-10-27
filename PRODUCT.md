@@ -213,11 +213,16 @@ Mockups in `/keycloak-theme` (Vite dev server) confirm the look. Round 1 came
 from the shadcnstudio 07 blocks and the shadcn InputOTP form example. Round 2
 moved to the split layout from Dan's reference image.
 
-- Split screen 1:1 on desktop. Left half is a dark silk wave panel (abstract
-  liquid metal waves built as SVG gradients with a slow drift) with the
-  uppercase headline "One cookie. Zero tokens." and one line of product copy
-  at the bottom. Right half is the auth form on white. Below lg the wave
-  panel is hidden and the form centers.
+- Round 3 (2026-10-27) replaced the split screen with one centered card
+  (shadcnstudio login-page-01 style). `AuthShell` is a full screen flex
+  container on a light gray canvas (`bg-muted/40`) holding a `max-w-[440px]`
+  card (`rounded-2xl`, border, `shadow-sm`), single column. The card starts
+  with the brand mark and "authn-authz-playground", then the page content, and
+  headings are centered. The silk wave panel and its headline copy were
+  removed. All pages inherit this because they all use `AuthShell`. Older
+  rounds below describe the split layout and are history.
+- Round 2 (history): split screen 1:1 with a dark silk wave panel on the left
+  and the form on white on the right.
 - Fields: label above every input, red asterisk on required ones (login and
   forgot password included), icon inside the input (mail, lock, user),
   show/hide toggle on passwords.
@@ -327,6 +332,14 @@ not. Visual match to the two shadcnstudio blocks is still a human review. The
 
 Note: the Keycloak access token carries name, email, preferred_username and
 realm roles but no `sub` claim; the profile endpoint returns those four.
+
+Page switch flicker reduced (2026-10-27). The theme index.html sets the html
+background, the entry script is render blocking (added in `vite.config.ts`
+because Vite drops the attribute), `main.tsx` renders with `flushSync`, and
+`index.css` opts into cross document view transitions. Checked: built page and
+served login and register pages show the attribute and render fully. Not
+measured: the flicker itself, which needs a human look in Chrome or Safari
+18.2+. Other browsers fall back to a normal page load.
 
 ## Stops
 

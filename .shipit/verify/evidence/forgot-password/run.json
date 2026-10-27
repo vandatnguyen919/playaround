@@ -1,8 +1,9 @@
 {
-  "runId": "2026-10-24T10:35:57.274Z",
+  "runId": "2026-10-27T04:05:17.891Z",
   "checks": [
     "enumeration",
-    "reset"
+    "reset",
+    "layout"
   ],
   "results": [
     {
@@ -74,6 +75,26 @@
       "name": "reset link cannot be used twice",
       "ok": true,
       "detail": ""
+    },
+    {
+      "name": "login page is rendered by the keycloak-theme login theme",
+      "ok": true,
+      "detail": "pageId=login.ftl"
+    },
+    {
+      "name": "theme script and stylesheet are linked",
+      "ok": true,
+      "detail": "2 assets"
+    },
+    {
+      "name": "bundle has the centered card shell",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "bundle has no split layout or wave panel",
+      "ok": true,
+      "detail": ""
     }
   ],
   "evidence": {
@@ -90,7 +111,13 @@
     "mail": {
       "subject": "Reset password",
       "from": "keycloak@playground.local",
-      "to": "verify-9aeafa0b@example.com"
+      "to": "verify-cdb3897a@example.com"
+    },
+    "layout": {
+      "assets": [
+        "/resources/afqbv/login/keycloak-theme/dist/assets/index-YdP3Acvp.js",
+        "/resources/afqbv/login/keycloak-theme/dist/assets/index-dqMjm9QC.css"
+      ]
     }
   }
 }

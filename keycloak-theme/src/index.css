@@ -3,6 +3,11 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
+/* Cross-fade between Keycloak pages (login, register, reset) instead of a hard repaint. */
+@view-transition {
+  navigation: auto;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {

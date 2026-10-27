@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Usage: ./verify [check...]   (Windows: node verify [check...])
 // Needs Keycloak (:8080, theme jar built) and Mailpit (:8025) from infra/docker-compose.yml.
-// Checks: enumeration, reset. No arguments runs all.
+// Checks: enumeration, reset, layout. No arguments runs all.
 import { mkdirSync, writeFileSync } from "node:fs"
 import { createHash, randomBytes } from "node:crypto"
 
@@ -235,7 +235,28 @@ async function checkReset(email, oldPassword, newPassword) {
   assert("reset link cannot be used twice", page(reused.html).pageId !== "login-update-password.ftl")
 }
 
-const checks = { enumeration: checkEnumeration, reset: checkReset }
+// Static check on the deployed theme: the served bundle must carry the
+// centered card shell and none of the old split layout. Rendered geometry is
+// screenshot evidence for human review, not asserted here.
+async function checkLayout() {
+  const p = await startLogin(new Jar())
+  assert("login page is rendered by the keycloak-theme login theme", p.themed, `pageId=${p.pageId}`)
+  const assetUrls = [...p.html.matchAll(/(?:src|href)="([^"]+\/login\/keycloak-theme\/[^"]+\.(?:js|css))"/g)].map(
+    (m) => new URL(unescapeJs(m[1]), KC).toString()
+  )
+  assert("theme script and stylesheet are linked", assetUrls.some((u) => u.endsWith(".js")), `${assetUrls.length} assets`)
+  let bundle = ""
+  for (const url of assetUrls) bundle += await (await fetch(url)).text()
+  evidence.layout = { assets: assetUrls.map((u) => new URL(u).pathname) }
+  const card = ["max-w-[440px]", "rounded-2xl", "bg-card", "items-center justify-center", "authn-authz-playground"]
+  const missing = card.filter((c) => !bundle.includes(c))
+  assert("bundle has the centered card shell", missing.length === 0, missing.length ? `missing: ${missing.join(", ")}` : "")
+  const split = ["lg:grid-cols-2", "silk-drift", "One cookie."]
+  const found = split.filter((c) => bundle.includes(c))
+  assert("bundle has no split layout or wave panel", found.length === 0, found.length ? `found: ${found.join(", ")}` : "")
+}
+
+const checks = { enumeration: checkEnumeration, reset: checkReset, layout: checkLayout }
 const requested = process.argv.slice(2)
 const unknownNames = requested.filter((n) => !(n in checks))
 if (unknownNames.length) {
