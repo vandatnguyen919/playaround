@@ -62,6 +62,18 @@ spring:
 
 server:
   port: 8181
+  reactive:
+    session:
+      cookie:
+        # The back-channel logout handler replays this name (SecurityConfig).
+        name: SESSION
+        http-only: true
+        # Lax, not Strict: the redirect back from Keycloak is a top-level
+        # navigation that must carry the pre-login session.
+        same-site: lax
+        # Off for plain http in dev. Set COOKIE_SECURE=true behind https;
+        # the XSRF-TOKEN cookie follows the same setting.
+        secure: ${COOKIE_SECURE:false}
 
 management:
   endpoints:

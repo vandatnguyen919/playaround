@@ -127,8 +127,18 @@ Choices made, with reasons. Versions were checked against official docs on
   cookie name to `SESSION` (the Spring Session default); the default is
   `JSESSIONID` and would never match. Register this URL as the client's
   Backchannel Logout URL in Keycloak so a logout at Keycloak kills the Redis
-  session. The OIDC session registry is in memory by default, fine for one
-  gateway instance. Back it with Redis if we ever run more than one.
+  session. The OIDC session registry is stored in Redis
+  (`RedisReactiveOidcSessionRegistry`, keys `playground:oidc:*`, 10 hour TTL
+  matching Keycloak's SSO max lifespan). Changed 2026-10-27 from the in-memory
+  default: sessions outlive a gateway restart in Redis but the in-memory
+  registry did not, so after a restart a Keycloak logout left the session
+  alive (reproduced). The registry stores issuer, audience, subject, sid and
+  the replayed CSRF header, no tokens.
+- **Cookie flags.** `SESSION` is `HttpOnly; SameSite=Lax; Path=/` via
+  `server.reactive.session.cookie.*`; `XSRF-TOKEN` is `SameSite=Lax` and not
+  HttpOnly. `Lax` because the redirect back from Keycloak must carry the
+  pre-login session. `Secure` follows `COOKIE_SECURE` (default false, since dev
+  is plain http) for both cookies.
 
 ### Password reset with an OTP code
 
@@ -375,6 +385,17 @@ provider supplied is shown as masked read-only text and posts in a hidden
 input, since the realm trusts IdP emails; it stays an editable input when it
 is missing, malformed, or rejected by Keycloak. Other editable inputs show the
 real value since the user must be able to edit it.
+
+Session hardening is done and verified (2026-10-27). `node smoke.mjs` runs the
+main flows against the live stack with throwaway users: anonymous 401s,
+login, roles, CSRF, logout, session fixation, cookie flags, and back-channel
+logout (all 40 assertions pass). Session fixation: login rotates the pre-login
+session id and the old id is gone from Redis; same-user saves keep the id
+(unit tested). Back-channel logout was checked across a gateway restart, and
+the smoke check was shown to fail with the client's back-channel URL cleared.
+`COOKIE_SECURE=true` was checked to put `Secure` on both cookies. README now
+opens with an architecture diagram, run steps, the smoke test, and the
+hardening notes.
 
 ## Stops
 

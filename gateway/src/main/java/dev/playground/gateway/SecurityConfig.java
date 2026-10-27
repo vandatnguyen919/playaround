@@ -6,9 +6,11 @@ import java.util.List;
 
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
@@ -24,7 +26,6 @@ import org.springframework.security.oauth2.client.oidc.userinfo.OidcReactiveOAut
 import org.springframework.security.oauth2.client.RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler;
 import org.springframework.security.oauth2.client.RefreshTokenReactiveOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
-import org.springframework.security.oauth2.client.oidc.server.session.InMemoryReactiveOidcSessionRegistry;
 import org.springframework.security.oauth2.client.oidc.server.session.ReactiveOidcSessionRegistry;
 import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcClientInitiatedServerLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
@@ -52,7 +53,8 @@ public class SecurityConfig {
     SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,
             ReactiveClientRegistrationRepository clientRegistrations,
             ServerOAuth2AuthorizedClientRepository authorizedClients,
-            ReactiveAuthenticationManager oidcAuthenticationManager) {
+            ReactiveAuthenticationManager oidcAuthenticationManager,
+            @Value("${server.reactive.session.cookie.secure:false}") boolean secureCookies) {
         // Keycloak enforces PKCE S256 for the gateway client, so always apply
         // it. The code_verifier travels in the authorization request attributes
         // and is sent back on the token request.
@@ -60,6 +62,11 @@ public class SecurityConfig {
                 new DefaultServerOAuth2AuthorizationRequestResolver(clientRegistrations);
         authorizationRequestResolver
                 .setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
+
+        // Same flags as the SESSION cookie (application.yml), minus HttpOnly:
+        // the SPA must read this one.
+        CookieServerCsrfTokenRepository csrfTokenRepository = CookieServerCsrfTokenRepository.withHttpOnlyFalse();
+        csrfTokenRepository.setCookieCustomizer((cookie) -> cookie.sameSite("Lax").secure(secureCookies));
 
         http
             .authorizeExchange((authorize) -> authorize
@@ -89,7 +96,7 @@ public class SecurityConfig {
                 // Cookie to header CSRF: the raw token lands in the
                 // XSRF-TOKEN cookie and Axios echoes it in the X-XSRF-TOKEN
                 // header, so the SPA needs no CSRF code.
-                .csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRepository(csrfTokenRepository)
                 .csrfTokenRequestHandler(new SpaServerCsrfTokenRequestHandler()));
         return http.build();
     }
@@ -144,10 +151,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    ReactiveOidcSessionRegistry oidcSessionRegistry() {
-        // Correlates Keycloak sessions with gateway sessions. In memory is
-        // fine for one gateway instance at a time.
-        return new InMemoryReactiveOidcSessionRegistry();
+    ReactiveOidcSessionRegistry oidcSessionRegistry(ReactiveStringRedisTemplate redis) {
+        // Correlates Keycloak sessions with gateway sessions. In Redis, like
+        // the sessions, so back-channel logout still finds them after a
+        // gateway restart and on any instance.
+        return new RedisReactiveOidcSessionRegistry(redis);
     }
 
     @Bean

@@ -5,10 +5,145 @@ fit together. The core point: the browser never sees tokens. It holds only a
 session cookie; tokens live server side. See `PRODUCT.md` for the full plan and
 decisions.
 
-Each slice gets one top-level section below. Later slices append their own
-without rewriting earlier ones.
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Browser
+        SPA["SPA (React + Axios)<br/>holds only SESSION + XSRF-TOKEN cookies"]
+    end
+
+    Vite["Vite dev server :5174<br/>serves the SPA, proxies /bff /api /oauth2 /login /logout"]
+    GW["Gateway (BFF) :8181<br/>Spring Cloud Gateway, OIDC client<br/>CSRF, roles, TokenRelay"]
+    API["API :8182<br/>JWT resource server"]
+    Redis[("Redis :6379<br/>sessions + tokens<br/>OIDC session registry")]
+    KC["Keycloak :8080<br/>realm playground<br/>Keycloakify theme"]
+    Mail["Mailpit :8025 / :1025<br/>dev inbox"]
+
+    SPA -- "same-origin XHR (cookie only)" --> Vite
+    Vite --> GW
+    SPA -. "top-level redirects: login, logout" .-> KC
+    GW -- "code + PKCE exchange, refresh" --> KC
+    GW -- "Bearer access token (TokenRelay)" --> API
+    API -- "JWKS" --> KC
+    GW <--> Redis
+    KC -- "back-channel logout token" --> GW
+    KC -- "verify / reset mail" --> Mail
+```
+
+- The browser talks to one origin (`:5174`). Keycloak is reached only by
+  top-level redirects, so there is no CORS.
+- The gateway is the only OAuth2 client. It keeps the security context and
+  the access and refresh tokens in a Redis-backed session, and adds the bearer
+  token only on the hop to the API.
+- Keycloak calls the gateway directly to end a session (back-channel logout),
+  for example when an admin logs a user out or the SSO session ends elsewhere.
+
+## Run it
+
+Needs JDK 17+ for Gradle (the build downloads a Java 26 toolchain), Node 22,
+and Docker with Compose v2. Commands are from the repo root. Windows spellings
+are shown; on macOS/Linux use `./gradlew` and `cp`.
+
+1. Build the Keycloak theme (once, and after theme changes):
+
+   ```
+   cd keycloak-theme
+   npm install
+   npm run build-keycloak-theme
+   cd ..
+   ```
+
+2. Start Keycloak, Redis and Mailpit. The first start can take a few minutes:
+
+   ```
+   docker compose -f infra/docker-compose.yml up -d --wait
+   ```
+
+3. Start the API and the gateway, each in its own terminal:
+
+   ```
+   .\gradlew.bat :api:bootRun
+   .\gradlew.bat :gateway:bootRun
+   ```
+
+   Ready when they log `Tomcat started on port 8182` and
+   `Netty started on port 8181`.
+
+4. Start the SPA:
+
+   ```
+   cd web
+   npm install
+   npm run dev
+   ```
+
+5. Open http://localhost:5174 and sign in as `alice` / `alice1234` (user) or
+   `admin` / `admin1234` (user and admin). Mail lands in Mailpit at
+   http://localhost:8025. Keycloak admin console: http://localhost:8080
+   (`admin` / `admin` in dev).
+
+Secrets and provider credentials go in `infra/.env` (copy
+`infra/.env.example`). The realm is imported only when it does not exist yet,
+so realm JSON changes need a fresh Keycloak volume.
+
+## Smoke test
+
+With the whole stack running (steps 2 to 4):
+
+```
+node smoke.mjs                (macOS/Linux: ./smoke)
+node smoke.mjs login logout   (only the named checks)
+```
+
+It creates two throwaway users through the Keycloak admin API, drives the real
+login over HTTP, and deletes the users at the end. It exits nonzero on any
+failure. Checks:
+
+| Check | What it proves |
+| --- | --- |
+| `anonymous` | `/bff/me` and `/bff/admin` are 401 without a session; a made-up `SESSION` id is 401; `XSRF-TOKEN` flags |
+| `login` | Login lands on the SPA; `SESSION` flags; the session is in Redis; `/bff/me` works with the cookie alone; no JWT in app cookies or the response |
+| `roles` | A user gets 403 on `/bff/admin`; an admin gets 200 |
+| `csrf` | `POST /logout` without `X-XSRF-TOKEN` is 403 and the session survives |
+| `logout` | Logout expires the cookie and deletes the Redis session; Keycloak `end_session` returns to the SPA; the next sign-in shows the login form |
+| `fixation` | Login issues a new session id; the pre-login id is gone from Redis and grants nothing; later requests keep the id stable |
+| `backchannel` | An admin logout at Keycloak deletes the gateway session and its registry entry from Redis; the browser cookie then gets 401 |
+
+`node verify.mjs` separately covers forgot password and the theme layout (see
+"Forgot password and verify" below). `.\gradlew.bat test` runs the unit tests.
+
+## Session hardening
+
+- **Cookie flags.** `SESSION` is `HttpOnly; SameSite=Lax; Path=/`.
+  `XSRF-TOKEN` is `SameSite=Lax; Path=/` and readable by JS on purpose (Axios
+  copies it into the `X-XSRF-TOKEN` header). `Lax`, not `Strict`, because the
+  redirect back from Keycloak is a top-level navigation that must carry the
+  pre-login session. `Secure` is off by default because dev runs on plain
+  http. Start the gateway with `COOKIE_SECURE=true` behind https; both cookies
+  follow it. Settings: `server.reactive.session.cookie.*` in
+  `gateway/src/main/resources/application.yml` and the CSRF repository in
+  `SecurityConfig.java`.
+- **Session fixation.** The session that exists before login (it holds the
+  authorization request) gets a new id when the user signs in, so an id
+  planted before login is worthless afterwards. The id changes again only
+  when the signed-in user changes, not on token refresh saves, which would
+  otherwise log out parallel requests
+  (`StableSessionSecurityContextRepository`, unit tested in
+  `StableSessionSecurityContextRepositoryTest`).
+- **Back-channel logout.** Keycloak posts a signed logout token to
+  `/logout/connect/back-channel/gateway`. The gateway looks the Keycloak
+  session (`sid`) up in its OIDC session registry and ends the matching
+  gateway session, which deletes it from Redis. The registry is stored in
+  Redis (`playground:oidc:*` keys, `RedisReactiveOidcSessionRegistry`), not in
+  memory, so this still works after a gateway restart and on any instance.
+  The registry holds no tokens. Keycloak reaches the gateway at
+  `host.docker.internal:8181` (the client's Backchannel Logout URL in
+  `infra/playground-realm.json`).
 
 ---
+
+The sections below are the detailed walkthroughs written as each slice landed.
 
 ## S2: BFF login with email/password (default Keycloak theme)
 
@@ -314,7 +449,7 @@ Sign in as `alice`.
 - `POST http://localhost:8080/realms/playground/login-actions/authenticate` → 302
 - `GET http://localhost:5174/login/oauth2/code/gateway?code=…&state=…` → **302**.
   This request carries the code back to the gateway. Its response headers
-  contain `Set-Cookie: SESSION=…; Path=/; HTTPOnly` — the cookie is set **after**
+  contain `Set-Cookie: SESSION=…; Path=/; HttpOnly; SameSite=Lax` — the cookie is set **after**
   the server-side code exchange, which you can see as the gateway's outgoing
   `POST …/protocol/openid-connect/token` (visible in the gateway log only; it
   never passes through the browser).
@@ -326,8 +461,8 @@ DevTools → Application → Cookies → `http://localhost:5174`:
 
 | Cookie | HttpOnly | SameSite | Secure | JS can read it? |
 | --- | --- | --- | --- | --- |
-| `SESSION` | yes | *(not set — browsers default to `Lax`)* | no (plain http) | no |
-| `XSRF-TOKEN` | no | *(not set)* | no | yes, by design (Axios reads it) |
+| `SESSION` | yes | `Lax` | no in dev (`COOKIE_SECURE=true` turns it on) | no |
+| `XSRF-TOKEN` | no | `Lax` | same as `SESSION` | yes, by design (Axios reads it) |
 
 Verify in the DevTools console:
 
@@ -517,8 +652,8 @@ you straight back in (verified) — the SSO session is dead too.
    host-scoped to `localhost` and path `/`, so any port on `localhost` shares
    it (that is why step g works). It breaks if you move the SPA to a different
    host name, or if you mark the cookie `SameSite=Strict` (the top-level
-   redirect back from Keycloak would then not carry it — the cookie is sent
-   today because it has no SameSite and browsers default to `Lax`). Check what
+   redirect back from Keycloak would then not carry it; the gateway sets
+   `SameSite=Lax` for that reason). Check what
    was actually set with `curl -D - -o NUL <url>` and look at `Set-Cookie`.
 3. **CORS error in the console** (e.g. `blocked by CORS policy … localhost:8080`)
    — the SPA reached across origins instead of using the Vite proxy. All calls
@@ -598,13 +733,9 @@ Commands and claims I could **not** verify:
 
 Places where code and `PRODUCT.md` disagree:
 
-- **Session cookie "SameSite".** PRODUCT.md and the S2 brief describe the
-  session cookie as "HttpOnly SameSite"; the actual header is
-  `SESSION=…; Path=/; HTTPOnly` with **no SameSite attribute** (verified via
-  `curl -D`). Browsers default an unset SameSite to `Lax`, so the behavior
-  matches the intent — but the attribute is not there. `Secure` is also absent,
-  which is correct for `http://localhost` and must change before any real
-  deployment (a non-goal today).
+- **Session cookie "SameSite".** Resolved: the gateway now sets
+  `SameSite=Lax` on `SESSION` and `XSRF-TOKEN` explicitly (see Session
+  hardening above). `Secure` is off by default for `http://localhost`.
 - **"Done when" wording.** PRODUCT.md has no literal "Done when" heading; the
   checklist above is copied from its *Acceptance criteria* list, minus the
   registration item.
@@ -615,4 +746,3 @@ Places where code and `PRODUCT.md` disagree:
   `/api` and `/auth`; the code (`web/vite.config.ts`) proxies `/api`, `/bff`,
   `/oauth2`, `/login`, `/logout`. PRODUCT.md was updated to match during S2 —
   if you see the old sentence anywhere, the code is the truth.
-# playaround
