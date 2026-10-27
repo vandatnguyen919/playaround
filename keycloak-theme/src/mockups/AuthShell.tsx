@@ -1,6 +1,6 @@
 import { useState } from "react"
 import type { ChangeEvent, ComponentProps, ReactNode } from "react"
-import { ChevronLeft, Eye, EyeOff, Lock, Mail, User } from "lucide-react"
+import { ChevronLeft, Eye, EyeOff, KeyRound, Lock, Mail, User } from "lucide-react"
 import { cn } from "cn"
 
 import { Button } from "@/components/ui/button"
@@ -9,9 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 
 /**
- * Shared page chrome for the Keycloakify mockups. Split layout per the
- * approved reference: dark silk wave panel on the left, auth form on the
- * right. Below lg the wave panel is hidden and the form centers.
+ * Shared page chrome for the Keycloakify pages. One centered auth card on a
+ * subtle canvas. Everything stacks in a single column.
  */
 export function AuthShell({
   children,
@@ -21,117 +20,27 @@ export function AuthShell({
   showBrand?: boolean
 }) {
   return (
-    <div className="grid min-h-svh w-full grid-cols-1 lg:grid-cols-2">
-      <aside className="relative m-3 hidden overflow-hidden rounded-[1.5rem] bg-[#0a0d12] lg:block">
-        <SilkWaves />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 p-10">
-          <h2 className="max-w-md text-4xl font-black uppercase leading-[1.05] tracking-tight text-white xl:text-5xl">
-            One cookie.
-            <br />
-            Zero tokens.
-          </h2>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-white/75">
-            Sign-in runs through the gateway. The browser only ever sees a
-            session cookie. Access and refresh tokens stay on the server.
-          </p>
+    <div className="flex min-h-svh w-full items-center justify-center bg-muted/40 px-4 py-10">
+      <main className="flex min-h-[520px] w-full max-w-[440px] flex-col gap-6 rounded-2xl border bg-card p-6 text-card-foreground shadow-sm sm:p-8">
+        <div className="flex items-center justify-center gap-2">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-foreground text-background">
+            <KeyRound className="size-4" />
+          </span>
+          <span className="text-lg font-semibold tracking-tight">authn-authz-playground</span>
         </div>
-      </aside>
-      <main className="flex items-center justify-center px-6 py-10">
-        <div className="w-full max-w-sm">
-          {showBrand ? (
-            <a
-              href="#"
-              className="mb-8 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <ChevronLeft className="size-4" />
-              Back to the playground
-            </a>
-          ) : null}
-          {children}
-        </div>
+        {/* Short pages (errors, notices) center in the space the min height leaves. */}
+        <div className="flex flex-1 flex-col justify-center">{children}</div>
+        {showBrand ? (
+          <a
+            href="#"
+            className="inline-flex items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ChevronLeft className="size-4" />
+            Back to the playground
+          </a>
+        ) : null}
       </main>
     </div>
-  )
-}
-
-/** Abstract, undulating silk / liquid metal waves for the left panel. */
-function SilkWaves() {
-  return (
-    <>
-      <style>{`
-        @keyframes silk-drift {
-          from { transform: translate3d(-1.5%, -1%, 0) scale(1.06); }
-          to { transform: translate3d(1.5%, 1.5%, 0) scale(1.12); }
-        }
-        .silk-layer {
-          transform-origin: center;
-          animation: silk-drift 24s ease-in-out infinite alternate;
-        }
-        .silk-layer-slow {
-          animation-duration: 38s;
-        }
-      `}</style>
-      <svg
-        viewBox="0 0 800 900"
-        preserveAspectRatio="xMidYMid slice"
-        className="absolute inset-0 h-full w-full"
-        aria-hidden
-      >
-        <defs>
-          <linearGradient id="silk-1" x1="0%" y1="0%" x2="100%" y2="60%">
-            <stop offset="0%" stopColor="#0a0d12" />
-            <stop offset="35%" stopColor="#39424f" />
-            <stop offset="55%" stopColor="#aab4c2" />
-            <stop offset="75%" stopColor="#2a323d" />
-            <stop offset="100%" stopColor="#0b0f14" />
-          </linearGradient>
-          <linearGradient id="silk-2" x1="100%" y1="0%" x2="0%" y2="80%">
-            <stop offset="0%" stopColor="#12161c" />
-            <stop offset="40%" stopColor="#5c6673" />
-            <stop offset="60%" stopColor="#cfd6df" />
-            <stop offset="85%" stopColor="#1a2028" />
-            <stop offset="100%" stopColor="#0a0d12" />
-          </linearGradient>
-          <linearGradient id="silk-3" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#0d1117" />
-            <stop offset="45%" stopColor="#20262f" />
-            <stop offset="70%" stopColor="#8e99a8" />
-            <stop offset="100%" stopColor="#141a21" />
-          </linearGradient>
-          <radialGradient id="silk-sheen" cx="70%" cy="18%" r="65%">
-            <stop offset="0%" stopColor="#dfe6ee" stopOpacity="0.5" />
-            <stop offset="45%" stopColor="#97a2b1" stopOpacity="0.16" />
-            <stop offset="100%" stopColor="#0a0d12" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        <rect width="800" height="900" fill="#0a0d12" />
-        <g className="silk-layer silk-layer-slow">
-          <path
-            d="M-80,120 C180,-20 380,220 880,60 L880,320 C380,470 180,240 -80,380 Z"
-            fill="url(#silk-1)"
-          />
-          <path
-            d="M-80,300 C220,150 420,430 880,250 L880,520 C420,690 220,420 -80,560 Z"
-            fill="url(#silk-2)"
-            opacity="0.85"
-          />
-        </g>
-        <g className="silk-layer">
-          <path
-            d="M-80,520 C200,380 440,650 880,470 L880,720 C440,880 200,620 -80,760 Z"
-            fill="url(#silk-3)"
-            opacity="0.9"
-          />
-          <path
-            d="M-80,700 C240,580 460,820 880,660 L880,980 L-80,980 Z"
-            fill="url(#silk-1)"
-            opacity="0.75"
-          />
-        </g>
-        <rect width="800" height="900" fill="url(#silk-sheen)" />
-      </svg>
-    </>
   )
 }
 
@@ -220,8 +129,8 @@ export function PageHeading({
   description: ReactNode
 }) {
   return (
-    <div className="space-y-2">
-      <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+    <div className="space-y-2 text-center">
+      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
       <p className="text-sm text-foreground/75">{description}</p>
     </div>
   )

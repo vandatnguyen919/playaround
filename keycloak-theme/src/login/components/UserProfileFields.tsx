@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RequiredLabel } from '@/mockups/AuthShell'
 import { PasswordInput, PasswordMatchHint } from './PasswordInput'
+import { maskEmail } from '../lib/maskEmail'
 import type { ProfileForm } from '../lib/useProfileForm'
 import type { I18n } from '../i18n'
 
@@ -38,9 +39,12 @@ const fallbackKind: FieldKind = { Icon: User, type: 'text', autoComplete: 'off',
 export function ProfileFields({
   form,
   i18n,
+  lockedFields,
 }: {
   form: ProfileForm
   i18n: I18n
+  /** Fields shown as masked read-only text; their value still posts in a hidden input. */
+  lockedFields?: ReadonlySet<string>
 }) {
   const { fieldStates, dispatchFormAction, handleBlur, showsServerErrorFor } = form
   const { msgStr, advancedMsgStr } = i18n
@@ -50,6 +54,16 @@ export function ProfileFields({
     const { name, annotations } = state.attribute
     if (annotations.inputType === 'hidden') {
       return <input key={name} type="hidden" name={name} value={String(state.valueOrValues)} />
+    }
+    if (lockedFields?.has(name)) {
+      return (
+        <LockedField
+          key={name}
+          name={name}
+          label={fieldKinds[name]?.label ?? advancedMsgStr(state.attribute.displayName ?? name)}
+          value={String(state.valueOrValues)}
+        />
+      )
     }
     return (
       <ProfileField
@@ -65,6 +79,24 @@ export function ProfileFields({
       />
     )
   })
+}
+
+function LockedField({ name, label, value }: { name: string; label: string; value: string }) {
+  const { Icon } = fieldKinds[name] ?? fallbackKind
+  const shown = name === 'email' ? maskEmail(value) : value
+  return (
+    <Field className="gap-1.5">
+      <Label id={`${name}-label`}>{label}</Label>
+      <div
+        aria-labelledby={`${name}-label`}
+        className="flex h-11 items-center gap-2 rounded-lg border bg-muted/50 px-3 text-sm text-muted-foreground"
+      >
+        <Icon className="size-4 shrink-0" />
+        <span className="truncate">{shown}</span>
+      </div>
+      <input type="hidden" name={name} value={value} />
+    </Field>
+  )
 }
 
 function isShown(error: FormFieldError, fieldName: string, showServerErrors: boolean): boolean {

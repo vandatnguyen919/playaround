@@ -7,6 +7,7 @@ import { ProfileFields } from '../components/UserProfileFields'
 import { useProfileForm } from '../lib/useProfileForm'
 import type { KcContext } from '../KcContext'
 import type { I18n } from '../i18n'
+import { maskEmails } from '../lib/maskEmail'
 
 type UpdateProfileContext = Extract<KcContext, { pageId: 'login-update-profile.ftl' }>
 
@@ -20,7 +21,7 @@ export default function LoginUpdateProfile({
 
   const globalError =
     form.showServerErrors && message?.type === 'error' && messagesPerField.exists('global')
-      ? message.summary
+      ? maskEmails(message.summary)
       : undefined
 
   return (

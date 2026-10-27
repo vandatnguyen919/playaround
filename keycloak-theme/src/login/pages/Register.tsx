@@ -8,6 +8,7 @@ import { ProfileFields } from '../components/UserProfileFields'
 import { useProfileForm } from '../lib/useProfileForm'
 import type { KcContext } from '../KcContext'
 import type { I18n } from '../i18n'
+import { maskEmails } from '../lib/maskEmail'
 
 type RegisterContext = Extract<KcContext, { pageId: 'register.ftl' }>
 
@@ -21,7 +22,7 @@ export default function Register({
   const [termsAccepted, setTermsAccepted] = useState(false)
   const form = useProfileForm({ kcContext, i18n })
 
-  const globalError = message?.type === 'error' && messagesPerField.exists('global') ? message.summary : undefined
+  const globalError = message?.type === 'error' && messagesPerField.exists('global') ? maskEmails(message.summary) : undefined
   const canSubmit = (!termsAcceptanceRequired || termsAccepted) && !isSubmitting
 
   return (

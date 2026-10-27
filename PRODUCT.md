@@ -158,14 +158,26 @@ built-in OTP reset or a maintained reset-specific extension appears.
 **One `fullName` attribute in the Keycloak user profile.** The default profile
 is `username`, `email`, `firstName`, `lastName`. `username` and `email` cannot
 be removed; `firstName` and `lastName` are just defaults and can be hidden from
-registration. Add `fullName` as required, with `length` and
-`person-name-prohibited-characters` validators, and expose it as the `name`
+registration. Add `fullName` as required, with `length` (max 120) and `pattern`
+validators, and expose it as the `name`
 claim through an OIDC user attribute protocol mapper. Reason: it matches the
 requested one-field register form and does not invent a name split. Tradeoff:
 `firstName`/`lastName` arrive pre-wired with `given_name`/`family_name` claims
 and admin console support. Registration and account forms render from the
 profile schema, and Keycloakify renders those fields, so the register page gets
 one Full name field for free.
+
+Name characters (changed 2026-10-27, Dan): the built-in
+`person-name-prohibited-characters` validator was replaced by a `pattern`
+validator with the same blocked set minus `(` and `)`:
+`< > & " $ % ! # ? § ; * ~ / \ | ^ = [ ] { }` and control characters. Reason:
+Google and GitHub display names often carry parentheses (for example
+"Nguyen Van Dat (K18 HCM)"), and the built-in list cannot be configured, so
+those users were forced onto the review page with a name they could not keep.
+The pattern still blocks HTML and script characters, and Keycloakify checks a
+`pattern` in the browser, so the error shows when the field loses focus. Unicode
+letters, apostrophes, hyphens and periods are allowed. The running realm was
+updated through the admin API; the realm JSON carries the same config.
 
 ### Realm provisioning
 
@@ -213,11 +225,16 @@ Mockups in `/keycloak-theme` (Vite dev server) confirm the look. Round 1 came
 from the shadcnstudio 07 blocks and the shadcn InputOTP form example. Round 2
 moved to the split layout from Dan's reference image.
 
-- Split screen 1:1 on desktop. Left half is a dark silk wave panel (abstract
-  liquid metal waves built as SVG gradients with a slow drift) with the
-  uppercase headline "One cookie. Zero tokens." and one line of product copy
-  at the bottom. Right half is the auth form on white. Below lg the wave
-  panel is hidden and the form centers.
+- Round 3 (2026-10-27) replaced the split screen with one centered card
+  (shadcnstudio login-page-01 style). `AuthShell` is a full screen flex
+  container on a light gray canvas (`bg-muted/40`) holding a `max-w-[440px]`
+  card (`rounded-2xl`, border, `shadow-sm`), single column. The card starts
+  with the brand mark and "authn-authz-playground", then the page content, and
+  headings are centered. The silk wave panel and its headline copy were
+  removed. All pages inherit this because they all use `AuthShell`. Older
+  rounds below describe the split layout and are history.
+- Round 2 (history): split screen 1:1 with a dark silk wave panel on the left
+  and the form on white on the right.
 - Fields: label above every input, red asterisk on required ones (login and
   forgot password included), icon inside the input (mail, lock, user),
   show/hide toggle on passwords.
@@ -327,6 +344,37 @@ not. Visual match to the two shadcnstudio blocks is still a human review. The
 
 Note: the Keycloak access token carries name, email, preferred_username and
 realm roles but no `sub` claim; the profile endpoint returns those four.
+
+Page switch flicker reduced (2026-10-27). The theme index.html sets the html
+background, the entry script is render blocking (added in `vite.config.ts`
+because Vite drops the attribute), and `main.tsx` renders with `flushSync`.
+The cross document view transition (`@view-transition`) was tried and removed
+at Dan's request. Checked: built page and served login and register pages show
+the attribute and render fully. Not measured: the flicker itself, which needs a
+human look.
+
+Keycloak status pages are themed (2026-10-27). All informational and confirm
+pages render in the shadcn card from `StatusPages.tsx`: page expired, error,
+info, verify email, account already exists (`login-idp-link-confirm`), broker
+link already exists (`-override`), link by email (`login-idp-link-email`),
+link IdP action, logout confirm, front-channel logout, code, terms, and delete
+account. Each keeps Keycloak's form fields and submit values. Pages that
+collect credentials or set up factors (OTP, WebAuthn, recovery codes, X.509,
+update email, select authenticator or organization) still use the default
+theme. The card has a 520px minimum height and short content centers in it.
+Expired and error were checked live; the rest render from Keycloakify mocks,
+since reaching them needs a real IdP sign-in or a logout/terms setup.
+
+Email masking rule (Dan, 2026-10-27): any email shown to the user is masked to
+its first 3 characters plus the domain, with a fixed-width mask
+(`van•••••@gmail.com`; short local parts keep at least one character hidden).
+`maskEmail` masks a known address and `maskEmails` masks every address inside
+a Keycloak message. All message displays go through it (status pages, login
+notice, register and profile errors). On the IdP review page, an email the
+provider supplied is shown as masked read-only text and posts in a hidden
+input, since the realm trusts IdP emails; it stays an editable input when it
+is missing, malformed, or rejected by Keycloak. Other editable inputs show the
+real value since the user must be able to edit it.
 
 ## Stops
 
