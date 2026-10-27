@@ -22,6 +22,7 @@ import {
 import { PasswordInput } from '../components/PasswordInput'
 import type { KcContext } from '../KcContext'
 import type { I18n } from '../i18n'
+import { maskEmails } from '../lib/maskEmail'
 
 type LoginContext = Extract<KcContext, { pageId: 'login.ftl' }>
 
@@ -70,7 +71,7 @@ export default function Login({
           <p
             role="status"
             className="rounded-lg border bg-muted px-3 py-2 text-sm text-foreground"
-            dangerouslySetInnerHTML={{ __html: kcSanitize(notice.summary) }}
+            dangerouslySetInnerHTML={{ __html: kcSanitize(maskEmails(notice.summary)) }}
           />
         ) : null}
 

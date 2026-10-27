@@ -7,14 +7,19 @@ import { ProfileFields } from '../components/UserProfileFields'
 import { useProfileForm } from '../lib/useProfileForm'
 import type { KcContext } from '../KcContext'
 import type { I18n } from '../i18n'
+import { maskEmails } from '../lib/maskEmail'
 
 type IdpReviewContext = Extract<KcContext, { pageId: 'idp-review-user-profile.ftl' }>
+
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 /**
  * First broker login "Review Profile" step (idp-review-user-profile.ftl in Keycloak 26.8.1,
  * same page ID in Keycloakify 11.16.3). The Google and GitHub mappers fill fullName, so with
  * the realm's "missing" setting this only appears when the provider sent no usable name
- * (for example a GitHub account with no display name).
+ * (for example a GitHub account with no display name). An email the provider supplied is
+ * shown masked and read only, since the realm trusts it; it stays editable when missing,
+ * malformed, or rejected by Keycloak.
  */
 export default function IdpReviewUserProfile({
   kcContext,
@@ -23,10 +28,15 @@ export default function IdpReviewUserProfile({
   const { url, message, messagesPerField } = kcContext
   const [isSubmitting, setIsSubmitting] = useState(false)
   const form = useProfileForm({ kcContext, i18n })
+  const [lockedFields] = useState<ReadonlySet<string>>(() => {
+    const email = kcContext.profile.attributesByName.email?.value ?? ''
+    const rejected = messagesPerField.existsError('email')
+    return EMAIL_SHAPE.test(email) && !rejected ? new Set(['email']) : new Set()
+  })
 
   const globalError =
     form.showServerErrors && message?.type === 'error' && messagesPerField.exists('global')
-      ? message.summary
+      ? maskEmails(message.summary)
       : undefined
 
   return (
@@ -52,7 +62,7 @@ export default function IdpReviewUserProfile({
             if (form.handleSubmit(event)) setIsSubmitting(true)
           }}
         >
-          <ProfileFields form={form} i18n={i18n} />
+          <ProfileFields form={form} i18n={i18n} lockedFields={lockedFields} />
 
           <SubmitButton type="submit" disabled={isSubmitting}>
             Continue

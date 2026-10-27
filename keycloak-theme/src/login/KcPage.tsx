@@ -10,7 +10,21 @@ import LoginUpdateProfile from './pages/LoginUpdateProfile'
 import LoginUpdatePassword from './pages/LoginUpdatePassword'
 import LoginResetPassword from './pages/LoginResetPassword'
 import Register from './pages/Register'
-import { Info, LoginVerifyEmail } from './pages/StatusPages'
+import {
+  Code,
+  DeleteAccountConfirm,
+  ErrorPage,
+  FrontchannelLogout,
+  Info,
+  LinkIdpAction,
+  LoginIdpLinkConfirm,
+  LoginIdpLinkConfirmOverride,
+  LoginIdpLinkEmail,
+  LoginPageExpired,
+  LoginVerifyEmail,
+  LogoutConfirm,
+  Terms,
+} from './pages/StatusPages'
 
 export default function KcPage({ kcContext }: { kcContext: KcContext }) {
   const { i18n } = useI18n({ kcContext })
@@ -33,6 +47,28 @@ export default function KcPage({ kcContext }: { kcContext: KcContext }) {
         <LoginVerifyEmail kcContext={kcContext} i18n={i18n} />
       ) : kcContext.pageId === 'info.ftl' ? (
         <Info kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'login-page-expired.ftl' ? (
+        <LoginPageExpired kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'error.ftl' ? (
+        <ErrorPage kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'login-idp-link-confirm.ftl' ? (
+        <LoginIdpLinkConfirm kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'login-idp-link-confirm-override.ftl' ? (
+        <LoginIdpLinkConfirmOverride kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'login-idp-link-email.ftl' ? (
+        <LoginIdpLinkEmail kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'link-idp-action.ftl' ? (
+        <LinkIdpAction kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'logout-confirm.ftl' ? (
+        <LogoutConfirm kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'frontchannel-logout.ftl' ? (
+        <FrontchannelLogout kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'code.ftl' ? (
+        <Code kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'terms.ftl' ? (
+        <Terms kcContext={kcContext} i18n={i18n} />
+      ) : kcContext.pageId === 'delete-account-confirm.ftl' ? (
+        <DeleteAccountConfirm kcContext={kcContext} i18n={i18n} />
       ) : (
         <DefaultPage
           kcContext={kcContext}

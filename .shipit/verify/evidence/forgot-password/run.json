@@ -1,5 +1,5 @@
 {
-  "runId": "2026-10-27T04:05:17.891Z",
+  "runId": "2026-10-27T05:14:35.871Z",
   "checks": [
     "enumeration",
     "reset",
@@ -111,12 +111,12 @@
     "mail": {
       "subject": "Reset password",
       "from": "keycloak@playground.local",
-      "to": "verify-cdb3897a@example.com"
+      "to": "verify-46327d39@example.com"
     },
     "layout": {
       "assets": [
-        "/resources/afqbv/login/keycloak-theme/dist/assets/index-YdP3Acvp.js",
-        "/resources/afqbv/login/keycloak-theme/dist/assets/index-dqMjm9QC.css"
+        "/resources/afqbv/login/keycloak-theme/dist/assets/index-C00B7buW.js",
+        "/resources/afqbv/login/keycloak-theme/dist/assets/index-CEv2bCfk.css"
       ]
     }
   }

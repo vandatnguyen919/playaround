@@ -21,14 +21,15 @@ export function AuthShell({
 }) {
   return (
     <div className="flex min-h-svh w-full items-center justify-center bg-muted/40 px-4 py-10">
-      <main className="flex w-full max-w-[440px] flex-col gap-6 rounded-2xl border bg-card p-6 text-card-foreground shadow-sm sm:p-8">
+      <main className="flex min-h-[520px] w-full max-w-[440px] flex-col gap-6 rounded-2xl border bg-card p-6 text-card-foreground shadow-sm sm:p-8">
         <div className="flex items-center justify-center gap-2">
           <span className="flex size-8 items-center justify-center rounded-lg bg-foreground text-background">
             <KeyRound className="size-4" />
           </span>
           <span className="text-lg font-semibold tracking-tight">authn-authz-playground</span>
         </div>
-        {children}
+        {/* Short pages (errors, notices) center in the space the min height leaves. */}
+        <div className="flex flex-1 flex-col justify-center">{children}</div>
         {showBrand ? (
           <a
             href="#"
