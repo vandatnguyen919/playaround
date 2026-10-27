@@ -2,7 +2,6 @@ import { useState } from "react"
 
 import { ForgotPasswordPage } from "@/mockups/ForgotPasswordPage"
 import { LoginPage } from "@/mockups/LoginPage"
-import { OtpPage } from "@/mockups/OtpPage"
 import { RegisterPage } from "@/mockups/RegisterPage"
 import { ResetPasswordPage } from "@/mockups/ResetPasswordPage"
 
@@ -10,7 +9,6 @@ const pages = [
   { id: "login", label: "Login", Component: LoginPage },
   { id: "register", label: "Register", Component: RegisterPage },
   { id: "forgot", label: "Forgot password", Component: ForgotPasswordPage },
-  { id: "otp", label: "OTP entry", Component: OtpPage },
   { id: "reset", label: "Reset password", Component: ResetPasswordPage },
 ] as const
 
