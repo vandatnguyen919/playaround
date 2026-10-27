@@ -32,14 +32,15 @@ In priority order. Everything after the first result builds on it.
 1. Email/password login.
 2. Register with full name, email, password.
 3. Login with Google and GitHub.
-4. Forgot password, sends an email.
-5. Password reset using an OTP code.
-6. Role-based authorization (user/admin) on API and UI routes.
+4. Forgot password, sends an email with a reset link.
+5. Role-based authorization (user/admin) on API and UI routes.
 
 ## Non-goals
 
 Not now (could come later):
 
+- Password reset with an emailed OTP code (dropped 2026-10-27, Dan; the
+  email link flow covers reset).
 - MFA enrollment.
 - Admin UI.
 - Mobile apps.
@@ -83,6 +84,8 @@ Choices made, with reasons. Versions were checked against official docs on
   each. Keycloakify themes target the latest Keycloak and run on older ones.
   Keycloakify ships a shadcn/ui + Tailwind starter theme, which is our starting
   point for the theme. Revisit the pairing when either major version changes.
+- **These versions are pinned.** Do not re-check them against docs unless a
+  build fails or a major upgrade is planned.
 
 ### BFF specifics
 
@@ -140,28 +143,14 @@ Choices made, with reasons. Versions were checked against official docs on
   pre-login session. `Secure` follows `COOKIE_SECURE` (default false, since dev
   is plain http) for both cookies.
 
-### Password reset with an OTP code
+### Password reset
 
-Options considered:
-
-- **(a) Keep the built-in email link flow and only theme it.** No SPI code and
-  hard to break, but it is not the requested feature, and the demo becomes
-  "open Mailpit, click the link".
-- **(b) Custom Keycloak authenticator SPI for email OTP, plus a Keycloakify OTP
-  page.** Delivers exactly the requested flow and shows how identity provider
-  flows extend. All OTP details (length, TTL, resend, attempt limits) are ours.
-- **(c) A community email OTP extension** (for example
-  `mesutpiskin/keycloak-2fa-email-authenticator`, 286 stars, or
-  `for-keycloak/email-otp-authenticator`). These exist but are built for login
-  2FA, not password reset, so they need adapting anyway. Adding one is also a
-  dependency outside the stated stack, which is a Stop.
-
-Decision: **(b)**, keeping the built-in link flow intact as a fallback. Risks:
-the SPI touches Keycloak internals that can change across releases, so re-test
-on every Keycloak upgrade; OTP security is ours to get right (short TTL, hashed
-single-use codes, attempt limits wired to Keycloak brute force protection, no
-user enumeration); more test surface than (a). Revisit if Keycloak ships a
-built-in OTP reset or a maintained reset-specific extension appears.
+**Keycloak's built-in email link flow, themed. No custom SPI.** Changed
+2026-10-27 (Dan) from a custom email OTP authenticator SPI. Reason: the link
+flow already works and is verified, and the SPI would add Keycloak internals
+to maintain and OTP security to get right for no gain in the teaching point.
+Revisit only if an OTP reset becomes a goal again; Keycloak has no built-in
+one, so it would mean a custom SPI or a community extension (a Stop).
 
 ### Registration full name
 
@@ -224,47 +213,37 @@ at the root. npm keeps `/web` and `/keycloak-theme`; Gradle does not drive npm.
 - **React + TypeScript SPA (Vite) with Axios.** Uses a session cookie only and
   never handles tokens, which is the point of the demo.
 - **Keycloak as the identity provider** with a Keycloakify theme. Login,
-  register, forgot password, OTP input, and reset password mirror the linked
+  register, forgot password, and reset password mirror the linked
   shadcn blocks so the theme work has a concrete target.
 - **Local infra via docker-compose.** Keycloak, Redis, Mailpit for SMTP. Keeps
   the demo self-contained on a dev machine.
 
-### Keycloakify page design (prototype rounds 1 to 2)
+### Keycloakify page design
 
-Mockups in `/keycloak-theme` (Vite dev server) confirm the look. Round 1 came
-from the shadcnstudio 07 blocks and the shadcn InputOTP form example. Round 2
-moved to the split layout from Dan's reference image.
+Mockups in `/keycloak-theme` (Vite dev server) confirm the look. Earlier
+rounds (shadcnstudio 07 blocks, then a split layout) are in git history.
 
-- Round 3 (2026-10-27) replaced the split screen with one centered card
-  (shadcnstudio login-page-01 style). `AuthShell` is a full screen flex
-  container on a light gray canvas (`bg-muted/40`) holding a `max-w-[440px]`
-  card (`rounded-2xl`, border, `shadow-sm`), single column. The card starts
-  with the brand mark and "authn-authz-playground", then the page content, and
-  headings are centered. The silk wave panel and its headline copy were
-  removed. All pages inherit this because they all use `AuthShell`. Older
-  rounds below describe the split layout and are history.
-- Round 2 (history): split screen 1:1 with a dark silk wave panel on the left
-  and the form on white on the right.
+- Layout: one centered card (shadcnstudio login-page-01 style). `AuthShell` is
+  a full screen flex container on a light gray canvas (`bg-muted/40`) holding a
+  `max-w-[440px]` card (`rounded-2xl`, border, `shadow-sm`), single column. The
+  card starts with the brand mark and "authn-authz-playground", then the page
+  content. All pages use `AuthShell`.
 - Fields: label above every input, red asterisk on required ones (login and
   forgot password included), icon inside the input (mail, lock, user),
   show/hide toggle on passwords.
 - Social login: Google and GitHub, full width and stacked (GitHub replaces
   Facebook). Then an "Or" divider.
-- Headings are left aligned. The primary action is a full width h-11
+- Headings are centered. The primary action is a full width h-11
   near-black button. Copy follows the reference pattern: "Sign in to
   authn-authz-playground".
 - States: submit stays disabled until valid (reset password until both fields
-  match and are 8+ characters, OTP until all 6 digits), inline error text
-  under the fields, OTP shows a partial code in the 3+3 slot layout with a
-  Resend Code button.
-- Reusable pieces live in `/keycloak-theme/src/mockups/`: AuthShell,
-  SilkWaves, PageHeading, SocialButtons, OrDivider, RequiredLabel,
+  match and are 8+ characters), inline error text under the fields.
+- Reusable pieces live in `/keycloak-theme/src/mockups/AuthShell.tsx`:
+  AuthShell, PageHeading, SocialButtons, OrDivider, RequiredLabel,
   SubmitButton, EmailField, NameField, PasswordField, BackToLoginButton.
 
-Deliberate deviations from the references: the OTP title is "Check your email"
-to fit the reset flow; login shows only email and password (no name field),
-matching the login feature; the wave panel carries product copy instead of the
-reference photo grid.
+Deliberate deviation from the references: login shows only email and password
+(no name field), matching the login feature.
 
 Stated assumptions:
 
@@ -276,126 +255,54 @@ OAuth credentials are needed before feature 3 can be tested live.
 
 ## Current state
 
-Email/password login through the BFF works end to end and is verified
-(2026-10-18). The gateway is the OIDC client (code + PKCE S256), keeps the
-security context and the authorized client (access and refresh tokens) in the
-Redis-backed WebSession, and relays the access token to the API with TokenRelay.
-`GET /bff/user` returns the logged-in user's profile from the API's JWT
-resource server; with no valid session it is rejected with 401. `/web` shows
-the logged-in user (name, email, username, roles) with Sign in / Sign out, and
-`GET /bff/csrf` seeds the XSRF-TOKEN cookie Axios uses. Verified: the session
-key and the JWTs appear in Redis; localStorage and sessionStorage are empty and
-JS sees only the XSRF cookie (SESSION is HttpOnly, SameSite=Lax); a second
-gateway instance on 8191 serves the same session and relays the stored token;
-logout (CSRF POST, then top-level navigation to Keycloak's end session) removes
-the Redis session, clears the cookie, and kills the Keycloak SSO session, since
-signing in again shows the login form. Keycloak `start-dev` re-runs a Quarkus
-build on every start and is slow on a loaded dev machine; the compose
-healthcheck allows up to 8 minutes. The Keycloakify theme is now implemented in `/keycloak-theme` with Tailwind
-and shadcn/ui styling. The login and register pages share one look: both sit on
-the same `AuthShell` (silk-wave panel plus form column) and use the same shadcn
-field chrome (icon inputs, show/hide password, inline field errors). The login
-page posts to Keycloak's login action and maps the realm's identity-provider
-list to social buttons with real provider icons. The generated JAR
-is mounted into the Keycloak container, and the imported realm selects it with
-`loginTheme: "keycloak-theme"`. Google and GitHub use placeholder credentials
-by default. Their realm import configuration uses environment placeholders,
-explicit email scopes, and Keycloak's standard `first broker login` flow for
-existing-account linking or new-account creation. The OAuth app setup and
-callback URLs are documented in README.md. Real provider testing remains
-blocked until local credentials are set.
+Present tense only. Dated history is in git log.
 
-Role-based authorization is now wired through the BFF and API. Keycloak
-`realm_access.roles` map to `ROLE_user` and `ROLE_admin`. `/api/me` and
-`/api/admin` enforce the roles with `@PreAuthorize`; `/bff/me` and
-`/bff/admin` enforce the same roles before token relay. The React app has
-`/me`, `/admin`, and `/forbidden` guarded routes, with Axios redirects for
-401 and 403 responses. Focused API and gateway tests cover role mapping and
-anonymous, user, and admin authorization behavior.
+Works and verified:
 
-Registration is done and verified (2026-10-20). The Register 07 page in
-`/keycloak-theme` shows Full name, Email, Password and Confirm password (Full
-name first), and renders validation errors in the shadcn field style (client
-side and Keycloak server errors such as "Email already exists." and the
-password mismatch message). `verifyEmail` is on and mail goes to Mailpit
-(http://localhost:8025). Flow checked: register, themed "Check your email"
-page, Verify email message in Mailpit, link marks the user verified, login
-through the BFF shows the full name from the `name` claim. The realm JSON
-holds the user profile (`fullName`, no `firstName`/`lastName`), the `name`
-mapper, and the registration flow. Decisions made while building it:
-`registrationEmailAsUsername` is true (email is the username); the
-"Password Validation" step has `always_set_password_on_register_form` set, since
-with `verifyEmail` on Keycloak otherwise drops the password field and asks for
-it after verification. Checked on a fresh import.
+- **Login (feature 1).** BFF code + PKCE flow, Redis session, TokenRelay to the
+  API, `/bff/user` returns the profile, 401 without a session, RP-initiated
+  and back-channel logout. `node smoke.mjs` checks login, roles, CSRF, logout,
+  session fixation, cookie flags and back-channel logout against the live
+  stack (40 assertions).
+- **Register (feature 2).** Full name, email, password, confirm password.
+  `verifyEmail` is on, mail goes to Mailpit (http://localhost:8025).
+  `registrationEmailAsUsername` is true. The "Password Validation" step sets
+  `always_set_password_on_register_form`, or Keycloak drops the password field
+  when `verifyEmail` is on.
+- **Forgot password, link flow (feature 4).** Known and unknown emails get the
+  same page. `./verify` checks it end to end, including old password rejected.
+- **Roles (feature 5).** `realm_access.roles` map to `ROLE_user` and
+  `ROLE_admin`, enforced on `/api/*` and `/bff/*`. The SPA has `/me`, `/admin`
+  and `/forbidden` routes.
+- **Theme.** Login, register, forgot and reset password, profile completion
+  (`login-update-profile.ftl`, the fallback for users without `fullName`, such
+  as the `alice` fixture), and all informational and confirm status pages
+  render on `AuthShell`. Pages that collect credentials or set up factors (OTP,
+  WebAuthn, recovery codes, X.509, update email, select authenticator or
+  organization) still use the default theme.
 
-Next useful step: Google and GitHub login (feature 3), blocked on real OAuth
-credentials, or forgot password with an OTP code.
+Rules in force:
 
-Legacy profile completion is now themed (2026-10-21). Keycloak 26.8.1 renders
-the `login-update-profile.ftl` page for the `VERIFY_PROFILE` required action;
-Keycloakify 11.16.3 exposes that page ID and does not expose a separate
-`update-user-profile.ftl` page. The page reuses the registration shell and
-field validation. Decision: keep this themed page as the fallback for users
-created before `fullName` existed, rather than add a realm-wide migration.
-This keeps the recovery path idempotent and lets each user confirm or correct
-their name. The imported `alice` fixture represents that legacy shape with
-`firstName` and `lastName` only.
+- **Email masking (Dan).** Any email shown to the user is masked to its first
+  3 characters plus the domain with a fixed-width mask (`van•••••@gmail.com`;
+  short local parts keep at least one character hidden). Use `maskEmail` and
+  `maskEmails`. Editable inputs show the real value. On the IdP review page an
+  IdP-supplied email is masked read-only text in a hidden input, and stays
+  editable when missing, malformed or rejected.
 
-Forgot password (link flow) is themed and verified (2026-10-21). The realm
-`smtpServer` points at Mailpit (`mailpit:1025`). `LoginResetPassword` mirrors
-Forgot Password 07 and `LoginUpdatePassword` mirrors Reset Password 07, both on
-`AuthShell`. `Login.tsx` shows Keycloak's "email sent" notice. A known and an
-unknown email get the same page and message, so the flow does not reveal whether
-an account exists. `./verify` (see README) checks this end to end against the
-running stack, including that the new password signs in and the old one does
-not. Visual match to the two shadcnstudio blocks is still a human review. The
-`alice` fixture was reset to `alice1234` by re-importing the realm. The OTP reset
-(feature 5) is still open; this link flow stays as its fallback.
+Facts worth knowing:
 
-Note: the Keycloak access token carries name, email, preferred_username and
-realm roles but no `sub` claim; the profile endpoint returns those four.
+- The access token has name, email, preferred_username and realm roles but no
+  `sub` claim.
+- Keycloak `start-dev` re-runs a Quarkus build on every start. The compose
+  healthcheck allows up to 8 minutes.
+- The `alice` fixture password is `alice1234` after a fresh realm import.
+- Not checked by a tool: visual match to the shadcnstudio blocks and page
+  switch flicker. Status pages other than expired and error were checked from
+  Keycloakify mocks only.
 
-Page switch flicker reduced (2026-10-27). The theme index.html sets the html
-background, the entry script is render blocking (added in `vite.config.ts`
-because Vite drops the attribute), and `main.tsx` renders with `flushSync`.
-The cross document view transition (`@view-transition`) was tried and removed
-at Dan's request. Checked: built page and served login and register pages show
-the attribute and render fully. Not measured: the flicker itself, which needs a
-human look.
-
-Keycloak status pages are themed (2026-10-27). All informational and confirm
-pages render in the shadcn card from `StatusPages.tsx`: page expired, error,
-info, verify email, account already exists (`login-idp-link-confirm`), broker
-link already exists (`-override`), link by email (`login-idp-link-email`),
-link IdP action, logout confirm, front-channel logout, code, terms, and delete
-account. Each keeps Keycloak's form fields and submit values. Pages that
-collect credentials or set up factors (OTP, WebAuthn, recovery codes, X.509,
-update email, select authenticator or organization) still use the default
-theme. The card has a 520px minimum height and short content centers in it.
-Expired and error were checked live; the rest render from Keycloakify mocks,
-since reaching them needs a real IdP sign-in or a logout/terms setup.
-
-Email masking rule (Dan, 2026-10-27): any email shown to the user is masked to
-its first 3 characters plus the domain, with a fixed-width mask
-(`van•••••@gmail.com`; short local parts keep at least one character hidden).
-`maskEmail` masks a known address and `maskEmails` masks every address inside
-a Keycloak message. All message displays go through it (status pages, login
-notice, register and profile errors). On the IdP review page, an email the
-provider supplied is shown as masked read-only text and posts in a hidden
-input, since the realm trusts IdP emails; it stays an editable input when it
-is missing, malformed, or rejected by Keycloak. Other editable inputs show the
-real value since the user must be able to edit it.
-
-Session hardening is done and verified (2026-10-27). `node smoke.mjs` runs the
-main flows against the live stack with throwaway users: anonymous 401s,
-login, roles, CSRF, logout, session fixation, cookie flags, and back-channel
-logout (all 40 assertions pass). Session fixation: login rotates the pre-login
-session id and the old id is gone from Redis; same-user saves keep the id
-(unit tested). Back-channel logout was checked across a gateway restart, and
-the smoke check was shown to fail with the client's back-channel URL cleared.
-`COOKIE_SECURE=true` was checked to put `Secure` on both cookies. README now
-opens with an architecture diagram, run steps, the smoke test, and the
-hardening notes.
+Next: every feature except Google and GitHub login is done. Feature 3 is
+blocked on real OAuth credentials (a Stop).
 
 ## Stops
 
