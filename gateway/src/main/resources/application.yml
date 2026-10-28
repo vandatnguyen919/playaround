@@ -4,8 +4,18 @@ spring:
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      # ACL user from infra/redis/start.sh. The default user is off.
+      username: ${REDIS_USERNAME:gateway}
+      password: ${REDIS_PASSWORD:redis-dev-password}
+      # Fail fast when Redis is down so users get the 503 page instead of
+      # waiting on Lettuce's 60 second default. A stopped Redis fails at once
+      # (refused connection, commands rejected while disconnected); the
+      # command timeout only covers a Redis that hangs. 2 s proved too tight
+      # on a starved dev host (CPU at 100%), so 5 s.
+      connect-timeout: 1s
+      timeout: ${REDIS_TIMEOUT:5s}
 
   security:
     oauth2:
@@ -23,45 +33,111 @@ spring:
             - email
         provider:
           keycloak:
-            issuer-uri: http://localhost:8080/realms/playground
+            issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/playground}
+
+  web:
+    resources:
+      # The built SPA (web/dist). The gateway serves it so its responses carry
+      # the security headers and CSP. Dev runs the Vite server instead.
+      static-locations: ${playground.spa-location}
 
   cloud:
     gateway:
       server:
         webflux:
+          httpclient:
+            connect-timeout: 1000
+            response-timeout: 5s
+          # Every route goes to the API: rate limit per user, then a circuit
+          # breaker with a time limit (resilience4j below).
+          default-filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userOrAddressKeyResolver}"
+                redis-rate-limiter.replenishRate: ${RATE_LIMIT_PER_SECOND:10}
+                redis-rate-limiter.burstCapacity: ${RATE_LIMIT_BURST:20}
+                redis-rate-limiter.requestedTokens: 1
+            - name: CircuitBreaker
+              args:
+                name: api
+                fallbackUri: forward:/fallback/api
+                # 5xx answers count as failures too, not only exceptions.
+                statusCodes:
+                  - 500
+                  - 502
+                  - 503
+                  - 504
           routes:
             # Profile of the logged-in user: the browser calls the gateway
             # with no token, the gateway relays the access token to the API.
             - id: bff-me
-              uri: http://localhost:8182
+              uri: ${API_URL:http://localhost:8182}
               predicates:
                 - Path=/bff/me
               filters:
                 - SetPath=/api/me
                 - TokenRelay
             - id: bff-admin
-              uri: http://localhost:8182
+              uri: ${API_URL:http://localhost:8182}
               predicates:
                 - Path=/bff/admin
               filters:
                 - SetPath=/api/admin
                 - TokenRelay
             - id: bff-user-compatibility
-              uri: http://localhost:8182
+              uri: ${API_URL:http://localhost:8182}
               predicates:
                 - Path=/bff/user
               filters:
                 - SetPath=/api/me
                 - TokenRelay
             - id: api
-              uri: http://localhost:8182
+              uri: ${API_URL:http://localhost:8182}
               predicates:
                 - Path=/api/**
               filters:
                 - TokenRelay
 
+resilience4j:
+  timelimiter:
+    instances:
+      api:
+        # Covers the API call and a token refresh at Keycloak, if one runs.
+        timeout-duration: 3s
+  circuitbreaker:
+    instances:
+      api:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        slow-call-duration-threshold: 2s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+
+playground:
+  # Where the built SPA is, ending in a slash. Example for a local run from
+  # the repo root: SPA_LOCATION=file:web/dist/
+  spa-location: ${SPA_LOCATION:classpath:/static/}
+  session:
+    # Ends a session after this long without a request (Keycloak's SSO
+    # Session Idle default is also 30 minutes).
+    idle-timeout: ${SESSION_IDLE_TIMEOUT:30m}
+    # Ends a session this long after login, however active (Keycloak's SSO
+    # Session Max default is also 10 hours).
+    absolute-timeout: ${SESSION_ABSOLUTE_TIMEOUT:10h}
+  # The only origin allowed to make cross-origin calls. The SPA is same
+  # origin, so this matters only if the forwarded scheme or host is wrong.
+  app-url: ${APP_URL:http://localhost:5174}
+
 server:
   port: 8181
+  # Behind Traefik in production: take scheme, host and client address from
+  # X-Forwarded-*, so HSTS, redirect URIs and rate limit keys are right. Off
+  # in dev, where nothing in front sets them.
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:none}
   reactive:
     session:
       cookie:
@@ -76,7 +152,20 @@ server:
         secure: ${COOKIE_SECURE:false}
 
 management:
+  # Actuator on its own port, never published or routed by Traefik. Loopback
+  # by default; a container or pod probe sets MANAGEMENT_ADDRESS=0.0.0.0.
+  server:
+    port: ${MANAGEMENT_PORT:9181}
+    address: ${MANAGEMENT_ADDRESS:127.0.0.1}
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: false

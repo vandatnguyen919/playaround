@@ -11,6 +11,9 @@ const APP = process.env.APP_URL ?? "http://localhost:5174"
 const KC = process.env.KC_URL ?? "http://localhost:8080"
 const REDIS_HOST = process.env.REDIS_HOST ?? "localhost"
 const REDIS_PORT = Number(process.env.REDIS_PORT ?? 6379)
+// The gateway's ACL user (infra/redis/start.sh); the default user is off.
+const REDIS_USERNAME = process.env.REDIS_USERNAME ?? "gateway"
+const REDIS_PASSWORD = process.env.REDIS_PASSWORD ?? "redis-dev-password"
 const ADMIN_USER = process.env.KC_BOOTSTRAP_ADMIN_USERNAME ?? "admin"
 const ADMIN_PASS = process.env.KC_BOOTSTRAP_ADMIN_PASSWORD ?? "admin"
 // Set COOKIE_SECURE=true when the gateway runs with the same variable.
@@ -127,31 +130,37 @@ async function signIn(browser, user) {
   return { preLogin, session: browser.cookies.get("SESSION"), landed: done.url }
 }
 
-// Minimal RESP client: one command per connection, integer replies only.
+// Minimal RESP client: AUTH, then one command per connection, integer
+// replies only.
 function redis(...args) {
+  const encode = (parts) => `*${parts.length}\r\n` + parts.map((a) => `$${Buffer.byteLength(a)}\r\n${a}\r\n`).join("")
   return new Promise((resolve, reject) => {
     const socket = net.connect(REDIS_PORT, REDIS_HOST)
     let reply = ""
     socket.on("error", reject)
     socket.on("data", (chunk) => {
       reply += chunk
-      if (reply.endsWith("\r\n")) {
-        socket.end()
-        if (reply.startsWith("-")) reject(new Error(reply.trim()))
-        else resolve(Number(reply.slice(1)))
-      }
+      const lines = reply.split("\r\n")
+      if (lines.length < 3) return
+      socket.end()
+      const [auth, result] = lines
+      if (auth !== "+OK") reject(new Error(`Redis AUTH failed: ${auth}`))
+      else if (result.startsWith("-")) reject(new Error(result))
+      else resolve(Number(result.slice(1)))
     })
-    socket.write(`*${args.length}\r\n` + args.map((a) => `$${Buffer.byteLength(a)}\r\n${a}\r\n`).join(""))
+    socket.write(encode(["AUTH", REDIS_USERNAME, REDIS_PASSWORD]) + encode(args))
   })
 }
 
 const sessionInRedis = async (id) => (await redis("EXISTS", `spring:session:sessions:${id}`)) === 1
 
-let adminBearer
+// A fresh admin token per call: master realm tokens live 60 seconds, and a
+// run on a slow machine takes longer than that.
 async function adminApi(path, { method = "GET", json } = {}) {
+  const bearer = await adminToken()
   return fetch(`${KC}/admin/realms/${REALM}${path}`, {
     method,
-    headers: { authorization: `Bearer ${adminBearer}`, ...(json ? { "content-type": "application/json" } : {}) },
+    headers: { authorization: `Bearer ${bearer}`, ...(json ? { "content-type": "application/json" } : {}) },
     body: json && JSON.stringify(json),
   })
 }
@@ -324,7 +333,6 @@ if (unknownNames.length) {
 
 let failed = false
 try {
-  adminBearer = await adminToken()
   await createUser(USER)
   await createUser(ADMIN)
   // A failing check is reported and the rest still run.

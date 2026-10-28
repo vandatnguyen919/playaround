@@ -31,7 +31,23 @@ type User = {
   roles: string[]
 }
 
-type State = 'loading' | 'anonymous' | 'signed-in'
+type State = 'loading' | 'anonymous' | 'signed-in' | 'unavailable'
+
+const UNAVAILABLE = 'The service is temporarily unavailable. Please try again in a minute.'
+
+// The gateway answers 503 (Redis or the API down, circuit open) and 504 (API
+// too slow) with JSON { error, message } meant for the user.
+function outageMessage(error: unknown): string | null {
+  if (!axios.isAxiosError(error)) {
+    return null
+  }
+  const status = error.response?.status
+  if (status !== 502 && status !== 503 && status !== 504) {
+    return null
+  }
+  const message = (error.response?.data as { message?: unknown } | undefined)?.message
+  return typeof message === 'string' ? message : UNAVAILABLE
+}
 type Route = '/' | '/me' | '/admin' | '/forbidden'
 
 // Share one in-flight load so React StrictMode's double effect (and any double
@@ -42,6 +58,7 @@ export default function App() {
   const route = (window.location.pathname || '/') as Route
   const [state, setState] = useState<State>('loading')
   const [user, setUser] = useState<User | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const loadProtectedRoute = useCallback((endpoint: '/bff/me' | '/bff/admin') => {
     if (inFlight) {
@@ -59,9 +76,11 @@ export default function App() {
           await http.get(endpoint)
         }
         setState('signed-in')
-      } catch {
+      } catch (error) {
         setUser(null)
-        setState('anonymous')
+        const message = outageMessage(error)
+        setNotice(message)
+        setState(message ? 'unavailable' : 'anonymous')
       } finally {
         inFlight = null
       }
@@ -94,6 +113,13 @@ export default function App() {
       .catch(() => window.location.assign('/'))
   }
 
+  const outage = state === 'unavailable' && (
+    <div className="notice" role="alert">
+      <p>{notice}</p>
+      <button onClick={() => window.location.reload()}>Try again</button>
+    </div>
+  )
+
   if (route === '/forbidden') {
     return (
       <main className="shell">
@@ -109,6 +135,7 @@ export default function App() {
       <main className="shell">
         <h1>Admin</h1>
         {state === 'loading' && <p>Checking your permissions...</p>}
+        {outage}
         {state === 'signed-in' && (
           <>
             <p>Admin access granted.</p>
@@ -124,6 +151,7 @@ export default function App() {
       <main className="shell">
         <h1>Your profile</h1>
         {state === 'loading' && <p>Checking your session...</p>}
+        {outage}
         {state === 'signed-in' && user && (
           <section>
             <h2>{user.name ?? user.preferredUsername ?? user.email}</h2>

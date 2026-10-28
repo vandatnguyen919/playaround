@@ -63,12 +63,23 @@ services:
       - ./playground-users-dev.json:/config/playground-users-dev.json:ro
     restart: "no"
 
+  # Password and ACL from start.sh, policy in redis/redis.conf. The gateway
+  # signs in as user "gateway" (REDIS_PASSWORD); the default user is off.
   redis:
     image: redis:8.10-alpine
+    entrypoint: ["/bin/sh", "/usr/local/etc/redis/start.sh"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis-dev-password}
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis/start.sh:/usr/local/etc/redis/start.sh:ro
+      - redis-data:/data
     ports:
-      - "6379:6379"
+      # Loopback only: the gateway runs on the host in dev.
+      - "127.0.0.1:6379:6379"
+    mem_limit: 128m
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli --user gateway ping | grep -q PONG"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -83,3 +94,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+volumes:
+  redis-data:

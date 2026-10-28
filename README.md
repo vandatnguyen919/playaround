@@ -204,6 +204,40 @@ failure. Checks:
   `host.docker.internal:8181` (the client's Backchannel Logout URL in
   `infra/playground-realm.json`).
 
+## Redis and gateway hardening
+
+Decisions and values: PRODUCT.md, "Redis and gateway hardening".
+
+- **Redis** (`infra/redis/`): the default user is off; the gateway signs in as
+  `gateway` with `REDIS_PASSWORD` (dev default `redis-dev-password`) and may
+  touch only its own key prefixes, without FLUSHALL, KEYS or CONFIG. Dev
+  publishes 6379 on 127.0.0.1 only; prod has no published port. RDB
+  snapshots, 96 MB, `volatile-ttl`. Peek at a session:
+  `docker compose exec redis sh -c 'REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli --user gateway TTL spring:session:sessions:<id>'`
+- **Session:** 30 minute idle timeout, 10 hour absolute timeout, new session
+  id at login.
+- **Headers and CORS:** CSP, nosniff, `X-Frame-Options: DENY`,
+  `Referrer-Policy: same-origin`, HSTS on https. Other origins get 403.
+- **Actuator:** `http://localhost:9181/actuator/health` and `/info` only.
+- **Toward the API:** 3 s time limit (504), circuit breaker (503 while open),
+  Redis rate limiter 10/s, burst 20, per user (429).
+- **Redis down:** 503 with a short "We'll be right back" page, or JSON the SPA
+  shows as a notice. Liveness stays up.
+
+Check a running gateway. It must serve the SPA itself, so build it and run
+the gateway with `SPA_LOCATION` (PowerShell, from the repo root; bootRun runs
+in `gateway/`, hence `../`):
+
+```
+npm --prefix web run build
+$env:SPA_LOCATION='file:../web/dist/'; $env:FORWARD_HEADERS_STRATEGY='native'; .\gradlew.bat :gateway:bootRun
+node check-headers.mjs http://localhost:8181 http://localhost:9181
+```
+
+`.\gradlew.bat :gateway:test` runs the same checks and more (rate limiter,
+time limiter, circuit breaker, ACL, Redis down) against Redis in
+Testcontainers, so Docker must be running.
+
 ---
 
 The sections below are the detailed walkthroughs written as each slice landed.

@@ -1,5 +1,16 @@
 # Open
 
+## Redis and gateway hardening (2026-10-28)
+
+Done and tested (`.\gradlew.bat :gateway:test`, `node check-headers.mjs`,
+`node smoke.mjs` 40/40); see PRODUCT.md. Left:
+
+- **Gateway in compose.prod.yml.** Redis is there; the gateway service still
+  needs a Dockerfile that copies `web/dist` in (`SPA_LOCATION`), and env
+  `REDIS_HOST=redis`, `FORWARD_HEADERS_STRATEGY=native`, `COOKIE_SECURE=true`,
+  `APP_URL`, `MANAGEMENT_ADDRESS=0.0.0.0` for its healthcheck. Part of "Rest
+  of phase 1 compose" below.
+
 ## Keycloak production readiness (2026-10-28)
 
 Done and checked locally: see Current state in PRODUCT.md. Left:
