@@ -78,14 +78,77 @@ are shown; on macOS/Linux use `./gradlew` and `cp`.
    npm run dev
    ```
 
-5. Open http://localhost:5174 and sign in as `alice` / `alice1234` (user) or
-   `admin` / `admin1234` (user and admin). Mail lands in Mailpit at
-   http://localhost:8025. Keycloak admin console: http://localhost:8080
-   (`admin` / `admin` in dev).
+5. Open http://localhost:5174 and sign in as `alice@example.com` / `alice1234`
+   (user) or `admin@example.com` / `admin1234` (user and admin). Mail lands in
+   Mailpit at http://localhost:8025. Keycloak admin console:
+   http://localhost:8080 (`admin` / `admin` in dev).
 
 Secrets and provider credentials go in `infra/.env` (copy
-`infra/.env.example`). The realm is imported only when it does not exist yet,
-so realm JSON changes need a fresh Keycloak volume.
+`infra/.env.example`).
+
+### Realm config as code
+
+The realm lives in `infra/playground-realm.json` and is applied by the
+`keycloak-config` service ([keycloak-config-cli](https://github.com/adorsys/keycloak-config-cli))
+through the admin API on every `docker compose up`, then the service exits.
+Dev also applies `infra/playground-users-dev.json` (the test users). So:
+
+- To change the realm, edit the JSON and rerun
+  `docker compose -f infra/docker-compose.yml up keycloak-config`. No volume
+  wipe needed.
+- Do not change realm settings in the admin console. The next run puts the
+  file's values back (the import cache is off on purpose).
+- Values that differ per environment are `$(env:NAME)` placeholders, resolved
+  from the `keycloak-config` service's environment: secrets, `APP_URL`, the
+  back-channel logout URL and SMTP. Keycloak's own `${...}` message keys in the
+  file are left alone.
+- Files are applied in name order, so the realm file runs before the users
+  file.
+
+## Production stack (phase 1, Keycloak slice)
+
+`deploy/compose/compose.prod.yml` runs Traefik, Keycloak in production mode,
+Postgres (named volume `keycloak-db`) and the same `keycloak-config` job,
+without test users. Gateway, api, web and Redis join it once they have images.
+
+```
+cd deploy/compose
+cp .env.example .env        (fill in every value; on the VM: root-owned, 0600)
+docker compose -f compose.prod.yml up -d --build
+node check.mjs              (exits nonzero on any failed check)
+```
+
+One `up` from an empty volume gives a fully configured realm: Keycloak creates
+the schema and the bootstrap admin user and client, then `keycloak-config`
+signs in with that client and applies `infra/playground-realm.json`, then
+`keycloak-admin-url` points the master realm at the tunnel URL. First boot
+takes a few minutes.
+
+- **Image.** `keycloak-theme/Dockerfile` builds the theme jar, bakes it in with
+  `kc.sh build` (Postgres, health, metrics) and starts with
+  `start --optimized`. Multi-arch:
+  `docker buildx build --platform linux/arm64,linux/amd64 -t <image> --push keycloak-theme`.
+- **Public.** `https://AUTH_HOST` routes only `/realms/playground/` and
+  `/resources/`. The admin console and admin API, the master realm, `/`,
+  health and metrics all return 404 there.
+- **Hostname and proxy.** `KC_HOSTNAME` is the fixed public URL, so a forged
+  `X-Forwarded-Host` cannot change the issuer. `X-Forwarded-*` headers are
+  trusted from Traefik's fixed IP only.
+- **Health and metrics** are on the management port 9000, which is not
+  published.
+- **Admin console** over an SSH tunnel to the loopback port:
+  `ssh -L 8080:127.0.0.1:8080 <vm>`, then http://localhost:8080/admin/. The
+  master realm's frontend URL is that tunnel URL, so its sign-in does not go
+  through the public host. It is set by its own one-shot step after
+  `keycloak-config`: the change also moves the master token issuer, and
+  keycloak-config-cli fails with 401 on the next call in the same run.
+- **TLS.** Traefik gets Let's Encrypt certs over HTTP-01, from the staging CA
+  until `ACME_CA_SERVER` is switched to production.
+
+Local trial without DNS or certs: set `AUTH_HOST=auth.localhost`,
+`APP_HOST=app.localhost`, an empty `TLS_CERT_RESOLVER=` (Traefik's
+self-signed cert) and `KC_ADMIN_PORT=18080` if 8080 is taken by the dev stack,
+then run `node check.mjs --env-file <file> --insecure`.
 
 ## Smoke test
 
@@ -227,8 +290,8 @@ All commands are run from the repo root unless stated otherwise.
 
    `infra/.env.example` names the variables (`GATEWAY_CLIENT_SECRET`,
    `KC_BOOTSTRAP_ADMIN_USERNAME`, `KC_BOOTSTRAP_ADMIN_PASSWORD`). Never commit
-   the real `.env`. The realm import resolves `${GATEWAY_CLIENT_SECRET}` inside
-   `infra/playground-realm.json`.
+   the real `.env`. The `keycloak-config` service resolves
+   `$(env:GATEWAY_CLIENT_SECRET)` inside `infra/playground-realm.json`.
 
 3. **Start the API** (the profile endpoint behind the gateway):
 
@@ -290,27 +353,17 @@ Mailpit at http://localhost:8025. Try it: open http://localhost:5174, click Sign
 Register, submit, open the "Verify email" message in Mailpit, click the link,
 and sign in.
 
-The realm import holds the settings (`registrationAllowed`, `verifyEmail`, the
-`fullName` user profile attribute, and the registration flow). Import is
-skipped when the realm already exists, so an old Keycloak volume keeps its old
-settings. Wipe the volume to pick the changes up.
+The realm file holds the settings (`registrationAllowed`, `verifyEmail`, the
+`fullName` user profile attribute, and the registration flow), applied by
+`keycloak-config` (see Realm config as code).
 
 ### Default `user` role
 
-The realm import makes `user` part of the realm default roles
+The realm file makes `user` part of the realm default roles
 (`default-roles-playground`), so every new user gets it with no manual step:
 self-registered users and users created by a first Google or GitHub login alike.
-A realm imported before this change keeps its old default roles. Fix it once,
-without wiping the volume:
-
-```
-node infra/fix-default-roles.mjs --dry-run   (shows what would change)
-node infra/fix-default-roles.mjs
-```
-
-The script adds `user` to the default role composite, which covers every
-existing user too, then grants `user` directly to anyone who still lacks it.
-Running it again changes nothing.
+`keycloak-config` applies this to an existing realm too, which covers every
+existing user through the composite.
 
 ### Forgot password and verify
 
@@ -318,8 +371,8 @@ The login page links to Forgot Password (themed after shadcn Forgot Password
 07). Keycloak emails a reset link to Mailpit at http://localhost:8025. The link
 opens Set new password (themed after Reset Password 07). Unknown and known
 emails get the same reply, so the page does not reveal which accounts exist.
-The realm `smtpServer` block in `playground-realm.json` points at
-`mailpit:1025`.
+The realm `smtpServer` block in `playground-realm.json` takes its values from
+the `SMTP_*` variables of the `keycloak-config` service (`mailpit:1025` in dev).
 
 With Keycloak and Mailpit up and the theme jar built, run:
 
@@ -407,12 +460,13 @@ CSRF behavior are the same as for password login. Verify both a new social
 account and linking to an existing password account. The provider credentials
 are required for this live check.
 
-**Test users** (from `infra/playground-realm.json`, dev only):
+**Test users** (from `infra/playground-users-dev.json`, dev only; email is the
+username):
 
 | Username | Password | Roles |
 | --- | --- | --- |
-| `alice` | `alice1234` | user |
-| `admin` | `admin1234` | user, admin |
+| `alice@example.com` | `alice1234` | user |
+| `admin@example.com` | `admin1234` | user, admin |
 
 Keycloak admin console: http://localhost:8080 (Administration Console), login
 from `KC_BOOTSTRAP_ADMIN_*` in `infra/.env.example`.
@@ -518,7 +572,7 @@ curl -s -H "Cookie: SESSION=<value>" http://localhost:5174/bff/user
 Expected (verified):
 
 ```json
-{"name":"Alice Anderson","preferredUsername":"alice","email":"alice@example.com","roles":["user"]}
+{"name":"Alice Anderson","preferredUsername":"alice@example.com","email":"alice@example.com","roles":["user"]}
 ```
 
 Without the cookie you get `401`:
@@ -592,8 +646,8 @@ you straight back in (verified) — the SSO session is dead too.
 | `api/src/main/resources/application.yml` | JWT issuer the API validates against | `spring.security.oauth2.resourceserver.jwt.issuer-uri` |
 | `web/src/App.tsx` | The SPA: session state, sign in / sign out | the `axios.create` block (`withCredentials`, `xsrfCookieName`, `xsrfHeaderName`) and `loadUser` |
 | `web/vite.config.ts` | Dev proxy so the browser sees one origin | `proxy` map: `/api`, `/bff`, `/oauth2`, `/login`, `/logout` → `:8181` |
-| `infra/docker-compose.yml` | Keycloak + Redis + Mailpit | the `keycloak` service (`start-dev --import-realm`, healthcheck) |
-| `infra/playground-realm.json` | Realm `playground`: `gateway` client, PKCE S256, redirect URIs, test users | the `clients[0]` block and `post.logout.redirect.uris: "+"` |
+| `infra/docker-compose.yml` | Keycloak + Redis + Mailpit | the `keycloak` service (`start-dev`, healthcheck) and `keycloak-config` (applies the realm) |
+| `infra/playground-realm.json` | Realm `playground`: `gateway` client, PKCE S256, redirect URIs (test users are in `playground-users-dev.json`) | the `clients[0]` block and `post.logout.redirect.uris: "+"` |
 | `infra/.env.example` | Placeholder names for secrets | copy to `infra/.env`; never commit real values |
 
 ### 6. Concepts in this slice
@@ -640,11 +694,11 @@ you straight back in (verified) — the SSO session is dead too.
 
 1. **Keycloak error page: "Invalid redirect uri"** — the redirect or post-logout
    URI the gateway sends is not allowed for the client. Check `redirectUris` and
-   `post.logout.redirect.uris` in `infra/playground-realm.json`. Gotcha: the
-   realm is imported **only when it does not exist yet**; editing the file does
-   nothing to an already-imported realm. To re-import:
-   `docker compose -f infra/docker-compose.yml down -v` (destroys all local
-   Keycloak data) then `up -d --wait` (not verified in this pass — destructive).
+   `post.logout.redirect.uris` in `infra/playground-realm.json`. After editing
+   the file, apply it with
+   `docker compose -f infra/docker-compose.yml up keycloak-config`.
+   `redirectUris` is `$(env:APP_URL)/*`, so also check `APP_URL` on that
+   service.
    Another gotcha hit live: `post.logout.redirect.uris` is parsed
    whitespace-separated; a comma-joined list is read as one URI. The file uses
    the special value `+` (= "same as the redirect URIs").
@@ -721,8 +775,6 @@ Commands and claims I could **not** verify:
 - macOS/Linux spellings (`./gradlew`, `curl`, `cp`) — everything was run on
   Windows PowerShell with `.\gradlew.bat` and `curl.exe`. The commands above are
   Windows-verified; POSIX equivalents are (not verified) here.
-- `docker compose down -v` + full realm re-import (step 7.1) — not run in this
-  pass because it is destructive.
 - Troubleshooting causes 2 (cookie scoping) and 6 (issuer/clock) were not
   reproduced live; they are derived from the config and browser cookie rules.
   7.3 (CORS), 7.7 (CSRF 403) and the `post.logout.redirect.uris` gotcha in 7.1

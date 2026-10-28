@@ -1,0 +1,48 @@
+{
+  "realm": "playground",
+  "users": [
+    {
+      "username": "alice@example.com",
+      "enabled": true,
+      "email": "alice@example.com",
+      "emailVerified": true,
+      "attributes": {
+        "fullName": [
+          "Alice Anderson"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "alice1234",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "admin@example.com",
+      "enabled": true,
+      "email": "admin@example.com",
+      "emailVerified": true,
+      "attributes": {
+        "fullName": [
+          "Ada Admin"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin1234",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user",
+        "admin"
+      ]
+    }
+  ]
+}
