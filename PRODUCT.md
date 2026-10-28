@@ -188,15 +188,35 @@ updated through the admin API; the realm JSON carries the same config.
 
 ### Realm provisioning
 
-**A realm import JSON in `/infra`, named `<realm>-realm.json`** (for example
-`playground-realm.json`), mounted into `/opt/keycloak/data/import` and imported
-on startup with `start-dev --import-realm`. Keycloak resolves `${VAR}`
-placeholders in realm files from environment variables, so Google and GitHub
-client ids and secrets stay in `.env`, for example `${GOOGLE_CLIENT_ID}`. The
-same file carries the gateway client, redirect and post-logout URIs, the
-back-channel logout URL, the Google and GitHub identity providers, the user
-profile config, and the reset flow binding. Note: import is skipped when the
-realm already exists, so wipe the volume (or delete the realm) to re-import.
+**Realm config as code with keycloak-config-cli 6.5.1
+(`adorsys/keycloak-config-cli:6.5.1-26.5.5`, multi-arch).** Changed 2026-10-28
+(Dan) from Keycloak's `--import-realm`, which runs only when the realm does not
+exist, so every later change was a one-off admin API or console edit.
+
+The realm stays in `infra/playground-realm.json` (realm export format). A
+`keycloak-config` compose service applies it through the admin API after
+Keycloak is healthy, on every `up`, then exits. The import cache is off, so
+each run also puts back console drift. Dev applies
+`infra/playground-users-dev.json` (test users) as well; production does not.
+Files run in name order. Per-environment values are `$(env:NAME)` placeholders
+(config-cli's syntax, which leaves Keycloak's `${...}` message keys alone):
+client and IdP secrets, `APP_URL` (redirect URIs and web origins), the
+back-channel logout URL, and SMTP. The file carries the gateway client and its
+mappers (`fullName` to `name`, realm roles to `realm_access.roles`), default
+roles (`user` in `default-roles-playground`), Google and GitHub with their
+`name` to `fullName` mappers, the user profile, and the flow configs.
+
+Why not the Terraform provider: it would mean rewriting the working realm JSON
+as HCL, a state file that holds client secrets, and a `terraform apply` per
+realm change, which is a Stop. config-cli reuses the JSON as is, runs inside
+compose (later a Kubernetes Job) next to Keycloak, and needs no state store.
+Tradeoff: no plan/diff preview before applying, and config-cli builds lag
+Keycloak (6.5.1 targets 26.5.5 and is run against 26.8.1). Revisit if a plan
+step becomes worth it, or config-cli stops keeping up with Keycloak.
+
+In production config-cli signs in with the bootstrap admin service account
+client (`KC_BOOTSTRAP_ADMIN_CLIENT_*`), created on first boot. Keycloak flags
+bootstrap admins as temporary; replacing it with a permanent one is open.
 
 ### Repo layout
 
@@ -562,11 +582,26 @@ agent on Dan's machine as an inbound agent.
   `db-tls-mode=verify-server` using the operator's CA. Risk: Barman Cloud on
   OCI's S3 compatibility API is untested here, and WAL segments count toward
   the 50,000 requests. Prove it with a restore before phase 2 is done.
-- **Keycloak image:** runs `start` (production mode) from an image built with
-  `kc.sh build` (Postgres, health, metrics, tracing, theme jar inside), so no
-  Quarkus build on each start. Realm config stays in `playground-realm.json`
-  and is imported on first boot only; users live in the database, hence the
-  backups.
+- **Keycloak image:** `keycloak-theme/Dockerfile` builds the theme jar on the
+  build platform, then runs `kc.sh build` (Postgres, health, metrics, theme
+  jar inside) and starts with `start --optimized`, so no Quarkus build on each
+  start. Tracing is added in phase 2, when there is a collector. Realm config
+  is applied by keycloak-config (see Realm provisioning); users live in the
+  database, hence the backups.
+- **Hostname and proxy (phase 1, `deploy/compose/compose.prod.yml`):**
+  `KC_HOSTNAME=https://auth.<domain>` (fixed, so forwarded headers cannot
+  change issuer or links), `KC_PROXY_HEADERS=xforwarded`, and
+  `KC_PROXY_TRUSTED_ADDRESSES` set to Traefik's fixed IP only. TLS ends at
+  Traefik; Keycloak serves plain HTTP on the compose network. Traefik routes
+  only `/realms/playground/` and `/resources/`, so the admin console and API,
+  the master realm, and `/` return 404 publicly. Health and metrics are on the
+  management port 9000, which is never published. The admin console is at
+  `KC_HOSTNAME_ADMIN=http://localhost:8080`, bound to the VM's loopback and
+  reached over an SSH tunnel. The master realm's `frontendUrl` is that same
+  tunnel URL, or its sign-in form would post to the blocked public host. A
+  one-shot `keycloak-admin-url` step (kcadm from our image) sets it after
+  keycloak-config, because the change moves the master token issuer and
+  config-cli's next call in the same run fails with 401.
 - **Restore drill:** a backup counts only after a restore into a scratch
   database passes `smoke.mjs`. Once per phase.
 - **Redis:** sessions only, no backup. Losing it logs everyone out, which is
@@ -634,8 +669,8 @@ Works and verified:
   `ROLE_admin`, enforced on `/api/*` and `/bff/*`. The SPA has `/me`, `/admin`
   and `/forbidden` routes.
 - **Theme.** Login, register, forgot and reset password, profile completion
-  (`login-update-profile.ftl`, the fallback for users without `fullName`, such
-  as the `alice` fixture), and all informational and confirm status pages
+  (`login-update-profile.ftl`, the fallback for users without `fullName`), and
+  all informational and confirm status pages
   render on `AuthShell`. Pages that collect credentials or set up factors (OTP,
   WebAuthn, recovery codes, X.509, update email, select authenticator or
   organization) still use the default theme.
@@ -655,13 +690,27 @@ Facts worth knowing:
   `sub` claim.
 - Keycloak `start-dev` re-runs a Quarkus build on every start. The compose
   healthcheck allows up to 8 minutes.
-- The `alice` fixture password is `alice1234` after a fresh realm import.
+- Test users (dev only, `infra/playground-users-dev.json`):
+  `alice@example.com` / `alice1234` and `admin@example.com` / `admin1234`.
+  Usernames equal emails because the realm uses email as username;
+  keycloak-config-cli rejects anything else. Each needs a `fullName`
+  attribute: users go through the admin API, which enforces the user profile.
 - Not checked by a tool: visual match to the shadcnstudio blocks and page
   switch flicker. Status pages other than expired and error were checked from
   Keycloakify mocks only.
 
-- Deployment: decisions recorded in Deployment platform. Nothing is built or
-  provisioned yet.
+- **Keycloak production slice (phase 1, local only).**
+  `deploy/compose/compose.prod.yml`: Traefik, Keycloak from the custom image
+  in production mode, Postgres 18.6 on a named volume, keycloak-config and
+  keycloak-admin-url. One `up -d` from empty volumes gives a fully configured
+  realm; `node deploy/compose/check.mjs` checks it (43 checks: prod profile,
+  Postgres, health and metrics on 9000 only, issuer and forged
+  `X-Forwarded-Host`, themed login, admin console and master realm 404 on the
+  public host, console sign-in over the tunnel, client, mappers, default
+  roles, IdPs, user profile, no test users). A console edit is undone by
+  rerunning keycloak-config. Checked on the dev machine with `auth.localhost`
+  and Traefik's self-signed cert, not yet with a real domain or Let's Encrypt.
+- Deployment: nothing is provisioned yet. See `.shipit/open.md`.
 
 Next: every feature except Google and GitHub login is done. Feature 3 is
 blocked on real OAuth credentials (a Stop). Deployment phase 1 can start once

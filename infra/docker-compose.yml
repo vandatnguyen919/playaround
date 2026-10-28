@@ -3,19 +3,12 @@ name: authn-authz-playground
 services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.8.1
-    command: start-dev --import-realm
+    command: start-dev
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:-admin}
       KC_HEALTH_ENABLED: "true"
-      # Resolved into playground-realm.json (${GATEWAY_CLIENT_SECRET})
-      GATEWAY_CLIENT_SECRET: ${GATEWAY_CLIENT_SECRET:-gateway-dev-secret}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-google-client-id-not-configured}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-google-client-secret-not-configured}
-      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-github-client-id-not-configured}
-      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-github-client-secret-not-configured}
     volumes:
-      - ./playground-realm.json:/opt/keycloak/data/import/playground-realm.json:ro
       - ../keycloak-theme/dist_keycloak/keycloak-theme-for-kc-all-other-versions.jar:/opt/keycloak/providers/keycloak-theme.jar:ro
     ports:
       - "8080:8080"
@@ -31,6 +24,44 @@ services:
       retries: 60
       # First boot runs a Quarkus build; allow plenty of time before failing
       start_period: 180s
+
+  # Applies playground-realm.json (and the dev test users) through the admin
+  # API, then exits. Runs on every `up`, so realm edits land without a wipe and
+  # admin console drift is put back. Rerun alone: docker compose up keycloak-config
+  keycloak-config:
+    image: adorsys/keycloak-config-cli:6.5.1-26.5.5
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    environment:
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_USER: ${KC_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      KEYCLOAK_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:-admin}
+      KEYCLOAK_AVAILABILITYCHECK_ENABLED: "true"
+      IMPORT_FILES_LOCATIONS: /config/playground-realm.json,/config/playground-users-dev.json
+      IMPORT_VARSUBSTITUTION_ENABLED: "true"
+      # Re-apply even when the files are unchanged, to undo console edits.
+      IMPORT_CACHE_ENABLED: "false"
+      # Resolved into the realm files as $(env:NAME)
+      APP_URL: http://localhost:5174
+      GATEWAY_BACKCHANNEL_LOGOUT_URL: http://host.docker.internal:8181/logout/connect/back-channel/gateway
+      GATEWAY_CLIENT_SECRET: ${GATEWAY_CLIENT_SECRET:-gateway-dev-secret}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-google-client-id-not-configured}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-google-client-secret-not-configured}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-github-client-id-not-configured}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-github-client-secret-not-configured}
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_FROM: keycloak@playground.local
+      SMTP_SSL: "false"
+      SMTP_STARTTLS: "false"
+      SMTP_AUTH: "false"
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+    volumes:
+      - ./playground-realm.json:/config/playground-realm.json:ro
+      - ./playground-users-dev.json:/config/playground-users-dev.json:ro
+    restart: "no"
 
   redis:
     image: redis:8.10-alpine
