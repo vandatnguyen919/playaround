@@ -110,6 +110,42 @@ services:
       - traefik.http.routers.keycloak.tls=true
       - traefik.http.routers.keycloak.tls.certresolver=${TLS_CERT_RESOLVER-le}
       - traefik.http.services.keycloak.loadbalancer.server.port=8080
+      # Abuse limits per client IP on the form posts that check a password,
+      # create an account or send mail. Traefik is the edge (Cloudflare is DNS
+      # only), so the remote address is the client: the ratelimit default
+      # source. One router per group, so each group has its own buckets;
+      # priority beats the catch-all router above. Over the limit: 429.
+      # Values and reasons: PRODUCT.md, Auth abuse protection.
+      - traefik.http.routers.keycloak-login.entrypoints=websecure
+      - traefik.http.routers.keycloak-login.rule=Host(`${AUTH_HOST}`) && Path(`/realms/playground/login-actions/authenticate`)
+      - traefik.http.routers.keycloak-login.priority=100
+      - traefik.http.routers.keycloak-login.middlewares=kc-login-limit
+      - traefik.http.routers.keycloak-login.service=keycloak
+      - traefik.http.routers.keycloak-login.tls=true
+      - traefik.http.routers.keycloak-login.tls.certresolver=${TLS_CERT_RESOLVER-le}
+      - traefik.http.middlewares.kc-login-limit.ratelimit.average=10
+      - traefik.http.middlewares.kc-login-limit.ratelimit.period=1m
+      - traefik.http.middlewares.kc-login-limit.ratelimit.burst=10
+      - traefik.http.routers.keycloak-register.entrypoints=websecure
+      - traefik.http.routers.keycloak-register.rule=Host(`${AUTH_HOST}`) && (Path(`/realms/playground/login-actions/registration`) || Path(`/realms/playground/protocol/openid-connect/registrations`))
+      - traefik.http.routers.keycloak-register.priority=100
+      - traefik.http.routers.keycloak-register.middlewares=kc-register-limit
+      - traefik.http.routers.keycloak-register.service=keycloak
+      - traefik.http.routers.keycloak-register.tls=true
+      - traefik.http.routers.keycloak-register.tls.certresolver=${TLS_CERT_RESOLVER-le}
+      - traefik.http.middlewares.kc-register-limit.ratelimit.average=5
+      - traefik.http.middlewares.kc-register-limit.ratelimit.period=1m
+      - traefik.http.middlewares.kc-register-limit.ratelimit.burst=5
+      - traefik.http.routers.keycloak-reset.entrypoints=websecure
+      - traefik.http.routers.keycloak-reset.rule=Host(`${AUTH_HOST}`) && Path(`/realms/playground/login-actions/reset-credentials`)
+      - traefik.http.routers.keycloak-reset.priority=100
+      - traefik.http.routers.keycloak-reset.middlewares=kc-reset-limit
+      - traefik.http.routers.keycloak-reset.service=keycloak
+      - traefik.http.routers.keycloak-reset.tls=true
+      - traefik.http.routers.keycloak-reset.tls.certresolver=${TLS_CERT_RESOLVER-le}
+      - traefik.http.middlewares.kc-reset-limit.ratelimit.average=5
+      - traefik.http.middlewares.kc-reset-limit.ratelimit.period=1m
+      - traefik.http.middlewares.kc-reset-limit.ratelimit.burst=5
     restart: unless-stopped
 
   # Applies the realm through the admin API on every `up`, then exits.

@@ -1,5 +1,14 @@
 # Open
 
+## Auth abuse protection (2026-10-29)
+
+Done and checked: see Auth abuse protection in PRODUCT.md. Left:
+
+- **Verify-email resend is not rate limited.** It shares
+  `/login-actions/required-action` with other required actions. Next action:
+  check whether Keycloak 26.8 has a resend cooldown before adding a Traefik
+  rule.
+
 ## Redis and gateway hardening (2026-10-28)
 
 Done and tested (`.\gradlew.bat :gateway:test`, `node check-headers.mjs`,

@@ -87,7 +87,12 @@ Choices made, with reasons. Versions were checked against official docs on
   security context repository is a small variant that changes the session id
   only when the signed-in principal changes: the stock one rotates on every
   save, and a token refresh save would then strand parallel requests on the
-  old id and wipe the cookie.
+  old id and wipe the cookie. The refresh token provider's own OIDC user
+  refresh handler must be given this repository (on the provider, not the
+  client manager, whose default success handler is what stores refreshed
+  tokens in the session). Before 2026-10-29 it sat on the manager: every
+  refresh rotated the id and the new tokens were never saved, so a burst of
+  parallel calls at token expiry got 500s. `node smoke.mjs refresh` covers it.
 - **Keycloak 26.8.1 with Keycloakify 11.x (current 11.16.3).** Latest stable of
   each. Keycloakify themes target the latest Keycloak and run on older ones.
   Keycloakify ships a shadcn/ui + Tailwind starter theme, which is our starting
@@ -185,11 +190,12 @@ and prod):
 **Session** (gateway):
 
 - **Idle timeout 30 minutes** (`SESSION_IDLE_TIMEOUT`), the Redis TTL that
-  each request pushes out. Matches Keycloak's SSO Session Idle default.
+  each request pushes out. Matches Keycloak's SSO Session Idle (set
+  explicitly in the realm, see Auth abuse protection).
 - **Absolute timeout 10 hours** (`SESSION_ABSOLUTE_TIMEOUT`). Login stamps the
   session; once the stamp is older, the next request invalidates it (401) even
   if active. Token refreshes do not extend it. Matches Keycloak's SSO Session
-  Max, so a re-login after it really asks for the password.
+  Max (set explicitly), so a re-login after it really asks for the password.
 - **Session id rotation on login** was already in place
   (`StableSessionSecurityContextRepository`); the absolute timeout lives there
   too.
@@ -232,6 +238,97 @@ and prod):
   own stricter CSP, style inlined by hash), the SPA's calls get JSON
   `session_store_unavailable` and the SPA shows the message. No cookie is
   cleared, so sessions that survive in Redis still work afterwards.
+
+### Auth abuse protection
+
+Decided 2026-10-29 (Dan asked for each item; the values are ours). Realm
+values live in `infra/playground-realm.json` (applied by keycloak-config),
+edge limits in `deploy/compose/compose.prod.yml`. Checked by `./verify`
+(attack checks pass when the attack fails safely) and `node smoke.mjs
+refresh`.
+
+**Brute force (realm), temporary lockout only:**
+
+| Setting | Value | Why |
+| --- | --- | --- |
+| `permanentLockout`, `maxTemporaryLockouts` | false, 0 | A permanent lock lets anyone lock any user out for good by guessing; only an admin could undo it. |
+| `bruteForceStrategy` | MULTIPLE | Wait grows with each further block of 5 failures. |
+| `failureFactor` | 5 | Locks after 5 failures in a row. |
+| `waitIncrementSeconds` | 60 | First lock 1 minute, then 2, 3... |
+| `maxFailureWaitSeconds` | 900 | Never more than 15 minutes, which bounds the lockout an attacker can force on a victim. |
+| `maxDeltaTimeSeconds` | 43200 | The failure count resets 12 hours after the last failure. |
+| `quickLoginCheckMilliSeconds`, `minimumQuickLoginWaitSeconds` | 1000, 60 | Two failures under 1 s apart (a script, not a person) lock for 1 minute at once. |
+
+A locked account must not tell that it exists, so Keycloak's "Account is
+temporarily disabled" text is overridden (realm `messageBundles`, en) with
+the wrong-password text. Without it two quick guesses against an email
+showed whether it had an account. Per-user lockout does not stop one
+password tried across many accounts; the edge limit does.
+
+**Password policy:** `length(8) and notUsername and notEmail`. Matches the
+theme's 8+ hint. Usernames are emails, so both rules refuse the email as
+password. No max length is set (Keycloak's own input limits apply).
+
+**Lifespans (realm, explicit):**
+
+- SSO Session Idle 30 min (1800 s) and SSO Session Max 10 h (36000 s), the
+  gateway's idle and absolute timeouts, so both ends expire together.
+- Access token 5 min (300 s). The gateway refreshes it out of sight, so a
+  short token costs nothing.
+- Reset link 15 min (`actionTokenGeneratedByUserLifespan.reset-credentials`
+  900 s). Keycloak's 5 min default is short for mail delay; 15 min bounds the
+  accepted older-link gap below. Other user action tokens (verify email) stay
+  at 5 min.
+
+**Refresh token rotation: off** (`revokeRefreshToken` false). Tested
+through the gateway with 8 parallel calls at token expiry: with rotation on
+and no reuse, 7 of 8 got 502 (Keycloak rejects the reused refresh token);
+with it off, 8 of 8 got 200 over two rounds. Rotation mainly protects public
+clients. Here the refresh token never leaves the gateway and Redis, and using
+it needs the client secret. Revisit if tokens ever leave the server, or if
+the gateway serializes refreshes per session.
+
+**Edge rate limits (Traefik, per client IP, production only):**
+
+| Paths | Limit | Why |
+| --- | --- | --- |
+| `/realms/playground/login-actions/authenticate` | 10 per minute, burst 10 | Caps credential stuffing at 10 guesses a minute per IP while a person with typos is never blocked. |
+| `/login-actions/registration`, `/protocol/openid-connect/registrations` | 5 per minute, burst 5 | Caps account creation, verify mail, and the "email exists" lookup. |
+| `/login-actions/reset-credentials` | 5 per minute, burst 5 | Caps reset mail (each POST can send one). |
+
+Each group has its own router and buckets, so a flood on one does not block
+another. Over the limit is a plain 429 with `Retry-After`. Traefik is the
+edge (Cloudflare DNS only), so the remote address is the client. In memory,
+one Traefik. The gateway's Redis limiter already covers `/bff` and `/api`.
+Not limited: the verify-email resend link (`/login-actions/required-action`),
+shared with other required actions.
+
+**Enumeration:**
+
+- Login, forgot password and a locked account all answer the same for known
+  and unknown emails (regression checks `enumeration`, `enumdiff`,
+  `stuffing`, `lockout`).
+- **Registration keeps "Email already exists."** Hiding it needs the same
+  answer for new and taken emails ("check your inbox") plus a mail to the
+  owner, which Keycloak cannot do without a custom registration SPI (a Stop,
+  like the OTP reset). Accepted, bounded by the 5 per minute limit. The check
+  pins that a taken email creates nothing, sends nothing and leaves the
+  owner's password working. With email as username Keycloak shows "Email
+  already exists. Username already exists."
+- **IdP account-exists page stays.** It only shows to someone who signed in
+  at Google or GitHub with that email, and both verify emails, so it tells
+  the owner about their own account. Linking still needs email verification
+  or re-authentication (no auto link). The email is masked (email masking
+  rule).
+
+**Accepted: older reset links live out their 15 min** (decided 2026-10-29).
+Keycloak checks each reset token on its own, so an older unused link still
+sets the password after a newer one was used, until it expires. Only someone
+with the older mail can use it, and the window is at most 15 min. Closing it
+needs a custom SPI (a Stop), which is not worth it for this risk. The
+`olderlink` check pins the bound instead: the realm keeps 900 s, and with the
+lifespan cut short for the run, the older link stops working at expiry even
+after a newer one was used. Revisit if reset links get longer.
 
 ### Password reset
 
@@ -738,8 +835,8 @@ Works and verified:
 - **Login (feature 1).** BFF code + PKCE flow, Redis session, TokenRelay to the
   API, `/bff/user` returns the profile, 401 without a session, RP-initiated
   and back-channel logout. `node smoke.mjs` checks login, roles, CSRF, logout,
-  session fixation, cookie flags and back-channel logout against the live
-  stack (40 assertions).
+  session fixation, cookie flags, back-channel logout and parallel token
+  refreshes against the live stack (45 assertions).
 - **Register (feature 2).** Full name, email, password, confirm password.
   `verifyEmail` is on, mail goes to Mailpit (http://localhost:8025).
   `registrationEmailAsUsername` is true. The "Password Validation" step sets
@@ -763,6 +860,13 @@ Works and verified:
   `.\gradlew.bat :gateway:test` runs them against Redis in Testcontainers
   with the real config. `node check-headers.mjs <gateway> <management>`
   checks a running gateway (it must serve the SPA, so not through Vite).
+- **Auth abuse protection.** Temporary lockout, password policy, explicit
+  lifespans, rotation off, edge rate limits, enumeration choices (see
+  Decisions). `./verify` runs the attack checks against dev Keycloak
+  (`stuffing`, `lockout`, `policy`, `enumeration`, `enumdiff`, `reset`,
+  `expiredlink`); `flood` runs against the compose.prod.yml stack with
+  `EDGE_HOST=auth.localhost EDGE_INSECURE=1`. Edge limits checked locally
+  with Traefik's self-signed cert, not yet on a real domain.
 
 Rules in force:
 
