@@ -2,6 +2,7 @@ package dev.playground.gateway;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 
 import reactor.core.publisher.Mono;
@@ -44,16 +45,42 @@ import org.springframework.security.web.server.authentication.logout.SecurityCon
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.WebSessionServerLogoutHandler;
 import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
+import org.springframework.security.web.server.header.ReferrerPolicyServerHttpHeadersWriter.ReferrerPolicy;
+import org.springframework.security.web.server.header.XFrameOptionsServerHttpHeadersWriter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.ServerWebExchange;
 
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfig {
+
+    /**
+     * CSP for the SPA (the Vite build: one module script and one stylesheet
+     * under /assets, no inline code) and for every other gateway response.
+     * Everything comes from this origin; XHR goes only to the gateway; Keycloak
+     * is reached by top-level navigation, which CSP does not restrict. No page
+     * may frame the app.
+     */
+    static final String CONTENT_SECURITY_POLICY = String.join("; ",
+            "default-src 'self'",
+            "script-src 'self'",
+            "style-src 'self'",
+            "img-src 'self'",
+            "font-src 'self'",
+            "connect-src 'self'",
+            "object-src 'none'",
+            "base-uri 'self'",
+            "form-action 'self'",
+            "frame-ancestors 'none'");
 
     @Bean
     SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,
             ReactiveClientRegistrationRepository clientRegistrations,
             ServerOAuth2AuthorizedClientRepository authorizedClients,
             ReactiveAuthenticationManager oidcAuthenticationManager,
+            StableSessionSecurityContextRepository securityContextRepository,
+            @Value("${playground.app-url}") String appUrl,
             @Value("${server.reactive.session.cookie.secure:false}") boolean secureCookies) {
         // Keycloak enforces PKCE S256 for the gateway client, so always apply
         // it. The code_verifier travels in the authorization request attributes
@@ -70,7 +97,11 @@ public class SecurityConfig {
 
         http
             .authorizeExchange((authorize) -> authorize
-                .pathMatchers("/", "/favicon.ico", "/bff/csrf", "/actuator/health").permitAll()
+                // The SPA shell and its assets are public; its data is not.
+                .pathMatchers("/", "/me", "/admin", "/forbidden", "/index.html", "/assets/**",
+                        "/favicon.ico", "/favicon.svg", "/bff/csrf").permitAll()
+                // Only on the management port (application.yml).
+                .pathMatchers("/actuator/health/**", "/actuator/info").permitAll()
                 .pathMatchers("/oauth2/authorization/**", "/login/oauth2/code/**",
                         "/logout/connect/back-channel/**").permitAll()
                 .pathMatchers("/bff/me").hasRole("user")
@@ -78,7 +109,8 @@ public class SecurityConfig {
                 .anyExchange().authenticated())
             // Rotate the session id at login, not on token refresh saves, so
             // parallel requests do not lose the session cookie.
-            .securityContextRepository(new StableSessionSecurityContextRepository())
+            // It also ends sessions at the absolute timeout.
+            .securityContextRepository(securityContextRepository)
             .oauth2Login((login) -> login
                 .authenticationManager(oidcAuthenticationManager)
                 .authorizationRequestResolver(authorizationRequestResolver)
@@ -97,8 +129,35 @@ public class SecurityConfig {
                 // XSRF-TOKEN cookie and Axios echoes it in the X-XSRF-TOKEN
                 // header, so the SPA needs no CSRF code.
                 .csrfTokenRepository(csrfTokenRepository)
-                .csrfTokenRequestHandler(new SpaServerCsrfTokenRequestHandler()));
+                .csrfTokenRequestHandler(new SpaServerCsrfTokenRequestHandler()))
+            .headers((headers) -> headers
+                // nosniff and no-store Cache-Control are on by default.
+                .contentSecurityPolicy((csp) -> csp.policyDirectives(CONTENT_SECURITY_POLICY))
+                .frameOptions((frame) -> frame.mode(XFrameOptionsServerHttpHeadersWriter.Mode.DENY))
+                .referrerPolicy((referrer) -> referrer.policy(ReferrerPolicy.SAME_ORIGIN))
+                // Written on https requests only, as the spec requires. Behind
+                // Traefik that needs FORWARD_HEADERS_STRATEGY=native.
+                .hsts((hsts) -> hsts.maxAge(Duration.ofDays(365)).includeSubdomains(true)))
+            .cors((cors) -> cors.configurationSource(corsConfigurationSource(appUrl)));
         return http.build();
+    }
+
+    /**
+     * The SPA is same origin, so it never needs CORS. Any other origin is
+     * refused (403), preflight or not. The app's own origin is listed so a
+     * request still passes if the scheme or host the gateway sees differs
+     * from what the browser used (for example TLS ending at a proxy).
+     */
+    private static CorsConfigurationSource corsConfigurationSource(String appUrl) {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of(appUrl));
+        config.setAllowedMethods(List.of("GET", "POST"));
+        config.setAllowedHeaders(List.of("Content-Type", "X-XSRF-TOKEN"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(Duration.ofHours(1));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean
@@ -132,7 +191,8 @@ public class SecurityConfig {
     @Bean
     ReactiveOAuth2AuthorizedClientManager authorizedClientManager(
             ReactiveClientRegistrationRepository clientRegistrations,
-            ServerOAuth2AuthorizedClientRepository authorizedClients) {
+            ServerOAuth2AuthorizedClientRepository authorizedClients,
+            StableSessionSecurityContextRepository securityContextRepository) {
         // Used by the TokenRelay filter to read (and refresh) the access token.
         DelegatingReactiveOAuth2AuthorizedClientProvider providers = new DelegatingReactiveOAuth2AuthorizedClientProvider(
                 List.of(new AuthorizationCodeReactiveOAuth2AuthorizedClientProvider(),
@@ -145,7 +205,7 @@ public class SecurityConfig {
         // session id, which logs out parallel requests on the old id.
         RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler successHandler =
                 new RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler();
-        successHandler.setServerSecurityContextRepository(new StableSessionSecurityContextRepository());
+        successHandler.setServerSecurityContextRepository(securityContextRepository);
         clientManager.setAuthorizationSuccessHandler(successHandler);
         return clientManager;
     }

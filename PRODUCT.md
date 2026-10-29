@@ -116,7 +116,8 @@ Choices made, with reasons. Versions were checked against official docs on
   deferred-token request handler so the cookie holds the raw token while
   request tokens can be BREACH masked. Login and logout POSTs are CSRF
   protected automatically.
-- **Same origin through the gateway, no CORS.** The gateway serves or proxies
+- **Same origin through the gateway, no CORS** (other origins are refused;
+  see Redis and gateway hardening). The gateway serves or proxies
   the SPA. In dev, the Vite server proxies `/api`, `/bff`, `/oauth2`, `/login`,
   and `/logout` to the gateway with `changeOrigin: false`, so redirect URIs
   build against the SPA origin. The browser talks to one origin; Keycloak is
@@ -150,6 +151,87 @@ Choices made, with reasons. Versions were checked against official docs on
   HttpOnly. `Lax` because the redirect back from Keycloak must carry the
   pre-login session. `Secure` follows `COOKIE_SECURE` (default false, since dev
   is plain http) for both cookies.
+
+### Redis and gateway hardening
+
+Decided 2026-10-28 (Dan asked for each item; the values are ours).
+
+**Redis** (`infra/redis/redis.conf`, `infra/redis/start.sh`, same files in dev
+and prod):
+
+- **ACL, no shared password.** `start.sh` writes the ACL file from
+  `REDIS_PASSWORD` at start, so the password is only in `.env`. The `default`
+  user is off. User `gateway` may touch only `spring:session:*`,
+  `playground:*` and `request_rate_limiter.*`, has no pub/sub, and has no
+  `@dangerous` commands (FLUSHALL, KEYS, CONFIG, DEBUG...) except INFO for the
+  health check. No admin user; debugging goes through the gateway user or a
+  restart.
+- **Network.** Prod: only on the internal `backend` network, no published
+  port. Dev: published on `127.0.0.1:6379` only, because the gateway runs on
+  the host. No TLS: traffic never leaves the VM.
+- **Persistence: RDB snapshots (`save 300 1`, `save 60 1000`), no AOF.** A
+  restart or redeploy keeps most sessions; at worst five minutes of logins
+  sign in again. The dump holds refresh tokens, so it stays on the VM volume
+  and is never backed up.
+- **Memory: `maxmemory 96mb`, `volatile-ttl`, container limit 128 MB.** Every
+  key has a TTL. `volatile-ttl` evicts rate limiter buckets and nearly idle
+  sessions before the 10 hour OIDC registry entries that back-channel logout
+  needs. `noeviction` would fail every new login when full; LRU would evict
+  the registry first, since it is read only at logout.
+- **Stretch: Sentinel.** One primary, one replica and three Sentinels would
+  survive a Redis crash, and Lettuce and Spring Data Redis support it. Not
+  now: HA is a non-goal and one VM cannot give it.
+
+**Session** (gateway):
+
+- **Idle timeout 30 minutes** (`SESSION_IDLE_TIMEOUT`), the Redis TTL that
+  each request pushes out. Matches Keycloak's SSO Session Idle default.
+- **Absolute timeout 10 hours** (`SESSION_ABSOLUTE_TIMEOUT`). Login stamps the
+  session; once the stamp is older, the next request invalidates it (401) even
+  if active. Token refreshes do not extend it. Matches Keycloak's SSO Session
+  Max, so a re-login after it really asks for the password.
+- **Session id rotation on login** was already in place
+  (`StableSessionSecurityContextRepository`); the absolute timeout lives there
+  too.
+
+**Gateway:**
+
+- **Gateway serves the built SPA** (`SPA_LOCATION`, for example
+  `file:web/dist/`) so the HTML carries the headers. Dev still uses Vite for
+  hot reload; its HTML has no CSP (Vite's dev client needs inline script).
+- **Headers:** CSP `default-src 'self'; script-src 'self'; style-src 'self';
+  img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none';
+  base-uri 'self'; form-action 'self'; frame-ancestors 'none'` (the Vite build
+  has no inline code), `X-Content-Type-Options: nosniff`, `X-Frame-Options:
+  DENY`, `Referrer-Policy: same-origin`, HSTS one year with
+  `includeSubDomains`, no preload (needs the domain first). HSTS goes out on
+  https only, so behind Traefik the gateway runs with
+  `FORWARD_HEADERS_STRATEGY=native`.
+- **CORS:** only `APP_URL` (credentials, GET and POST, `Content-Type` and
+  `X-XSRF-TOKEN`). Any other origin gets 403, preflight or not.
+- **Actuator:** health and info only, on management port 9181
+  (`MANAGEMENT_PORT`), bound to 127.0.0.1 by default
+  (`MANAGEMENT_ADDRESS=0.0.0.0` for a container or pod probe). Never routed by
+  Traefik. Health shows no details. Liveness ignores Redis, so a Redis outage
+  does not restart the gateway.
+- **Toward the API:** connect timeout 1 s, response timeout 5 s, Resilience4j
+  time limit 3 s, circuit breaker `api` (20 call window, opens at 50% failures
+  or 80% calls over 2 s, after at least 10 calls; 5xx counts as failure; 15 s
+  open, then 3 trial calls). Fallback JSON: 504 `api_timeout`, 503
+  `api_unavailable` (open, `Retry-After: 15`), 502 `api_error`.
+- **Rate limiter:** Redis `RequestRateLimiter` on every route, 10 requests per
+  second with bursts of 20 (`RATE_LIMIT_PER_SECOND`, `RATE_LIMIT_BURST`), per
+  signed-in user and route, by client address when anonymous. Over the limit:
+  429. If Redis fails, the limiter lets requests through (Spring's default);
+  the session lookup fails first anyway.
+- **Redis down:** a stopped Redis fails at once (refused connection, Lettuce
+  rejects commands while disconnected); a hung one after the 5 s command
+  timeout (`REDIS_TIMEOUT`; 2 s gave false outages on a starved dev host).
+  Replies are handled off Lettuce's I/O thread (`publishOnScheduler`). Users get 503 with
+  `Retry-After: 30`: page loads see a small "We'll be right back" page (its
+  own stricter CSP, style inlined by hash), the SPA's calls get JSON
+  `session_store_unavailable` and the SPA shows the message. No cookie is
+  cleared, so sessions that survive in Redis still work afterwards.
 
 ### Password reset
 
@@ -236,7 +318,7 @@ at the root. npm keeps `/web` and `/keycloak-theme`; Gradle does not drive npm.
 ### Also decided
 
 - **Local ports.** Keycloak 8080, Mailpit 8025 (UI) and 1025 (SMTP), Redis 6379,
-  gateway 8181, api 8182, web dev server 5174. Ports 8081 and 8082 were already
+  gateway 8181 (management 9181), api 8182, web dev server 5174. Ports 8081 and 8082 were already
   taken by another local stack on the dev machine.
 - **React + TypeScript SPA (Vite) with Axios.** Uses a session cookie only and
   never handles tokens, which is the point of the demo.
@@ -605,7 +687,7 @@ agent on Dan's machine as an inbound agent.
 - **Restore drill:** a backup counts only after a restore into a scratch
   database passes `smoke.mjs`. Once per phase.
 - **Redis:** sessions only, no backup. Losing it logs everyone out, which is
-  acceptable.
+  acceptable. Hardening and persistence: see Redis and gateway hardening.
 - **AWS later:** the same CloudNativePG setup on S3, or RDS for PostgreSQL;
   decide then.
 
@@ -674,6 +756,13 @@ Works and verified:
   render on `AuthShell`. Pages that collect credentials or set up factors (OTP,
   WebAuthn, recovery codes, X.509, update email, select authenticator or
   organization) still use the default theme.
+
+- **Redis and gateway hardening.** Redis ACL, policy and network; session
+  idle and absolute timeouts; security headers, CORS, actuator port, time
+  limiter, circuit breaker, rate limiter, and the Redis outage page.
+  `.\gradlew.bat :gateway:test` runs them against Redis in Testcontainers
+  with the real config. `node check-headers.mjs <gateway> <management>`
+  checks a running gateway (it must serve the SPA, so not through Vite).
 
 Rules in force:
 

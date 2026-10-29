@@ -1,6 +1,6 @@
 # Phase 1 production stack, Keycloak slice: Traefik, Keycloak (production
-# mode, custom image), Postgres, and keycloak-config-cli for the realm.
-# Gateway, api, web and Redis join here once they have images.
+# mode, custom image), Postgres, keycloak-config-cli for the realm, and Redis
+# for the gateway. Gateway, api and web join here once they have images.
 #
 #   cp .env.example .env    # fill in every value
 #   docker compose -f compose.prod.yml up -d --build
@@ -8,7 +8,8 @@
 # Public: https://${AUTH_HOST} serves only /realms/playground/ and /resources/.
 # Not public: the admin console and admin API (Traefik has no route for them),
 # the master realm, and health and metrics (management port 9000, never
-# published). Admin console over an SSH tunnel:
+# published), and Redis (backend network only, password and ACL). Admin
+# console over an SSH tunnel:
 #   ssh -L 8080:127.0.0.1:8080 <vm>   then   http://localhost:8080/admin/
 name: playground-prod
 
@@ -173,6 +174,28 @@ services:
     networks: [backend]
     restart: "no"
 
+  # Sessions, OIDC session registry and rate limiter buckets for the gateway.
+  # Only on the internal backend network: no published port, no route out.
+  # The gateway signs in as user "gateway" with REDIS_PASSWORD; the default
+  # user is off. Policy (RDB snapshots, 96 MB, volatile-ttl): redis.conf.
+  redis:
+    image: redis:8.10-alpine
+    entrypoint: ["/bin/sh", "/usr/local/etc/redis/start.sh"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD}
+    volumes:
+      - ../../infra/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ../../infra/redis/start.sh:/usr/local/etc/redis/start.sh:ro
+      - redis-data:/data
+    networks: [backend]
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli --user gateway ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
 networks:
   edge:
     ipam:
@@ -183,4 +206,5 @@ networks:
 
 volumes:
   keycloak-db:
+  redis-data:
   letsencrypt:
