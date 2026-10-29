@@ -2,7 +2,7 @@
 // Usage: ./smoke [check...]   (Windows: node smoke.mjs [check...])
 // Needs the whole stack: infra/docker-compose.yml (Keycloak, Redis, Mailpit),
 // the API (:8182), the gateway (:8181) and the SPA dev server (:5174).
-// Checks: anonymous, login, roles, csrf, logout, fixation, backchannel. No arguments runs all.
+// Checks: anonymous, login, roles, csrf, logout, fixation, backchannel, refresh. No arguments runs all.
 // Exits nonzero on any failure.
 import net from "node:net"
 import { randomBytes } from "node:crypto"
@@ -315,6 +315,31 @@ async function checkBackchannel() {
   assert("the registry entry is removed too", (await redis("EXISTS", `playground:oidc:session:${session}`)) === 0)
 }
 
+// Parallel token refreshes. The gateway refreshes an access token within 60 s
+// of expiry (Spring's default clock skew), so with a 75 s lifespan the token is
+// due 15 s after it was issued and every request in a burst tries to refresh.
+// Two rounds: the second refreshes with whatever refresh token the first left
+// in the session, which is where refresh token rotation would break.
+async function checkRefresh() {
+  const realm = await (await adminApi("")).json()
+  const saved = realm.accessTokenLifespan
+  const rotation = realm.revokeRefreshToken ? `rotation on, max reuse ${realm.refreshTokenMaxReuse}` : "rotation off"
+  await adminApi("", { method: "PUT", json: { accessTokenLifespan: 75 } })
+  try {
+    const b = new Browser()
+    const { session } = await signIn(b, USER)
+    for (const round of [1, 2]) {
+      await new Promise((r) => setTimeout(r, 17000))
+      const burst = await Promise.all(Array.from({ length: 8 }, () => b.xhr("/bff/me").then((r) => r.status)))
+      assert(`round ${round}: 8 parallel calls due a refresh all get 200 (${rotation})`, burst.every((s) => s === 200), burst.join(","))
+      assert(`round ${round}: the next call still gets 200`, (await b.xhr("/bff/me")).status === 200)
+    }
+    assert("the session id did not change", b.cookies.get("SESSION") === session)
+  } finally {
+    await adminApi("", { method: "PUT", json: { accessTokenLifespan: saved } })
+  }
+}
+
 const checks = {
   anonymous: checkAnonymous,
   login: checkLogin,
@@ -323,6 +348,7 @@ const checks = {
   logout: checkLogout,
   fixation: checkFixation,
   backchannel: checkBackchannel,
+  refresh: checkRefresh,
 }
 const requested = process.argv.slice(2)
 const unknownNames = requested.filter((n) => !(n in checks))

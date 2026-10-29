@@ -1,8 +1,14 @@
 {
-  "runId": "2026-10-28T01:23:40.054Z",
+  "runId": "2026-10-29T11:10:58.787Z",
   "checks": [
     "enumeration",
+    "enumdiff",
+    "stuffing",
+    "policy",
     "reset",
+    "expiredlink",
+    "olderlink",
+    "lockout",
     "layout"
   ],
   "results": [
@@ -23,6 +29,61 @@
     },
     {
       "name": "unknown email gets no mail",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "login: known and unknown email get the same answer",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "register with a taken email stays on the form",
+      "ok": true,
+      "detail": "message=\"Email already exists. Username already exists.\""
+    },
+    {
+      "name": "it creates no second account",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "it sends the owner no mail",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the owner's password still works",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no stuffed attempt signs in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "every attempt gets the login page again",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "known and unknown accounts get the same message",
+      "ok": true,
+      "detail": "message=\"Invalid username or password.\""
+    },
+    {
+      "name": "a 7 character password is refused",
+      "ok": true,
+      "detail": "message=\"Invalid password: minimum length 8.\""
+    },
+    {
+      "name": "the email as password is refused",
+      "ok": true,
+      "detail": "message=\"Invalid password: must not be equal to the username.\""
+    },
+    {
+      "name": "no account was created",
       "ok": true,
       "detail": ""
     },
@@ -77,6 +138,76 @@
       "detail": ""
     },
     {
+      "name": "an expired link does not open the form",
+      "ok": true,
+      "detail": "pageId=error.ftl message=\"Action expired.\""
+    },
+    {
+      "name": "the password is unchanged",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "reset links live 15 minutes",
+      "ok": true,
+      "detail": "actionTokenGeneratedByUserLifespan.reset-credentials=900"
+    },
+    {
+      "name": "two requests give two different links",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the newer link sets a password",
+      "ok": true,
+      "detail": "pageId=info.ftl"
+    },
+    {
+      "name": "after its lifespan the older link does not open the form",
+      "ok": true,
+      "detail": "pageId=error.ftl message=\"Action expired.\""
+    },
+    {
+      "name": "the newer link's password still works",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "4 spaced failures do not lock",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the 5th failure locks the account",
+      "ok": true,
+      "detail": "numFailures=5"
+    },
+    {
+      "name": "the right password is refused while locked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a locked account answers like an unknown email",
+      "ok": true,
+      "detail": "{\"pageId\":\"login.ftl\",\"message\":\"Invalid username or password.\",\"fieldErrors\":{}}"
+    },
+    {
+      "name": "the account stays enabled (no permanent lockout)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the lock lifts by itself",
+      "ok": true,
+      "detail": "after 62s"
+    },
+    {
+      "name": "the right password signs in after the lock",
+      "ok": true,
+      "detail": ""
+    },
+    {
       "name": "login page is rendered by the keycloak-theme login theme",
       "ok": true,
       "detail": "pageId=login.ftl"
@@ -108,10 +239,57 @@
         "message": "You should receive an email shortly with further instructions."
       }
     },
+    "registerExisting": {
+      "pageId": "register.ftl",
+      "message": "Email already exists. Username already exists."
+    },
+    "stuffing": [
+      {
+        "known": true,
+        "pageId": "login.ftl",
+        "message": "Invalid username or password."
+      },
+      {
+        "known": false,
+        "pageId": "login.ftl",
+        "message": "Invalid username or password."
+      },
+      {
+        "known": false,
+        "pageId": "login.ftl",
+        "message": "Invalid username or password."
+      },
+      {
+        "known": false,
+        "pageId": "login.ftl",
+        "message": "Invalid username or password."
+      },
+      {
+        "known": false,
+        "pageId": "login.ftl",
+        "message": "Invalid username or password."
+      },
+      {
+        "known": false,
+        "pageId": "login.ftl",
+        "message": "Invalid username or password."
+      }
+    ],
     "mail": {
       "subject": "Reset password",
       "from": "keycloak@playground.local",
-      "to": "verify-03610adf@example.com"
+      "to": "verify-ecf2610e@example.com"
+    },
+    "expiredLink": {
+      "pageId": "error.ftl",
+      "message": "Action expired."
+    },
+    "olderLink": {
+      "opensBeforeExpiry": true,
+      "afterExpiry": {
+        "pageId": "error.ftl",
+        "message": "Action expired."
+      }
     },
     "layout": {
       "assets": [

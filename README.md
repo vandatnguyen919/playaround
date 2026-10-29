@@ -172,6 +172,7 @@ failure. Checks:
 | `logout` | Logout expires the cookie and deletes the Redis session; Keycloak `end_session` returns to the SPA; the next sign-in shows the login form |
 | `fixation` | Login issues a new session id; the pre-login id is gone from Redis and grants nothing; later requests keep the id stable |
 | `backchannel` | An admin logout at Keycloak deletes the gateway session and its registry entry from Redis; the browser cookie then gets 401 |
+| `refresh` | With a 75 s access token (set for the run, then restored), 8 parallel calls at expiry all get 200, twice, on the same session id (about 35 s) |
 
 `node verify.mjs` separately covers forgot password and the theme layout (see
 "Forgot password and verify" below). `.\gradlew.bat test` runs the unit tests.
@@ -412,12 +413,32 @@ With Keycloak and Mailpit up and the theme jar built, run:
 
 ```
 node verify.mjs              (macOS/Linux: ./verify)
-node verify.mjs enumeration  (one named check; also: reset)
+node verify.mjs enumeration  (one named check)
 ```
 
-It creates a throwaway user, runs the flow over HTTP, deletes the user, and exits
+It creates throwaway users, runs the flows over HTTP, deletes the users, and exits
 nonzero on any failure. Evidence from the latest run (mail text, last pages,
 `run.json`) is in `.shipit/verify/evidence/forgot-password/`.
+
+Attack checks pass when the attack fails safely (values and reasons:
+PRODUCT.md, Auth abuse protection):
+
+| Check | Attack | Safe outcome |
+| --- | --- | --- |
+| `enumeration` | Forgot password with known and unknown email | Same page and message; no mail for unknown |
+| `enumdiff` | Login and register with a taken email | Login answers match; register changes nothing, sends nothing |
+| `stuffing` | One password against known and unknown accounts | None sign in; same message for all |
+| `policy` | Short password, email as password | Refused; no account |
+| `reset` | Full reset, then the same link again | New password works, old does not; link works once |
+| `expiredlink` | Reset link after its lifespan (set to 5 s for the run) | Action expired; password unchanged |
+| `lockout` | 5 wrong passwords, then the right one | Locked, answer same as unknown email, account stays enabled, lock lifts in about 60 s |
+| `flood` | Rapid posts to login, register and reset through Traefik | At most the burst reaches Keycloak; the rest get 429 |
+| `olderlink` | Older reset link after a newer one was used | Realm keeps reset links at 15 min; the older link stops working at expiry (accepted gap: it works until then) |
+
+`flood` needs the compose.prod.yml stack running; locally:
+`EDGE_HOST=auth.localhost EDGE_INSECURE=1 node verify.mjs flood`. The default
+run takes about 2.5 minutes (the lockout and olderlink checks wait for a lock
+or a link to expire).
 
 ### Create the Google and GitHub OAuth apps
 

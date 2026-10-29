@@ -194,19 +194,23 @@ public class SecurityConfig {
             ServerOAuth2AuthorizedClientRepository authorizedClients,
             StableSessionSecurityContextRepository securityContextRepository) {
         // Used by the TokenRelay filter to read (and refresh) the access token.
+        // A refresh also re-reads the ID token and saves the updated user. The
+        // refresh token provider's own handler saves it through the stock
+        // repository, which changes the session id on every refresh and logs
+        // out parallel requests still on the old id. Give it ours. This must
+        // sit on the provider: the manager's success handler is what stores
+        // the refreshed tokens in the session, so it keeps its default.
+        RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler oidcUserRefresh =
+                new RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler();
+        oidcUserRefresh.setServerSecurityContextRepository(securityContextRepository);
+        RefreshTokenReactiveOAuth2AuthorizedClientProvider refreshTokens =
+                new RefreshTokenReactiveOAuth2AuthorizedClientProvider();
+        refreshTokens.setAuthorizationSuccessHandler(oidcUserRefresh);
         DelegatingReactiveOAuth2AuthorizedClientProvider providers = new DelegatingReactiveOAuth2AuthorizedClientProvider(
-                List.of(new AuthorizationCodeReactiveOAuth2AuthorizedClientProvider(),
-                        new RefreshTokenReactiveOAuth2AuthorizedClientProvider()));
+                List.of(new AuthorizationCodeReactiveOAuth2AuthorizedClientProvider(), refreshTokens));
         DefaultReactiveOAuth2AuthorizedClientManager clientManager =
                 new DefaultReactiveOAuth2AuthorizedClientManager(clientRegistrations, authorizedClients);
         clientManager.setAuthorizedClientProvider(providers);
-        // A refresh also re-reads the ID token and saves the updated user. The
-        // default handler saves it through a repository that changes the
-        // session id, which logs out parallel requests on the old id.
-        RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler successHandler =
-                new RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler();
-        successHandler.setServerSecurityContextRepository(securityContextRepository);
-        clientManager.setAuthorizationSuccessHandler(successHandler);
         return clientManager;
     }
 
