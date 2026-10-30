@@ -180,8 +180,8 @@ services:
       SMTP_SSL: ${SMTP_SSL:-false}
       SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
       SMTP_AUTH: ${SMTP_AUTH:-true}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_USER: ${SMTP_USER:?set SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?set SMTP_PASSWORD}
     volumes:
       - ../../infra/playground-realm.json:/config/playground-realm.json:ro
     networks: [backend]
