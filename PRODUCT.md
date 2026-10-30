@@ -9,10 +9,10 @@ cookie. Tokens live on the server side.
 
 Mode: small project / demo.
 
-Second goal (added 2026-10-27, Dan): run it publicly, first on Oracle Cloud
-Always Free, later on AWS, to learn the platform side (IaC, Kubernetes, CI,
-secrets, observability). Learning first, production readiness where
-practical. See Deployment platform.
+Second goal (added 2026-10-27, Dan): run it publicly, first on Azure for
+Students (replaced Oracle Cloud on 2026-10-30), later on AWS, to learn the
+platform side (IaC, Kubernetes, CI, secrets, observability). Learning first,
+production readiness where practical. See Deployment platform.
 
 ## First useful result
 
@@ -50,8 +50,8 @@ Not now (could come later):
 - Admin UI.
 - Mobile apps.
 - High availability (several nodes or regions). One free VM cannot give it.
-- Paid cloud resources. Everything must fit Oracle Always Free until Dan
-  decides otherwise.
+- Spending beyond the Azure for Students credit ($100 a year). Everything
+  must fit the plan in Deployment platform until Dan decides otherwise.
 
 Outside this project's purpose:
 
@@ -457,133 +457,175 @@ Stated assumptions:
 - Local dev runs via docker-compose in `/infra`. The public deployment is
   described in Deployment platform.
 - Email is delivered to Mailpit in dev, not a real inbox. Deployed
-  environments send real mail (OCI Email Delivery).
+  environments send real mail (Brevo SMTP, see Email delivery).
 
 Unresolved questions: none blocking the first build. Real Google and GitHub
 OAuth credentials are needed before feature 3 can be tested live.
 
 ## Deployment platform
 
-Oracle Cloud Always Free first, AWS later. Decided 2026-10-27 (delegated by
-Dan). Every limit and version below was checked against official docs or
-release feeds on 2026-10-27 (sources at the end). These versions are pinned
-under the same rule as the version stack: re-check only when a build fails or
-a major upgrade is planned.
+Azure for Students first, AWS later. Decided 2026-10-30 (delegated by Dan),
+replacing Oracle Cloud Always Free: OCI registration is blocked. Every term,
+price and version below was checked on 2026-10-30 against Microsoft docs, the
+Azure Retail Prices API and release feeds (sources at the end). Prices are
+Linux pay-as-you-go list prices in USD. These versions are pinned under the
+same rule as the version stack: re-check only when a build fails or a major
+upgrade is planned.
 
-### Oracle Always Free: what we get
+### Azure for Students: what we get
 
-All free resources live in the tenancy's home region.
+- **$100 credit for 12 months, no credit card.** Renewable once a year while
+  Dan is a full-time student, by signing up again. Treat it as **$100 a
+  year**, not $100 a month.
+- **At zero credit or after 12 months, whichever comes first:** the
+  subscription is canceled and every deployed resource is decommissioned and
+  unreachable, Blob backups included. Dan has 90 days to upgrade to pay as
+  you go before that is final. There is no card, so nothing can bill beyond
+  the credit: the risk is losing access, not a surprise bill.
+- **Use:** education, non-commercial research, and building or demonstrating
+  software for those. A learning playground fits. The credit does not cover
+  Marketplace offers, so every image we run is from a publisher directly
+  (Canonical Ubuntu), not a Marketplace listing.
+- **Free extras, not counted on.** The offer mentions 12 months of free
+  amounts "for new Azure customers" (two 64 GiB P6 disks, 750 h of
+  `B2pts_v2`, 750 h of PostgreSQL Flexible B1MS, 5 GB Blob) and always free
+  amounts (100 GB egress a month, Cost Management). If the bill shows the
+  disks free, the runway below gets longer. The budget assumes it does not.
+- **Region allow list.** Student subscriptions carry an "Allowed resource
+  deployment regions" policy whose list differs per subscription and is not
+  published. Check Policy, Assignments (or the error text of a failed
+  deploy) before choosing the region.
+- **No Cost Management budgets.** Microsoft lists Azure for Students
+  (MS-AZR-0170P) as an unsupported offer for Cost Management, so an
+  `azurerm_consumption_budget_*` resource or a portal budget is not an
+  option. See Budget and runway.
+- **Port 25 outbound is blocked** for every subscription type except
+  Enterprise Agreement and MCA-E. Authenticated relays on 587 are not
+  blocked. See Email delivery.
 
-- **Ampere A1 (arm64): 2 OCPU and 12 GB in total.** The Always Free page says
-  all tenancies get 1,500 OCPU hours and 9,000 GB hours per month on
-  `VM.Standard.A1.Flex`, "equivalent to 2 OCPUs and 12 GB of memory" for
-  Always Free tenancies, as one or two VMs. Conflict: the Arm compute page
-  still says 3,000 OCPU hours and 18,000 GB hours (the older 4 OCPU / 24 GB).
-  We plan for the smaller number and check the tenancy's limits page after
-  sign-up.
-- **AMD micro: two `VM.Standard.E2.1.Micro`**, 1/8 OCPU, 1 GB, amd64, 50 Mbps.
-- **Block storage: 200 GB in total** across boot and block volumes, and 5
-  volume backups in total. Each boot volume is at least 47 to 50 GB (the page
-  gives both numbers). A sixth backup fails with an error instead of billing.
-- **Object Storage: 20 GB in total and 50,000 API requests per month.**
-- **Load balancing:** one Flexible Load Balancer fixed at 10 Mbps, and one
-  Network Load Balancer.
-- **Egress: 10 TB per month.**
-- **Vault (KMS):** software-protected keys are free; 20 HSM key versions and
-  150 secrets. Private vaults are not free.
-- **Email Delivery:** 3,000 emails per month. **Monitoring:** 500 million
-  ingestion data points. **Notifications:** 1,000 emails per month.
-- **Not free or not stated:** OCI DNS needs a paid account. OCI Container
-  Registry stores images at the Object Storage price, and the docs do not say
-  it uses the free 20 GB. Reserved public IPs are not on the Always Free page.
-- **OKE basic cluster:** no control plane fee, an SLO but no SLA, and no
-  workload identity, virtual nodes or node cycling. Its worker nodes are A1
-  compute and use the same 2 OCPU / 12 GB.
+### VM size, region and cost
 
-**Idle reclamation.** Oracle may reclaim an Always Free instance that is idle
-over 7 days: CPU 95th percentile under 20%, network under 20%, and memory
-under 20% (A1 only). All three must hold, so a running stack is safe: it keeps
-memory well above 20% of 12 GB. Risk: a stopped or crash-looping stack can
-look idle. Mitigation: an OCI Monitoring alarm on the VM (free, outside the
-cluster) emails Dan when memory stays low. Oracle's page does not say Pay As
-You Go tenancies are exempt.
+**`Standard_B2pls_v2` (2 vCPU Ampere Altra arm64, 4 GiB) for phase 1, resized
+to `Standard_B2ps_v2` (2 vCPU, 8 GiB) for phase 2. Region `centralindia` if
+the allow list has it, else `southeastasia`, else the cheapest allowed region
+in the table.**
 
-**Out of host capacity.** Oracle says this error means a temporary lack of
-Always Free shapes in the home region; retry in another availability domain,
-wait, or upgrade to Pay As You Go. The home region cannot be changed later.
-Consequences for us: create the A1 VM once and keep it across phases; mark
-the instance, its boot volume and the data volume `prevent_destroy` in
-Terraform, because capacity may not come back after a destroy.
+| Region | B2pls v2 / h | B2ps v2 / h | Notes |
+| --- | --- | --- | --- |
+| centralindia | $0.0224 | $0.0448 | cheapest checked; Asia |
+| westus3 | $0.0300 | $0.0600 | cheapest US |
+| eastus | $0.0336 | $0.0672 | |
+| southeastasia | $0.0424 | $0.0848 | closest to Dan; dearest of these |
 
-**Pay As You Go upgrade: recommended, Dan decides (a Stop).** Oracle names it
-as the capacity fix and keeps Always Free resources free after the upgrade.
-Risk: anything above the limits bills the card. If chosen, set compartment
-quotas and a small budget alert first.
+- **Why not `B2pts_v2`:** it is the free one, but 1 GiB cannot hold Keycloak
+  (its sizing guide asks for a 1250 MB request) beside anything else.
+- **Burst credits:** B2pls v2 has a 30% baseline (36 credits banked per hour,
+  864 max), B2ps v2 40%. Steady load is a few percent, so credits bank up
+  between Keycloak starts and builds. A long build that drains them falls to
+  baseline speed; that is the visible symptom, not a failure.
+- **Resize, not replace:** both sizes are in the Bpsv2 family, so phase 2 is
+  `vm_size` in Terraform, a deallocate and a start. Disks and the public IP
+  stay.
+- **Image:** Canonical Ubuntu Server 24.04 LTS arm64, Gen2 (Bpsv2 has no Gen1
+  and no local temp disk).
+- **Disks:** a 32 GiB Standard SSD OS disk (E4) and a 64 GiB Standard SSD data
+  disk (E6) for container volumes, images and Postgres. The data disk is a
+  separate resource with `prevent_destroy`, so the VM can be rebuilt without
+  losing data. Premium P6 ($10.21) only if Standard SSD proves too slow.
+- **Public IP:** one Standard static IPv4, $0.005 an hour. Basic IPs are
+  retired. Billed while the VM is stopped.
+- **Egress:** the first 100 GB a month are free; a demo stays far below.
+- **Quota:** check `az vm list-usage --location <region>` for the
+  Bpsv2 family and regional vCPUs before the first apply.
 
-**arm64 everywhere, multi-arch images required.** Every image we build is
-published for `linux/arm64` and `linux/amd64` (AWS may be Graviton or x86, and
-dev is x86 Windows). Base images checked multi-arch: `eclipse-temurin:26-jre`,
-`quay.io/keycloak/keycloak:26.8.1`, `postgres:18.6-alpine`,
-`redis:8.10-alpine`, `traefik:v3.7.16`,
-`jenkins/jenkins:2.580.1-lts-jdk25`. Build rule: compile JARs and the SPA once
-in `FROM --platform=$BUILDPLATFORM` stages, and make final stages only COPY
-onto multi-arch bases, so no compile runs under QEMU. The Keycloak image runs
-`kc.sh build` per platform, which is emulated for the foreign one: slow but
-acceptable. Check both platforms with `docker buildx imagetools inspect`
-before any deploy.
+**Monthly cost, centralindia** (IP $3.65, E4 $2.64, E6 $5.28, Blob, Key Vault
+and disk operations about $0.50, so about $12 fixed):
+
+| Setup | Per month | $100 lasts |
+| --- | --- | --- |
+| Phase 1, B2pls v2, always on | $16.35 + $12 = about $28 | 3.5 months |
+| Phase 2, B2ps v2, always on | $32.70 + $12 = about $45 | 2.2 months |
+| Phase 2, B2ps v2, on 10 h a day | $13.44 + $12 = about $25 | 4 months |
+| Phase 1 in southeastasia, always on | $30.95 + $11 = about $42 | 2.4 months |
+| Phase 2 in southeastasia, always on | $61.90 + $11 = about $73 | 1.4 months |
+
+### Budget and runway
+
+Plan for one credit year: **phase 1 always on for about 6 weeks (about $43),
+then phase 2 on B2ps v2 with nightly auto-shutdown for about 6 weeks (about
+$38), keeping a reserve of about $19.** Phase 2 continues after the next
+renewal if it is not done.
+
+- **Auto-shutdown:** `azurerm_dev_test_global_vm_shutdown_schedule` stops and
+  deallocates the VM every night (free). Off in phase 1, so the public demo
+  stays up; on in phase 2. Dan starts the VM with `az vm start`. Deallocated
+  compute costs nothing; disks and IP keep billing.
+- **Alerts without Cost Management:** cost is almost entirely fixed per
+  hour, so the runway is arithmetic. Two checks instead of a budget:
+  1. Weekly, compare the balance in the Azure Sponsorships portal with the
+     table above. A gap of more than $5 means something unplanned is
+     running.
+  2. An Azure Monitor metric alert on the VM (CPU credits remaining under
+     50, and VM availability) with an email action group. Each metric alert
+     rule is about $0.10 a month. This catches a stuck build or a crash loop, which
+     the old OCI alarm covered.
+- **Runway rule:** at $20 left, copy the latest backups off Azure and decide
+  with Dan: renew, upgrade to pay as you go (a Stop), or let it lapse. At
+  zero the backups in Blob become unreachable along with everything else.
+- **Guard rails in Terraform:** one resource group per env, tags on
+  everything, and no resource outside this section's list (a Stop).
 
 ### Phases
 
-1. **Compose on one A1 VM.** Traefik, Keycloak in production mode, Postgres,
+1. **Compose on one VM.** Traefik, Keycloak in production mode, Postgres,
    Redis, gateway, api, web. Images built locally with buildx and pushed to
    GHCR. Secrets in a root-owned 0600 `.env` on the VM. Done when `smoke.mjs`
    passes against the public URL with `COOKIE_SECURE=true`.
-2. **k3s on the same VM**, replacing compose. Adds cert-manager, Vault,
-   External Secrets, CloudNativePG, the LGTM stack and Jenkins. Done when a
-   push to `main` is built by Jenkins, deployed, passes `smoke.mjs`, and its
-   traces show in Grafana.
+2. **k3s on the same VM**, resized to 8 GiB, replacing compose. Adds
+   cert-manager, Vault, External Secrets, CloudNativePG, the LGTM stack (with
+   Prometheus, see below) and the Jenkins controller, with the build agent on
+   Dan's machine. Done when a push to `main` is built by Jenkins, deployed,
+   passes `smoke.mjs`, and its traces show in Grafana.
 3. **AWS.** A new Terraform env with the same Kubernetes layer. Choose EKS or
    k3s on EC2 then.
 
 Reason for compose first: the first public problems (Keycloak hostname and
 proxy headers, Secure cookies, TLS, real SMTP, Postgres) are easier to see
-without Kubernetes in the way, and Traefik carries over to k3s. Revisit: skip
-straight to phase 2 if Dan prefers.
+without Kubernetes in the way, Traefik carries over to k3s, and phase 1 fits
+on the cheaper 4 GiB size. Revisit: skip straight to phase 2 if Dan prefers.
+
+**Phase 1 memory (4 GiB, limits):** OS and Docker 0.6, Traefik 0.1, Keycloak
+1.4, Postgres 0.3, Redis 0.1, gateway 0.5, api 0.4, web 0.05: about 3.5 GB.
+Tight but under 4 GiB with JVM heaps capped (`-XX:MaxRAMPercentage`) and a 1
+GiB swap file on the data disk as a cushion, not as working memory. If
+Keycloak is OOM killed, resize to B2ps v2 early.
 
 ### Kubernetes: k3s on one VM
 
-**k3s v1.36.5+k3s1 (stable channel), one server node on one A1 VM with all 2
-OCPU and 12 GB.** Not OKE basic, and not two VMs.
+**k3s v1.36.5+k3s1 (stable channel), one server node on the one VM.** Not AKS.
 
-- k3s needs at least 2 cores and 2 GB for a server. With 2 OCPU in total, two
-  VMs would give a 1-core server, and a second OS and kubelet would eat into
-  12 GB.
+- AKS free tier has no control plane fee, but its nodes are separate VMs at
+  the same price, it wants a Standard Load Balancer (hourly charge plus
+  rules) for ingress, and the system node pool alone would eat most of the
+  credit. k3s on our one VM costs nothing extra.
 - k3s ships Traefik, ServiceLB, local-path storage and a network policy
-  controller. ServiceLB binds 80/443 on the VM's public IP, so no OCI load
-  balancer (10 Mbps cap) and no cloud-specific annotations.
-- The same install runs on a laptop, OCI or EC2, which keeps the AWS move
+  controller. ServiceLB binds 80/443 on the VM's public IP, so no Azure load
+  balancer and no cloud-specific annotations.
+- The same install runs on a laptop, Azure or EC2, which keeps the AWS move
   portable. Learning value: we own control plane upgrades.
 - Datastore: embedded SQLite (the single-server default). Cluster state is
   rebuilt from git, so only data (Postgres, Vault) is backed up.
 
-Tradeoff: OKE basic moves the control plane off the VM (roughly a GB and some
-CPU back) and is closer to EKS. But its nodes share the same 12 GB, ingress
-needs the OCI load balancer or NLB, and basic has no workload identity.
-Revisit if control plane upkeep distracts, or at the AWS step, where EKS is
-the managed equivalent.
+Revisit at the AWS step, where EKS is the managed equivalent.
 
 Risk: one node means no HA. Losing the VM means rebuilding from Terraform and
 backups. Accepted for a learning project.
 
-The two AMD micro VMs stay unused for now (1 GB is too small for Jenkins or a
-loaded k3s agent). A possible later use is an amd64 box for testing the
-amd64 images.
-
-**Memory budget (limits, phase 2):**
+**Phase 2 memory budget (8 GiB, limits):**
 
 | Component | Namespace | Memory |
 | --- | --- | --- |
-| OS, k3s, Traefik, CoreDNS, metrics-server | system | 1.5 GB reserved |
+| OS, k3s, Traefik, CoreDNS, metrics-server | system | 1.2 GB reserved |
 | cert-manager | cert-manager | 0.2 GB |
 | Keycloak (its sizing guide: 1250 MB request) | playground | 1.4 GB |
 | Postgres and CloudNativePG operator | playground, cnpg-system | 0.7 GB |
@@ -592,139 +634,218 @@ amd64 images.
 | api | playground | 0.4 GB |
 | web (static files) | playground | 0.05 GB |
 | Vault and External Secrets | vault | 0.4 GB |
-| Grafana, Mimir, Loki, Tempo, Alloy | observability | 2.2 GB |
+| Grafana, Prometheus, Loki, Tempo, Alloy | observability | 1.7 GB |
 | Jenkins controller | ci | 1.0 GB |
-| One build agent (Gradle, npm, BuildKit) | ci | 2.5 GB |
-| **Total** | | **about 10.9 of 12 GB** |
+| **Total** | | **about 7.7 of 8 GiB** |
+
+**What phase 2 cut to fit 8 GiB** (both were the fallbacks already named in
+the 12 GB plan):
+
+- **Prometheus v3.15.1 in place of Mimir.** It accepts OTLP and saves about
+  0.5 GB. Mimir is the thing to try on AWS.
+- **The build agent runs on Dan's machine** as an inbound Jenkins agent
+  through the SSH tunnel, not as a pod. Saves 2.5 GB and the CPU credits a
+  Gradle, npm and BuildKit build would burn.
+
+Not cut: Vault, CloudNativePG, Grafana, Loki, Tempo, the Jenkins controller.
+If the node still runs out, the next cut is the Jenkins controller (build
+and deploy from Dan's machine with `helm upgrade`), then Tempo retention.
+Moving to `B4ps_v2` (16 GiB, about $65 a month in centralindia) is a Stop.
 
 Rules: every pod has a memory limit. App pods get a higher PriorityClass than
-`ci`, so under pressure the build agent is evicted, not Keycloak. A
-ResourceQuota on `ci` allows one agent at a time. CPU is 2 cores in total, so
-builds take minutes and Keycloak starts slowly. If the budget breaks, first
-swap Mimir for Prometheus, then move the build agent off the VM.
-
-**Disk:** the 50 GB boot volume plus one 100 GB block volume for k3s
-local-path volumes and container images, leaving 50 GB unallocated. A custom
-volume backup policy keeps the total at 5 backups or fewer.
+`ci`, so under pressure Jenkins is evicted, not Keycloak. CPU is 2 burstable
+cores, so Keycloak starts slowly.
 
 ### Registry, ingress, TLS, DNS
 
 - **Registry: GHCR** (`ghcr.io/vandatnguyen919/...`). GitHub Packages is free
   for public packages, and Container registry storage and bandwidth are
   currently free. The repo is public, and images carry no secrets (the realm
-  JSON uses `${VAR}` placeholders). Private images would hit GitHub Free's
-  500 MB fast. Tradeoff: images are public, and the registry sits outside the
-  cloud. Not OCIR: it bills at the Object Storage price and ties images to
-  OCI. Revisit if images must become private.
-- **Ingress: Traefik.** Compose: `traefik:v3.7.16` with Docker labels. k3s: the
-  Traefik that k3s ships. Not Caddy (v2.11.7): its automatic TLS is simpler,
-  but Traefik is one tool across both phases.
+  JSON uses `${VAR}` placeholders). Not Azure Container Registry: Basic is a
+  daily charge against the credit and ties images to Azure. Revisit if images
+  must become private.
+- **arm64 everywhere, multi-arch images required.** Every image we build is
+  published for `linux/arm64` and `linux/amd64` (AWS may be Graviton or x86,
+  and dev is x86 Windows). Base images checked multi-arch:
+  `eclipse-temurin:26-jre`, `quay.io/keycloak/keycloak:26.8.1`,
+  `postgres:18.6-alpine`, `redis:8.10-alpine`, `traefik:v3.7.16`,
+  `jenkins/jenkins:2.580.1-lts-jdk25`. Build rule: compile JARs and the SPA
+  once in `FROM --platform=$BUILDPLATFORM` stages, and make final stages only
+  COPY onto multi-arch bases, so no compile runs under QEMU. The Keycloak
+  image runs `kc.sh build` per platform, which is emulated for the foreign
+  one: slow but acceptable. Check both platforms with `docker buildx
+  imagetools inspect` before any deploy.
+- **Ingress: Traefik.** Compose: `traefik:v3.7.16` with Docker labels. k3s:
+  the Traefik that k3s ships. Not Caddy (v2.11.7): its automatic TLS is
+  simpler, but Traefik is one tool across both phases.
 - **TLS: Let's Encrypt, HTTP-01.** Phase 1 uses Traefik's built-in ACME.
   Phase 2 uses cert-manager v1.21.3 with a ClusterIssuer solving HTTP-01
   through Traefik. HTTP-01 keeps DNS API tokens off the server. Tradeoff: no
   wildcard certs, which is fine for a few hostnames. Use the Let's Encrypt
   staging endpoint until a cert issues (rate limits).
 - **DNS: Cloudflare free plan, records "DNS only"** (not proxied), so TLS ends
-  at Traefik and Keycloak sees one proxy hop. Reason: OCI DNS needs a paid
-  account; Cloudflare DNS is free on every plan, has a free API and Terraform
-  provider, and stays the same when we move to AWS. Tradeoff: one more
-  account. Needs a registered domain (costs money, a Stop) pointed at
-  Cloudflare's nameservers (turn DNSSEC off at the registrar first).
+  at Traefik and Keycloak sees one proxy hop. Reason: free on every plan, a
+  free API and Terraform provider, and it stays the same on AWS. Azure DNS
+  would bill per zone and tie DNS to the credit lapsing. Needs a registered
+  domain (costs money, a Stop) pointed at Cloudflare's nameservers (turn
+  DNSSEC off at the registrar first).
 - **Hostnames:** `app.<domain>` (gateway, serves the SPA) and `auth.<domain>`
   (Keycloak public paths). Not public: the Keycloak admin console (blocked at
   Traefik), Grafana, Jenkins, Vault, and the Kubernetes API on 6443. Reach
-  them through an SSH tunnel. The security list opens 80/443 to everyone and
-  22 to Dan's IP only.
-- **Email: OCI Email Delivery SMTP** replaces Mailpit for verify and reset
-  mail. Needs SPF and DKIM records (a DNS change). On AWS: SES.
+  them through an SSH tunnel. The network security group opens 80/443 to
+  everyone and 22 to Dan's IP only. No Azure Bastion (hourly charge).
+
+### Email delivery
+
+**Brevo free plan over SMTP (STARTTLS, 587), from `no-reply@<domain>`.**
+Changed 2026-10-30: OCI Email Delivery went with the OCI tenancy. Brevo was
+already the named fallback. Needs a Brevo account (a Stop).
+
+| | Brevo free | Azure Communication Services Email | Resend free |
+| --- | --- | --- | --- |
+| Free volume | 300 a day | none; $0.00025 a mail from the credit | 3,000 a month, 100 a day |
+| Rate | not stated | 30 a minute, 100 an hour (custom domain) | not stated |
+| SMTP login | SMTP key | Entra app registration, client secret, SMTP Username resource | API key |
+| Future | | retiring 2028-09-30; Microsoft advises against new onboarding | |
+| Survives the credit lapsing, moves to AWS | yes | no | yes |
+
+Reason: verify and reset mail is a few a day. ACS Email is retiring and
+needs an Entra app registration, which a student tenant may not allow, and it
+stops with the subscription. Brevo needs one sign-up, is independent of the
+cloud, and the realm only sees `SMTP_*` values. Tradeoff: one more vendor
+account. Resend is the fallback (same settings shape). Revisit at the AWS
+step (SES).
+
+- **Per environment, one realm file.** `smtpServer` in
+  `infra/playground-realm.json` is all `$(env:SMTP_*)`. Dev compose sets
+  Mailpit (no auth, no TLS); `compose.prod.yml` takes host, from, user and
+  password from `.env` and refuses to start without them, with STARTTLS
+  and auth on by default.
+- **Settings:** `SMTP_HOST=smtp-relay.brevo.com`, port 587, the Brevo SMTP
+  login and an SMTP key as the password.
+- **DNS on `<domain>`:** the `brevo-code` TXT, DKIM as the two CNAMEs Brevo
+  gives (`brevo1._domainkey`, `brevo2._domainkey`), SPF
+  `include:spf.brevo.com ~all`, DMARC `p=none` with reports to Cloudflare
+  DMARC Management, moved to `p=quarantine` after a week of clean reports.
+  DMARC passes through DKIM alignment (`d=<domain>`). `mailcheck.mjs dns`
+  reads the selector and SPF include from `.env`
+  (`MAIL_DKIM_SELECTOR=brevo1`, `MAIL_SPF_INCLUDE=spf.brevo.com`); TXT
+  lookups follow the CNAME.
+- **Check:** `node deploy/compose/mailcheck.mjs` with `dns` (records in
+  public DNS), `send <mailbox>` (registration and reset through the public
+  host, plus the Keycloak log, since the reset page reads the same whether
+  or not the mail went out), `headers <eml>...` (topmost
+  `Authentication-Results` needs spf, dkim signed by `<domain>`, and dmarc
+  pass) and `cleanup`.
 
 ### IaC: Terraform
 
-**Terraform v1.17.0 with the OCI provider v9.11.0.** Not OpenTofu v1.13.2.
+**Terraform v1.17.1 with azurerm v5.12.0 and cloudflare v5.28.1.** Not
+OpenTofu.
 
-Reason: Terraform has a native `oci` backend that keeps state in OCI Object
-Storage and locks with `If-None-Match: *`. OpenTofu has no `oci` backend; its
-`s3` backend lockfile needs conditional writes, and Oracle's S3 compatibility
-docs don't list them, so locking on OCI would be unproven. On AWS both use the
-`s3` backend with `use_lockfile`. Tradeoff: Terraform is BUSL 1.1 (fine for
-personal use) and has no state encryption, which OpenTofu does. Revisit if
-OpenTofu gains an OCI backend or the license starts to matter.
+Reason: the original reason (Terraform's native `oci` backend) is gone; both
+tools have an `azurerm` backend with blob lease locking and an `s3` backend
+for AWS. Terraform stays because it is already chosen, and its registry
+tooling is what we use to look up providers. Tradeoff: BUSL 1.1 and no state
+encryption, which OpenTofu has. Revisit if state encryption starts to matter.
 
-- **State:** a versioned `tfstate` bucket in Object Storage, created once by a
-  `bootstrap` root that keeps local state outside git. Lock objects sit next
-  to the state.
-- **Auth:** an OCI API key in `~/.oci/config` on Dan's machine. Keys and state
-  files never go into git.
-- **Guards:** `prevent_destroy` on the A1 instance, its boot volume, the data
-  volume and the state bucket.
+- **State:** backend `azurerm` with `use_azuread_auth = true` and
+  `use_cli = true`, in a `tfstate` container of a storage account made once by
+  a `bootstrap` root (local state outside git). Blob versioning and soft
+  delete on; shared key access off. Locking is a blob lease on the state
+  file.
+- **Auth: Dan's own user through `az login`**, the subscription Owner. No
+  service principal or client secret. Reason: Azure CLI auth needs no Entra
+  app registration, which student tenants may block, and leaves no secret to
+  rotate. Owner has no blob data rights, so `bootstrap` grants Dan "Storage
+  Blob Data Contributor" on the state container. Recommendation for sign-up:
+  a personal Microsoft account, with the school email used only for
+  verification, so the subscription sits in Dan's own directory. Revisit
+  when something other than Dan's machine must run Terraform: then OIDC
+  workload identity, which does need an app registration.
+- **Guards:** `prevent_destroy` on the data disk, the state storage account,
+  the backup storage account and the Key Vault (also purge protection). The VM
+  itself can be rebuilt.
+- **VM identity:** a system-assigned managed identity, used by the backup jobs
+  and by Vault. No credentials on the VM for Azure. A NetworkPolicy (phase
+  2) blocks `169.254.169.254` for every namespace except `vault` and the
+  backup jobs, so other pods cannot borrow the identity.
 
-**Layout:** a new `/deploy`. `/infra` stays local dev.
+**Layout:** `/deploy`. `/infra` stays local dev.
 
 ```
 deploy/
   terraform/
-    bootstrap/            state bucket (local state)
+    bootstrap/            resource group, state storage account and container (local state)
     modules/
-      oci-host/           VCN, subnet, security list, A1 VM, block volume, cloud-init
-      oci-platform/       buckets, KMS vault and key, dynamic group, IAM policies, email
+      azure-host/         VNet, subnet, NSG, public IP, B-series VM, data disk,
+                          cloud-init, managed identity, auto-shutdown, metric alerts
+      azure-platform/     backup storage account and lifecycle rule, Key Vault
+                          and seal key, role assignments for the VM identity
       dns-cloudflare/     records
     envs/
-      oci-free/           backend "oci"; outputs host_ip, s3_endpoint, kms_key_id
+      azure/              backend "azurerm"; outputs host_ip, backup_container_url,
+                          key_vault_uri, seal_key_name; tests/ (mocked provider)
+      dns/                dns-cloudflare only, own state key, host_ip as a variable
       aws/                later: backend "s3", aws-* modules with the same outputs
   compose/                phase 1: compose.prod.yml, Traefik config
   k8s/                    phase 2: Helm values and manifests, cloud-neutral
-    overlays/oci/         seal config, S3 endpoint, storage class
+    overlays/azure/       seal config, Blob backup target, storage class
     overlays/aws/         later
 ```
 
 Dockerfiles live in each module (`gateway/Dockerfile` and so on). Portability
-rule: only `modules/oci-*` and `overlays/oci` know about Oracle; everything
-else reads module outputs. DNS has its own module and is applied on its own,
-so DNS changes are always deliberate.
+rule: only `modules/azure-*` and `overlays/azure` know about Azure;
+everything else reads module outputs. DNS has its own module and is applied
+on its own, so DNS changes are always deliberate. Not in Terraform: the Brevo
+account and SMTP key (the key would land in state).
 
 ### Secrets: Vault
 
 **Vault Community v2.2.1.** Not OpenBao v2.7.2.
 
-Reason: Vault has OCI KMS and AWS KMS auto-unseal built in. OpenBao 2.7 moved
-OCI KMS to an external plugin, one more artifact to fetch and check for arm64.
-The API is the same, so skills and manifests mostly carry over. Tradeoff:
-BUSL 1.1 under IBM, while OpenBao is MPL 2.0 under the Linux Foundation.
-Revisit if the license terms change; External Secrets works with both.
+Reason: Vault has Azure Key Vault and AWS KMS auto-unseal built in, and the
+skills carry to AWS. OpenBao also ships an Azure Key Vault seal now, so the
+original edge (OCI KMS built in) is gone; Vault stays as already chosen.
+Tradeoff: BUSL 1.1 under IBM, while OpenBao is MPL 2.0 under the Linux
+Foundation. Revisit if the license terms change; External Secrets works with
+both.
 
-- **Storage:** integrated Raft, one node, 1 GB volume. (OpenBao's docs call
-  Postgres easier to operate, but that would tie secrets to the Keycloak DB.)
-  A daily CronJob runs `vault operator raft snapshot save` to Object Storage.
-- **Unseal:** auto-unseal with OCI KMS, using a software-protected key (free)
-  in a default vault, through instance principal (a dynamic group and a
-  policy that allows use of that one key). Recovery keys from `vault operator
-  init` go to Dan's password manager, never git or chat. Risk: any pod on the
-  node can reach the instance principal through the metadata endpoint, so a
-  NetworkPolicy blocks `169.254.169.254` for every namespace except `vault`.
-  On AWS: the `awskms` seal.
+- **Storage:** integrated Raft, one node, 1 GB volume. A daily CronJob runs
+  `vault operator raft snapshot save` to the backup container.
+- **Unseal (phase 2): auto-unseal with the `azurekeyvault` seal.** A Standard
+  Key Vault (RBAC mode, purge protection on) holds one software-protected RSA
+  2048 key. The VM's managed identity has "Key Vault Crypto User" on that key
+  only. Vault uses the managed identity, so no client secret exists. Cost:
+  key operations are $0.03 per 10,000, a few cents a year. Recovery keys from
+  `vault operator init` go to Dan's password manager, never git or chat.
+  Risk: if the subscription lapses, the key becomes unreachable and Vault
+  cannot unseal; the Raft snapshot plus the recovery keys are the way back on
+  a new seal. On AWS: the `awskms` seal.
 - **Delivery:** External Secrets Operator (chart 2.14.0) syncs Vault KV into
   Kubernetes Secrets, and apps read them as env. Phase 1 uses the `.env` file.
 
 ### Observability: Grafana LGTM with OpenTelemetry
 
-**Grafana v13.2.4, Mimir 3.2.3, Loki 3.7.9 and Tempo 3.1.1 (each
+**Grafana v13.2.4, Prometheus v3.15.1, Loki 3.7.9 and Tempo 3.1.1 (each
 monolithic), and Alloy v1.21.2 as the OpenTelemetry collector.** Phase 2 only.
+Prometheus replaces Mimir 3.2.3 to fit 8 GiB.
 
 - **Flow:** gateway and api use `spring-boot-starter-opentelemetry` (Boot 4)
   to send traces and metrics over OTLP to Alloy. Keycloak sends traces with
   `tracing-enabled` (OTLP gRPC) and exposes metrics that Alloy scrapes. Alloy
   also collects pod logs from stdout and node and kube metrics. Alloy writes
-  metrics to Mimir, logs to Loki and traces to Tempo. (Spring's OTLP log export
-  needs an alpha appender, so logs come from stdout.)
-- **Storage on the block volume, not Object Storage.** 50,000 requests per
-  month would run out within days of chunk flushes.
-- **Retention:** metrics 15 days, logs 7 days, traces 3 days. Volumes: Mimir
-  10 GB, Loki 10 GB, Tempo 5 GB. Trace sampling stays at Boot's 10% default
-  (100% while debugging).
-- **Budget:** 2.2 GB. Fallback if tight: Prometheus v3.15.1, which accepts
-  OTLP, in place of Mimir.
-- **Outside check:** the OCI Monitoring alarm above still fires when the
-  cluster is down.
+  metrics to Prometheus (OTLP receiver), logs to Loki and traces to Tempo.
+  (Spring's OTLP log export needs an alpha appender, so logs come from
+  stdout.)
+- **Storage on the data disk, not Blob.** Chunk flushes are many small writes
+  that would cost per operation and add up.
+- **Retention:** metrics 15 days, logs 7 days, traces 3 days. Volumes:
+  Prometheus 8 GB, Loki 8 GB, Tempo 4 GB. Trace sampling stays at Boot's 10%
+  default (100% while debugging).
+- **Budget:** 1.7 GB.
+- **Outside check:** the Azure Monitor metric alerts in Budget and runway
+  still fire when the cluster is down.
 
 ### Jenkins
 
@@ -733,34 +854,53 @@ monolithic), and Alloy v1.21.2 as the OpenTelemetry collector.** Phase 2 only.
 Phase 2. Phase 1 has no Jenkins; images are built and pushed with buildx
 from Dan's machine.
 
-- **Agents:** Kubernetes plugin pod agents, one at a time, at lower priority
-  than the apps. Images are built with rootless BuildKit v0.34.1 in a pod for
-  `linux/arm64` and `linux/amd64` and pushed to GHCR.
-- **Reaching the cluster:** from inside, as a ServiceAccount bound to a Role in
-  the `playground` namespace only (deploys with `helm upgrade`). No kubeconfig
-  leaves the cluster, and 6443 stays closed to the internet.
+- **Agent:** one inbound agent on Dan's machine (Docker Desktop, BuildKit),
+  connected over WebSocket through the SSH tunnel. It builds `linux/arm64`
+  and `linux/amd64` images and pushes them to GHCR. Builds run only while
+  Dan's machine is on, which matches a learning project.
+- **Reaching the cluster:** deploy steps run on the controller as a
+  ServiceAccount bound to a Role in the `playground` namespace only (`helm
+  upgrade`). No kubeconfig leaves the cluster, and 6443 stays closed to the
+  internet.
 - **Triggers:** Jenkins polls GitHub every 5 minutes instead of taking
   webhooks, so it stays private. Tradeoff: up to 5 minutes of delay.
 - **Credentials:** a GitHub token with package write, stored in Vault and
   synced by External Secrets.
 
-Tradeoff: builds compete with the apps for 2 cores and 12 GB; the priority
-and quota rules keep the apps up. Revisit if builds starve the node: run the
-agent on Dan's machine as an inbound agent.
+Tradeoff: no builds while Dan's machine is off, and the tunnel is one more
+moving part. Revisit on AWS, where an agent node is cheap enough.
 
 ### Keycloak database and backups
 
-**PostgreSQL 18.6.** Keycloak 26.8 supports 14 through 18 and tests 18.
+**PostgreSQL 18.6 in a container.** Keycloak 26.8 supports 14 through 18 and
+tests 18. Not Azure Database for PostgreSQL Flexible Server.
 
-- **Phase 1:** a `postgres:18.6-alpine` container with its volume on the block
-  volume. A nightly `pg_dump -Fc` goes to Object Storage, keeping 14.
+Reason: Flexible B1MS is free only as a 12-month new-customer amount we
+cannot count on, then $0.017 an hour (about $12 a month plus storage, as much
+as the VM's fixed costs). It needs either public access with firewall rules
+or a delegated subnet and a private DNS zone, it lapses with the credit, and
+it skips the CloudNativePG learning in phase 2. The container runs on the
+data disk we already pay for and moves to AWS unchanged. Tradeoff: we own
+backups, upgrades and restore drills. Revisit at the AWS step (RDS).
+
+- **Backup target: a Blob container** in the env's backup storage account
+  (StorageV2, LRS, Hot, shared key access off), written with the VM's managed
+  identity ("Storage Blob Data Contributor" on that container only). A
+  lifecycle rule deletes blobs after 14 days. Size is well under 1 GB, so
+  cents a month.
+- **Phase 1:** a `postgres:18.6-alpine` container with its volume on the data
+  disk. A nightly `pg_dump -Fc` is uploaded with `azcopy` using `azcopy
+  login --identity`.
 - **Phase 2:** CloudNativePG 1.30.1, one instance, with the Barman Cloud
-  plugin 0.15.1 for WAL archiving and a daily base backup to Object Storage
-  through its S3 compatible endpoint, with a 7 day recovery window. A weekly
-  `pg_dump` stays as a second, portable copy. Keycloak connects with
-  `db-tls-mode=verify-server` using the operator's CA. Risk: Barman Cloud on
-  OCI's S3 compatibility API is untested here, and WAL segments count toward
-  the 50,000 requests. Prove it with a restore before phase 2 is done.
+  plugin 0.15.1 for WAL archiving and a daily base backup to the same
+  container through its native Azure Blob support with managed identity
+  (`inheritFromAzureAD`), 7 day recovery window. A weekly `pg_dump` stays as
+  a second, portable copy. Keycloak connects with
+  `db-tls-mode=verify-server` using the operator's CA. Prove it with a
+  restore before phase 2 is done.
+- **Off-Azure copy:** Blob dies with the subscription, so the runway rule
+  copies the latest dump and Vault snapshot to Dan's machine at $20 left,
+  and before any planned lapse.
 - **Keycloak image:** `keycloak-theme/Dockerfile` builds the theme jar on the
   build platform, then runs `kc.sh build` (Postgres, health, metrics, theme
   jar inside) and starts with `start --optimized`, so no Quarkus build on each
@@ -790,30 +930,38 @@ agent on Dan's machine as an inbound agent.
 
 ### Open questions for Dan
 
-- Is there an OCI tenancy yet, and in which home region? The home region
-  cannot change, and A1 capacity differs by region.
-- Upgrade to Pay As You Go? Recommended above; a Stop.
+- Is the Azure for Students subscription active, and under which account
+  (personal Microsoft account recommended)? Which regions does its "Allowed
+  resource deployment regions" policy list?
+- Create a Brevo account for SMTP? Needed before real mail; a new vendor.
 - Which domain? It needs registering (cost) and pointing at Cloudflare.
 
-### Sources (checked 2026-10-27)
+### Sources (checked 2026-10-30)
 
-- Oracle Always Free resources:
-  https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm
-- Oracle Arm compute (the conflicting 3,000 / 18,000 figure):
-  https://docs.oracle.com/en-us/iaas/Content/Compute/References/arm.htm
-- OKE basic and enhanced clusters:
-  https://docs.oracle.com/en-us/iaas/Content/ContEng/Tasks/contengcomparingenhancedwithbasicclusters_topic.htm
-- OCI S3 compatibility API:
-  https://docs.oracle.com/en-us/iaas/Content/Object/Tasks/s3compatibleapi_topic-Amazon_S3_Compatibility_API_Support.htm
-- OCI DNS pricing (paid account required):
-  https://www.oracle.com/cloud/networking/dns/pricing/
-- Container Registry billing: https://www.oracle.com/cloud/cloud-native/container-registry/
+- Azure for Students offer: https://azure.microsoft.com/en-us/free/students/
+- Education Hub FAQ (renewal, cancellation, 90 days):
+  https://learn.microsoft.com/en-us/azure/education-hub/azure-dev-tools-teaching/program-faq
+- Free services amounts: https://azure.microsoft.com/en-us/pricing/free-services
+- Prices: Azure Retail Prices API, https://prices.azure.com/api/retail/prices
+  (VM, managed disk, public IP, bandwidth, Blob, Key Vault, PostgreSQL
+  Flexible, Email meters)
+- Bpsv2 sizes and burst credits:
+  https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/general-purpose/bpsv2-series
+- Cost Management supported offers (Azure for Students unsupported):
+  https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/understand-cost-mgt-data
+- Port 25 block:
+  https://learn.microsoft.com/en-us/azure/virtual-network/troubleshoot-outbound-smtp-connectivity
+- ACS Email SMTP auth, limits and retirement:
+  https://learn.microsoft.com/en-us/azure/communication-services/quickstarts/email/send-email-smtp/smtp-authentication,
+  https://learn.microsoft.com/en-us/azure/communication-services/concepts/service-limits,
+  https://learn.microsoft.com/en-us/azure/communication-services/acs-retirement-and-breaking-changes-guide
+- Student region allow list (community answers, no official list):
+  https://learn.microsoft.com/en-us/answers/questions/5638283/azure-policy-blocking-resource-deployment-in-multi
+- Brevo domain authentication:
+  https://developers.brevo.com/docs/domain-authentication-and-verification
+- Terraform `azurerm` backend: https://developer.hashicorp.com/terraform/language/backend/azurerm
+- Vault Azure Key Vault seal: https://developer.hashicorp.com/vault/docs/configuration/seal/azurekeyvault
 - k3s requirements: https://docs.k3s.io/installation/requirements
-- Terraform `oci` backend: https://developer.hashicorp.com/terraform/language/backend/oci
-- OpenTofu backends: https://opentofu.org/docs/language/settings/backends/configuration/
-- Vault OCI KMS seal: https://developer.hashicorp.com/vault/docs/configuration/seal/ocikms
-- OpenBao seals and storage: https://openbao.org/docs/configuration/seal/ocikms/ and
-  https://openbao.org/docs/configuration/storage/
 - Keycloak databases: https://www.keycloak.org/server/db
 - Keycloak sizing:
   https://www.keycloak.org/high-availability/multi-cluster/concepts-memory-and-cpu-sizing
@@ -822,7 +970,8 @@ agent on Dan's machine as an inbound agent.
 - GitHub Packages billing:
   https://docs.github.com/en/billing/concepts/product-billing/github-packages
 - Cloudflare DNS FAQ: https://developers.cloudflare.com/dns/faq/
-- Versions: GitHub releases API for each project, the k3s channel server
+- Versions: Terraform registry (azurerm, cloudflare), HashiCorp releases API,
+  GitHub releases API for each project, the k3s channel server
   (https://update.k3s.io/v1-release/channels), Jenkins update center, and
   Docker Hub / Quay manifests for image architectures.
 
@@ -903,6 +1052,20 @@ Facts worth knowing:
   roles, IdPs, user profile, no test users). A console edit is undone by
   rerunning keycloak-config. Checked on the dev machine with `auth.localhost`
   and Traefik's self-signed cert, not yet with a real domain or Let's Encrypt.
+- **Real email, prepared, not yet sent.** Provider chosen, realm and
+  compose ready, `mailcheck.mjs` checked locally: `send` passes against the
+  local prod stack pointed at Mailpit (both mails arrive) and fails on a
+  dead SMTP host; `headers` and `dns` pass and fail on fixtures and public
+  domains. Real mailbox and SPF/DKIM proof wait on a Brevo account, a
+  domain and DNS. `deploy/compose/EMAIL.md` step 1 and `.env.example` still
+  describe OCI.
+- **Terraform for Azure, written, not applied.** `deploy/terraform`
+  (bootstrap, `envs/azure`, `envs/dns`, `modules/azure-*`,
+  `modules/dns-cloudflare`) passes `terraform validate` against azurerm
+  5.12.0 and cloudflare 5.28.1, and `terraform -chdir=envs/azure test` (4
+  runs, mocked provider: phase 1 and phase 2 wiring, VM size and operator IP
+  guards). Run order in `deploy/terraform/README.md`. azurerm 5 note:
+  subnet service endpoints are `service_endpoint` blocks.
 - Deployment: nothing is provisioned yet. See `.shipit/open.md`.
 
 Next: every feature except Google and GitHub login is done. Feature 3 is
@@ -919,12 +1082,18 @@ Pause and ask before:
   counts as part of the stack).
 - `terraform apply` or `terraform destroy`, in any root or env. Show the plan
   and wait for a yes.
-- Anything that costs money: the Pay As You Go upgrade, buying a domain, any
-  paid OCI or AWS resource, anything beyond the Always Free list.
-- Cloud credentials: creating, entering or rotating OCI API keys, AWS keys,
+- Anything that spends credit or money beyond the plan in Deployment
+  platform: any Azure resource not listed there, a bigger VM size than
+  B2ps v2, turning auto-shutdown off in phase 2, the pay-as-you-go upgrade
+  or adding a card, buying a domain, any AWS resource.
+- The region choice, and starting or resizing the VM (it starts the meter).
+- New vendor accounts: Brevo, Resend, or any other.
+- Cloud credentials: `az login` sessions, role assignments to people,
+  Entra app registrations or client secrets, the Brevo SMTP key, AWS keys,
   Cloudflare API tokens, GitHub tokens, or Vault recovery keys.
 - DNS changes: nameservers, records, SPF and DKIM.
-- Deleting data: volumes, buckets, backups, databases, Vault data, a realm
-  wipe on a deployed environment, `docker compose down -v`, or the A1 VM.
+- Deleting data: disks, storage accounts, containers, backups, databases,
+  the Key Vault or its seal key, Vault data, a realm wipe on a deployed
+  environment, `docker compose down -v`, or the VM.
 - Opening any port or admin UI to the internet beyond 80/443, and 22 from
   Dan's IP.
