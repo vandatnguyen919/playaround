@@ -1111,7 +1111,7 @@ Facts worth knowing:
   runs, mocked provider: phase 1 and phase 2 wiring, VM size and operator IP
   guards). Run order in `deploy/terraform/README.md`. azurerm 5 note:
   subnet service endpoints are `service_endpoint` blocks.
-- **Images (phase 1), built locally; CI written, not yet run on GitHub.** `gateway/Dockerfile` (with
+- **Images (phase 1), built locally; CI checks run on GitHub, not yet on `main`.** `gateway/Dockerfile` (with
   `web/dist`), `api/Dockerfile` and `keycloak-theme/Dockerfile` build for
   arm64 and amd64 with buildx; gateway and api run as uid 10001 on Spring
   Boot layers with a bash `/dev/tcp` healthcheck. `compose.prod.yml` has the
@@ -1122,10 +1122,12 @@ Facts worth knowing:
   BOM jars and the upstream Keycloak base). Building Keycloak for arm64 on
   the dev machine needs QEMU registered (`tonistiigi/binfmt --install
   arm64`), which Docker Desktop loses on restart.
-  `.github/workflows/ci.yml` passes actionlint 1.7.12. Checked locally:
-  `./gradlew build`, web and theme lint and tests, `./verify` (43/43) and
-  the Gitleaks and Trivy commands pass on the repo; Gitleaks fails on a
-  planted fake API key and Trivy on a planted lodash 4.17.20.
+  `.github/workflows/ci.yml`: every pull request check passes on GitHub
+  (PR #11). Each gate failed its own throwaway PR for the planted cause
+  only: a failing JUnit test failed `gradle` (#12), a fake API key failed
+  `gitleaks` (#13), lodash 4.17.20 failed `trivy` and `dependency-review`
+  (#14). Dependency review needs the repo's Dependency graph, now on. The
+  push, merge and inspect jobs have not run yet (they run on `main`).
 - Deployment: nothing is provisioned yet. See `.shipit/open.md`.
 
 Next: every feature except Google and GitHub login is done. Feature 3 is

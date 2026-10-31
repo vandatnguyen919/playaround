@@ -5,16 +5,11 @@
 Built and checked locally: see Current state in PRODUCT.md and
 `.shipit/records/images-2026-10-31.md`. Left:
 
-- **First CI run** (`.github/workflows/ci.yml`, not run yet). Next
-  action, with Dan's go-ahead to commit and push: open a PR from this
-  branch (all checks must pass), then three throwaway draft PRs on top of
-  it, each of which must fail: a failing JUnit test (`gradle`), a planted
-  fake API key (`gitleaks`), and lodash 4.17.20 in `web` (`trivy` and
-  `dependency-review`). Close them unmerged and delete their branches.
-  Then merge to `main` (push by digest, merge, inspect). Unproven until
-  then: Java 26 from setup-java, Maven on the runner for the theme build,
-  Gitleaks as the runner's uid, dependency review on this repo, and the
-  attestation count in the merge check.
+- **First run on `main`.** Pull request checks are proven (PR #11 passes;
+  #12 to #14 failed as planned and are closed). Next action: Dan merges
+  #11. Unproven until then: native arm64 builds on `ubuntu-24.04-arm`,
+  push by digest with `GITHUB_TOKEN`, the merge, and the attestation count
+  in the inspect check.
 - **Trivy ignores expire 2026-11-30** (`.trivyignore.yaml`). After that
   every CI run fails until the Spring Boot BOM item below is decided.
 - **Dan, after the first run on `main`:** make the three packages public
