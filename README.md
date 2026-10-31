@@ -105,18 +105,84 @@ Dev also applies `infra/playground-users-dev.json` (the test users). So:
 - Files are applied in name order, so the realm file runs before the users
   file.
 
-## Production stack (phase 1, Keycloak slice)
+## Production stack (phase 1)
 
 `deploy/compose/compose.prod.yml` runs Traefik, Keycloak in production mode,
-Postgres (named volume `keycloak-db`) and the same `keycloak-config` job,
-without test users. Gateway, api, web and Redis join it once they have images.
+Postgres (named volume `keycloak-db`), the same `keycloak-config` job without
+test users, Redis, the gateway (which serves the built SPA) and the API.
 
 ```
 cd deploy/compose
 cp .env.example .env        (fill in every value; on the VM: root-owned, 0600)
-docker compose -f compose.prod.yml up -d --build
+docker compose -f compose.prod.yml pull     (or `up -d --build` to build here)
+docker compose -f compose.prod.yml up -d
 node check.mjs              (exits nonzero on any failed check)
 ```
+
+### Images
+
+Three images, all for `linux/arm64` and `linux/amd64`, on GHCR as
+`ghcr.io/vandatnguyen919/playground-{gateway,api,keycloak}`. Jars and the SPA
+compile once in `FROM --platform=$BUILDPLATFORM` stages; the final stages only
+copy onto `eclipse-temurin:26-jre` (or the Keycloak image).
+
+**CI publishes them** (`.github/workflows/ci.yml`, GitHub Actions). CI never
+deploys; that is Jenkins' job in phase 2, and by hand before then.
+
+- Every pull request to `main`, nothing pushed: `./gradlew build`, web and
+  theme `npm run lint` and `npm test`, `./verify` (dev Keycloak and Mailpit
+  from `infra/docker-compose.yml`), Gitleaks over the whole history
+  (`.gitleaks.toml`), Trivy on the npm lockfiles and the built jars (High
+  and Critical; known findings in `.trivyignore.yaml`, which expire), and
+  dependency review.
+- Push to `main`: the same checks (no dependency review), then each image
+  built natively on `ubuntu-24.04` (amd64) and `ubuntu-24.04-arm` (arm64),
+  pushed by digest, and merged into one tag `sha-<full git sha>` with
+  `docker buildx imagetools create`. The last step fails unless the tag has
+  both platforms and a provenance attestation for each.
+- Images carry OCI labels (source, revision, created, version, title) and
+  BuildKit provenance (`mode=max`). Only the push and merge jobs get
+  `packages: write`, through `GITHUB_TOKEN`. Actions are pinned by commit
+  SHA, scanner images by digest. Dependabot opens weekly update PRs.
+- No `latest` tag: set `GATEWAY_IMAGE`, `API_IMAGE` and `KEYCLOAK_IMAGE` in
+  `.env` to the same `sha-...` tag.
+
+Run the same scans locally:
+
+```
+docker run --rm -v "$PWD:/repo" -w /repo zricethezav/gitleaks:v8.30.1 git --config .gitleaks.toml --redact .
+docker run --rm -v "$PWD:/repo" -w /repo aquasec/trivy:0.76.0 fs --scanners vuln --severity HIGH,CRITICAL --ignorefile .trivyignore.yaml --skip-dirs '**/node_modules' .
+```
+
+Check a published tag by hand:
+
+```
+docker buildx imagetools inspect ghcr.io/vandatnguyen919/playground-gateway:sha-<git sha>
+```
+
+Local build of both platforms (needs Docker's containerd image store; the
+Keycloak arm64 `kc.sh build` needs QEMU on an x86 machine,
+`docker run --privileged --rm tonistiigi/binfmt --install arm64`):
+
+```
+docker buildx build --platform linux/arm64,linux/amd64 -f gateway/Dockerfile -t ghcr.io/vandatnguyen919/playground-gateway:latest --load .
+docker buildx build --platform linux/arm64,linux/amd64 -f api/Dockerfile -t ghcr.io/vandatnguyen919/playground-api:latest --load .
+docker buildx build --platform linux/arm64,linux/amd64 -t ghcr.io/vandatnguyen919/playground-keycloak:latest --load keycloak-theme
+```
+
+Gateway and API run as uid 10001 on Spring
+Boot's layered jar (dependencies, loader, snapshots, application), with a
+healthcheck over bash `/dev/tcp` (the JRE image has no curl): gateway
+readiness on the management port 9181, API `/actuator/health`.
+
+- **Gateway to Keycloak.** The gateway cannot reach the public `AUTH_HOST`
+  from inside Docker, so it reads discovery from
+  `KEYCLOAK_DISCOVERY_URI=http://keycloak:8080/...` and checks that the
+  issuer there equals `KEYCLOAK_ISSUER_URI` (public).
+  `KC_HOSTNAME_BACKCHANNEL_DYNAMIC` makes Keycloak answer with public browser
+  endpoints and private token and key endpoints
+  (`KeycloakBackChannelConfig`). The API checks the public issuer and takes
+  keys from `KEYCLOAK_JWK_SET_URI` (private).
 
 One `up` from an empty volume gives a fully configured realm: Keycloak creates
 the schema and the bootstrap admin user and client, then `keycloak-config`
@@ -126,8 +192,7 @@ takes a few minutes.
 
 - **Image.** `keycloak-theme/Dockerfile` builds the theme jar, bakes it in with
   `kc.sh build` (Postgres, health, metrics) and starts with
-  `start --optimized`. Multi-arch:
-  `docker buildx build --platform linux/arm64,linux/amd64 -t <image> --push keycloak-theme`.
+  `start --optimized`. Built by CI with the other images (see Images).
 - **Public.** `https://AUTH_HOST` routes only `/realms/playground/` and
   `/resources/`. The admin console and admin API, the master realm, `/`,
   health and metrics all return 404 there.
@@ -145,10 +210,26 @@ takes a few minutes.
 - **TLS.** Traefik gets Let's Encrypt certs over HTTP-01, from the staging CA
   until `ACME_CA_SERVER` is switched to production.
 
-Local trial without DNS or certs: set `AUTH_HOST=auth.localhost`,
-`APP_HOST=app.localhost`, an empty `TLS_CERT_RESOLVER=` (Traefik's
-self-signed cert) and `KC_ADMIN_PORT=18080` if 8080 is taken by the dev stack,
-then run `node check.mjs --env-file <file> --insecure`.
+### Local prod stack
+
+Without DNS or certs: set `AUTH_HOST=auth.localhost`, `APP_HOST=app.localhost`,
+an empty `TLS_CERT_RESOLVER=` (Traefik's self-signed cert) and
+`KC_ADMIN_PORT=18080` if 8080 is taken by the dev stack. Add
+`compose.local-test.yml`, which publishes Redis (127.0.0.1:16379) and the
+gateway's management port (127.0.0.1:9181) for the checks; never use it on the
+VM. From the repo root (PowerShell: set the variables with `$env:NAME=...`):
+
+```
+docker compose -f deploy/compose/compose.prod.yml -f deploy/compose/compose.local-test.yml --env-file <file> up -d
+node deploy/compose/check.mjs --env-file <file> --insecure
+NODE_TLS_REJECT_UNAUTHORIZED=0 node --import ./deploy/compose/localhost-dns.mjs check-headers.mjs https://app.localhost http://127.0.0.1:9181
+NODE_TLS_REJECT_UNAUTHORIZED=0 APP_URL=https://app.localhost KC_PUBLIC_URL=https://auth.localhost KC_URL=http://localhost:18080 \
+  REDIS_PORT=16379 REDIS_PASSWORD=<from file> KC_BOOTSTRAP_ADMIN_PASSWORD=<from file> COOKIE_SECURE=true \
+  node --import ./deploy/compose/localhost-dns.mjs smoke.mjs
+```
+
+`localhost-dns.mjs` resolves `*.localhost` to 127.0.0.1 inside Node, which
+Windows does not do.
 
 ## Smoke test
 

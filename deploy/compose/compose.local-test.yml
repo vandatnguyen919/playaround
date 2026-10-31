@@ -1,0 +1,19 @@
+# Local test runs only, never on the VM. Publishes on loopback what the
+# checks need but production keeps private:
+#   Redis on 127.0.0.1:16379   smoke.mjs checks sessions in Redis
+#   gateway management 9181    check-headers.mjs checks the actuator
+# Redis is on the internal backend network, where Docker publishes no ports,
+# so here it also joins edge.
+#
+#   docker compose -f compose.prod.yml -f compose.local-test.yml --env-file <env> up -d
+# With AUTH_HOST=auth.localhost, APP_HOST=app.localhost and TLS_CERT_RESOLVER=
+# (empty: Traefik's self-signed default cert). How to run the checks:
+# README.md, "Local prod stack".
+services:
+  redis:
+    networks: [backend, edge]
+    ports:
+      - "127.0.0.1:${REDIS_TEST_PORT:-16379}:6379"
+  gateway:
+    ports:
+      - "127.0.0.1:${GATEWAY_MANAGEMENT_TEST_PORT:-9181}:9181"

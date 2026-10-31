@@ -1,5 +1,35 @@
 # Open
 
+## Images for phase 1 (2026-10-31)
+
+Built and checked locally: see Current state in PRODUCT.md and
+`.shipit/records/images-2026-10-31.md`. Left:
+
+- **First CI run** (`.github/workflows/ci.yml`, not run yet). Next
+  action, with Dan's go-ahead to commit and push: open a PR from this
+  branch (all checks must pass), then three throwaway draft PRs on top of
+  it, each of which must fail: a failing JUnit test (`gradle`), a planted
+  fake API key (`gitleaks`), and lodash 4.17.20 in `web` (`trivy` and
+  `dependency-review`). Close them unmerged and delete their branches.
+  Then merge to `main` (push by digest, merge, inspect). Unproven until
+  then: Java 26 from setup-java, Maven on the runner for the theme build,
+  Gitleaks as the runner's uid, dependency review on this repo, and the
+  attestation count in the merge check.
+- **Trivy ignores expire 2026-11-30** (`.trivyignore.yaml`). After that
+  every CI run fails until the Spring Boot BOM item below is decided.
+- **Dan, after the first run on `main`:** make the three packages public
+  (GitHub, Packages, each package, Package settings, Change visibility).
+  They start private, so the VM cannot pull them without a login.
+- **Trivy Critical/High in Spring Boot BOM jars:** Tomcat 11.0.24 (4
+  Critical, api) and Jackson 3.1.5 / 2.21.5 (High, both). Versions are
+  pinned in PRODUCT.md, so Dan decides: a Spring Boot patch release that
+  carries Tomcat 11.0.25 and Jackson 3.1.7 / 2.21.7, or BOM property
+  overrides (`tomcat.version`, `jackson-bom.version`). Rerun gateway tests,
+  smoke and Trivy after.
+- **Keycloak base findings** (ca-certificates Critical, OpenJDK 21 High with
+  no fix, guava High) come from `quay.io/keycloak/keycloak:26.8.1`. Next
+  action: check for a 26.8.x patch image before deploy.
+
 ## Azure for Students replaces Oracle Cloud (2026-10-30)
 
 Decided: see Deployment platform in PRODUCT.md. Terraform written and
@@ -47,17 +77,6 @@ Done and checked: see Auth abuse protection in PRODUCT.md. Left:
   check whether Keycloak 26.8 has a resend cooldown before adding a Traefik
   rule.
 
-## Redis and gateway hardening (2026-10-28)
-
-Done and tested (`.\gradlew.bat :gateway:test`, `node check-headers.mjs`,
-`node smoke.mjs` 40/40); see PRODUCT.md. Left:
-
-- **Gateway in compose.prod.yml.** Redis is there; the gateway service still
-  needs a Dockerfile that copies `web/dist` in (`SPA_LOCATION`), and env
-  `REDIS_HOST=redis`, `FORWARD_HEADERS_STRATEGY=native`, `COOKIE_SECURE=true`,
-  `APP_URL`, `MANAGEMENT_ADDRESS=0.0.0.0` for its healthcheck. Part of "Rest
-  of phase 1 compose" below.
-
 ## Keycloak production readiness (2026-10-28)
 
 Done and checked locally: see Current state in PRODUCT.md. Left:
@@ -67,11 +86,9 @@ Done and checked locally: see Current state in PRODUCT.md. Left:
   service account client in the master realm and point `KC_CONFIG_CLIENT_*`
   at it. Master realm edits must run last in a session (see
   `keycloak-admin-url`): a master frontend URL change moves the token issuer.
-- **Multi-arch image to GHCR.** Only a local amd64 build was made. Next action:
-  `docker buildx build --platform linux/arm64,linux/amd64 --push` to
-  `ghcr.io/vandatnguyen919/playground-keycloak` and check with
-  `docker buildx imagetools inspect` (needs a GitHub token: a Stop).
-- **Rest of phase 1 compose.** Gateway, api, web and Redis need Dockerfiles and
-  services in `deploy/compose/compose.prod.yml`. `smoke.mjs` against the public
-  URL also needs a way to create its throwaway users (it uses the master realm
-  admin API, which is not public).
+- **Multi-arch image to GHCR:** CI publishes it on `main` (see Images
+  above).
+- **smoke.mjs against the public URL** needs a way to create its throwaway
+  users (it uses the master realm admin API, which is not public) and Redis
+  access (local runs publish it with `compose.local-test.yml`, never on the
+  VM). Next action: run it over the SSH tunnel with both forwarded.

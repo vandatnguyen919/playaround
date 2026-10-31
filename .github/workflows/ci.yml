@@ -1,0 +1,241 @@
+# CI for the whole repo. CD (deploying an image) is Jenkins' job, not this one.
+# Pull requests: Gradle build and tests, web and theme lint and tests,
+# ./verify, Gitleaks, Trivy and dependency review. Nothing is pushed.
+# main: the same checks, then gateway, api and keycloak built natively on
+# amd64 and arm64 runners, pushed by digest, merged into one tag
+# sha-<git sha>, and checked for both platforms and their provenance.
+# Only the two jobs that write to GHCR get packages: write.
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  gradle:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "26"
+      # Caches the Gradle home (dependencies, wrapper) between runs.
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      # build runs the tests. Gateway tests start Redis with Testcontainers.
+      - run: bash ./gradlew build
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: boot-jars
+          path: |
+            gateway/build/libs/*.jar
+            api/build/libs/*.jar
+          retention-days: 1
+
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.20.0
+          cache: npm
+          cache-dependency-path: |
+            web/package-lock.json
+            keycloak-theme/package-lock.json
+      - name: web
+        working-directory: web
+        run: npm ci && npm run lint && npm test && npm run build
+      - name: keycloak-theme
+        working-directory: keycloak-theme
+        run: npm ci && npm run lint && npm test
+
+  # Needs dev Keycloak with the theme jar, and Mailpit (infra/docker-compose.yml).
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.20.0
+          cache: npm
+          cache-dependency-path: keycloak-theme/package-lock.json
+      - name: Build the theme jar
+        working-directory: keycloak-theme
+        run: npm ci && npm run build-keycloak-theme
+      - name: Start Keycloak and Mailpit
+        run: docker compose -f infra/docker-compose.yml up -d --wait --wait-timeout 600 keycloak mailpit
+      - name: Apply the realm
+        run: docker compose -f infra/docker-compose.yml run --rm keycloak-config
+      - run: ./verify
+      - name: Compose logs
+        if: failure()
+        run: docker compose -f infra/docker-compose.yml logs --no-color
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: verify-evidence
+          path: .shipit/verify/evidence/
+          if-no-files-found: ignore
+
+  # Whole history, default rules plus the allowlists in .gitleaks.toml.
+  gitleaks:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      # Same uid as the checkout, so git inside the container trusts the repo.
+      - run: >
+          docker run --rm -u "$(id -u):$(id -g)" -v "$PWD:/repo" -w /repo
+          zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+          git --config .gitleaks.toml --redact --no-banner --verbose .
+
+  # High and Critical in npm lockfiles and in the jars Gradle built (the Spring
+  # Boot jars nest every dependency). Known findings: .trivyignore.yaml.
+  trivy:
+    needs: gradle
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: boot-jars
+          path: jars
+      - name: Lockfiles, then jars
+        run: |
+          trivy() {
+            docker run --rm -v "$PWD:/repo" -w /repo \
+              aquasec/trivy:0.76.0@sha256:2416d1f74045b57274df1a340eee6b510cacd73c66a6ccb8da092b117eb7d222 \
+              "$@" --scanners vuln --severity HIGH,CRITICAL --ignorefile .trivyignore.yaml \
+              --exit-code 1 --cache-dir /repo/.trivy-cache
+          }
+          trivy fs --skip-dirs jars --skip-dirs .trivy-cache .
+          trivy rootfs --skip-db-update jars
+
+  # Fails on a new dependency with a High or Critical advisory, for whatever
+  # GitHub's dependency graph sees (npm lockfiles, actions). Gradle
+  # dependencies are covered by the Trivy jar scan.
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+
+  push:
+    if: github.event_name == 'push'
+    needs: [gradle, web, verify, gitleaks, trivy]
+    runs-on: ${{ matrix.arch.runner }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        image:
+          - { name: gateway, context: ., file: gateway/Dockerfile }
+          - { name: api, context: ., file: api/Dockerfile }
+          - { name: keycloak, context: keycloak-theme, file: keycloak-theme/Dockerfile }
+        arch:
+          - { name: amd64, platform: linux/amd64, runner: ubuntu-24.04 }
+          - { name: arm64, platform: linux/arm64, runner: ubuntu-24.04-arm }
+    env:
+      IMAGE: ghcr.io/vandatnguyen919/playground-${{ matrix.image.name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # OCI labels: source, revision, created, version (sha-<git sha>), title.
+      - id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.IMAGE }}
+          tags: type=sha,format=long,prefix=sha-
+          labels: org.opencontainers.image.title=playground-${{ matrix.image.name }}
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # Gradle and npm inside the Dockerfiles use cache mounts; the gha cache
+      # keeps those layers between runs.
+      - id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ${{ matrix.image.context }}
+          file: ${{ matrix.image.file }}
+          platforms: ${{ matrix.arch.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # No tag here: the merge job tags the multi-arch index.
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          provenance: mode=max
+          cache-from: type=gha,scope=${{ matrix.image.name }}-${{ matrix.arch.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image.name }}-${{ matrix.arch.name }}
+      - name: Save the digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: mkdir -p /tmp/digests && touch "/tmp/digests/${DIGEST#sha256:}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: digests-${{ matrix.image.name }}-${{ matrix.arch.name }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # Writes the multi-arch index, so it needs packages: write too.
+  merge:
+    needs: push
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        image: [gateway, api, keycloak]
+    env:
+      IMAGE: ghcr.io/vandatnguyen919/playground-${{ matrix.image }}
+      TAG: sha-${{ github.sha }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: /tmp/digests
+          pattern: digests-${{ matrix.image }}-*
+          merge-multiple: true
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # Index annotations let GHCR link the multi-arch package to this repo.
+      - name: Create the multi-arch tag
+        working-directory: /tmp/digests
+        run: |
+          refs=()
+          for digest in *; do refs+=("$IMAGE@sha256:$digest"); done
+          docker buildx imagetools create -t "$IMAGE:$TAG" \
+            --annotation "index:org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            --annotation "index:org.opencontainers.image.revision=$GITHUB_SHA" \
+            "${refs[@]}"
+      - name: Check both platforms and provenance
+        run: |
+          docker buildx imagetools inspect "$IMAGE:$TAG"
+          raw=$(docker buildx imagetools inspect --raw "$IMAGE:$TAG")
+          for arch in amd64 arm64; do
+            echo "$raw" | jq -e --arg arch "$arch" \
+              'any(.manifests[]; .platform.os == "linux" and .platform.architecture == $arch)' > /dev/null \
+              || { echo "::error::$IMAGE:$TAG has no linux/$arch image"; exit 1; }
+          done
+          attestations=$(echo "$raw" | jq '[.manifests[] | select(.annotations["vnd.docker.reference.type"] == "attestation-manifest")] | length')
+          [ "$attestations" -eq 2 ] || { echo "::error::$IMAGE:$TAG has $attestations provenance attestations, expected 2"; exit 1; }
+          echo "$IMAGE:$TAG: linux/amd64, linux/arm64, 2 attestations" >> "$GITHUB_STEP_SUMMARY"

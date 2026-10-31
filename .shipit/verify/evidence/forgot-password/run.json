@@ -1,5 +1,5 @@
 {
-  "runId": "2026-10-29T11:10:58.787Z",
+  "runId": "2026-10-31T03:01:39.318Z",
   "checks": [
     "enumeration",
     "enumdiff",
@@ -200,7 +200,7 @@
     {
       "name": "the lock lifts by itself",
       "ok": true,
-      "detail": "after 62s"
+      "detail": "after 61s"
     },
     {
       "name": "the right password signs in after the lock",
@@ -278,7 +278,7 @@
     "mail": {
       "subject": "Reset password",
       "from": "keycloak@playground.local",
-      "to": "verify-ecf2610e@example.com"
+      "to": "verify-b9224bb5@example.com"
     },
     "expiredLink": {
       "pageId": "error.ftl",

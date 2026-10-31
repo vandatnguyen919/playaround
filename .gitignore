@@ -19,3 +19,4 @@ dist/
 *.iml
 .vscode/
 .playwright-mcp/
+.trivy-cache/

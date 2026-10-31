@@ -1,0 +1,53 @@
+# Known findings the CI Trivy gate skips until they expire. Each entry is
+# limited to the exact package version, so a different version is scanned
+# again. Tomcat and Jackson come from the Spring Boot 4.1.1 BOM, which
+# PRODUCT.md pins: Dan decides between a Spring Boot patch release and BOM
+# overrides (.shipit/open.md, "Trivy Critical/High in Spring Boot BOM jars").
+# When an entry expires, CI fails again.
+vulnerabilities:
+  - id: CVE-2026-65182
+    purls: ["pkg:maven/org.apache.tomcat.embed/tomcat-embed-core@11.0.24"]
+    statement: Spring Boot 4.1.1 BOM, fixed in 11.0.25, waiting on Dan
+    expired_at: 2026-11-30
+  - id: CVE-2026-65637
+    purls: ["pkg:maven/org.apache.tomcat.embed/tomcat-embed-core@11.0.24"]
+    statement: Spring Boot 4.1.1 BOM, fixed in 11.0.25, waiting on Dan
+    expired_at: 2026-11-30
+  - id: CVE-2026-65905
+    purls: ["pkg:maven/org.apache.tomcat.embed/tomcat-embed-core@11.0.24"]
+    statement: Spring Boot 4.1.1 BOM, fixed in 11.0.25, waiting on Dan
+    expired_at: 2026-11-30
+  - id: CVE-2026-68525
+    purls: ["pkg:maven/org.apache.tomcat.embed/tomcat-embed-core@11.0.24"]
+    statement: Spring Boot 4.1.1 BOM, fixed in 11.0.25, waiting on Dan
+    expired_at: 2026-11-30
+  - id: CVE-2026-89407
+    purls:
+      - pkg:maven/tools.jackson.core/jackson-core@3.1.5
+      - pkg:maven/com.fasterxml.jackson.core/jackson-core@2.21.5
+    statement: Spring Boot 4.1.1 BOM, fixed in 3.1.7 and 2.21.7, waiting on Dan
+    expired_at: 2026-11-30
+  - id: CVE-2026-89425
+    purls:
+      - pkg:maven/tools.jackson.core/jackson-core@3.1.5
+      - pkg:maven/com.fasterxml.jackson.core/jackson-core@2.21.5
+    statement: Spring Boot 4.1.1 BOM, fixed in 3.1.7 and 2.21.7, waiting on Dan
+    expired_at: 2026-11-30
+  - id: CVE-2026-68497
+    purls:
+      - pkg:maven/tools.jackson.core/jackson-databind@3.1.5
+      - pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.21.5
+    statement: Spring Boot 4.1.1 BOM, fixed in 3.1.6 and 2.21.6, waiting on Dan
+    expired_at: 2026-11-30
+  - id: CVE-2026-91776
+    purls:
+      - pkg:maven/tools.jackson.core/jackson-databind@3.1.5
+      - pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.21.5
+    statement: Spring Boot 4.1.1 BOM, fixed in 3.1.7 and 2.21.7, waiting on Dan
+    expired_at: 2026-11-30
+  - id: CVE-2026-91777
+    purls:
+      - pkg:maven/tools.jackson.core/jackson-databind@3.1.5
+      - pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.21.5
+    statement: Spring Boot 4.1.1 BOM, fixed in 3.1.7 and 2.21.7, waiting on Dan
+    expired_at: 2026-11-30

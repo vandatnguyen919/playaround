@@ -110,6 +110,16 @@ Choices made, with reasons. Versions were checked against official docs on
   clients, and the realm enforces S256 on this client. The API is a resource
   server only (JWT, issuer-uri). The SPA holds no client config and sees no
   tokens.
+- **Keycloak over the private network in containers** (2026-10-31). The
+  gateway cannot reach the public `AUTH_HOST` from inside Docker, so with
+  `KEYCLOAK_DISCOVERY_URI` set it reads discovery from
+  `http://keycloak:8080/...` and refuses to start unless the issuer there
+  equals `KEYCLOAK_ISSUER_URI` (public). `KC_HOSTNAME_BACKCHANNEL_DYNAMIC`
+  makes Keycloak answer with public browser endpoints (authorization, end
+  session) and private token, JWKS and userinfo endpoints
+  (`KeycloakBackChannelConfig`). Unset in dev, where Spring Boot's own
+  discovery runs. The API checks the public issuer and fetches keys from
+  `KEYCLOAK_JWK_SET_URI`, so it never needs discovery.
 - **Token relay.** The `TokenRelay` filter, with no client registration id,
   forwards the logged-in user's access token to the API as a bearer header. The
   default authorized client store is in memory. Store the authorized client
@@ -578,14 +588,15 @@ renewal if it is not done.
 ### Phases
 
 1. **Compose on one VM.** Traefik, Keycloak in production mode, Postgres,
-   Redis, gateway, api, web. Images built locally with buildx and pushed to
-   GHCR. Secrets in a root-owned 0600 `.env` on the VM. Done when `smoke.mjs`
+   Redis, gateway (serves the SPA, no separate web service), api. Images built
+   and pushed to GHCR by GitHub Actions (see CI and CD below). Secrets in a
+   root-owned 0600 `.env` on the VM. Done when `smoke.mjs`
    passes against the public URL with `COOKIE_SECURE=true`.
 2. **k3s on the same VM**, resized to 8 GiB, replacing compose. Adds
    cert-manager, Vault, External Secrets, CloudNativePG, the LGTM stack (with
-   Prometheus, see below) and the Jenkins controller, with the build agent on
-   Dan's machine. Done when a push to `main` is built by Jenkins, deployed,
-   passes `smoke.mjs`, and its traces show in Grafana.
+   Prometheus, see below) and the Jenkins controller for CD. Done when a
+   push to `main` is built by GitHub Actions, deployed by Jenkins, passes
+   `smoke.mjs`, and its traces show in Grafana.
 3. **AWS.** A new Terraform env with the same Kubernetes layer. Choose EKS or
    k3s on EC2 then.
 
@@ -595,7 +606,7 @@ without Kubernetes in the way, Traefik carries over to k3s, and phase 1 fits
 on the cheaper 4 GiB size. Revisit: skip straight to phase 2 if Dan prefers.
 
 **Phase 1 memory (4 GiB, limits):** OS and Docker 0.6, Traefik 0.1, Keycloak
-1.4, Postgres 0.3, Redis 0.1, gateway 0.5, api 0.4, web 0.05: about 3.5 GB.
+1.4, Postgres 0.3, Redis 0.1, gateway 0.5, api 0.4: about 3.4 GB.
 Tight but under 4 GiB with JVM heaps capped (`-XX:MaxRAMPercentage`) and a 1
 GiB swap file on the data disk as a cushion, not as working memory. If
 Keycloak is OOM killed, resize to B2ps v2 early.
@@ -643,13 +654,13 @@ the 12 GB plan):
 
 - **Prometheus v3.15.1 in place of Mimir.** It accepts OTLP and saves about
   0.5 GB. Mimir is the thing to try on AWS.
-- **The build agent runs on Dan's machine** as an inbound Jenkins agent
-  through the SSH tunnel, not as a pod. Saves 2.5 GB and the CPU credits a
-  Gradle, npm and BuildKit build would burn.
+- **No build agent on the node.** GitHub Actions builds the images (see CI
+  and CD), so no Gradle, npm or BuildKit pod. Saves 2.5 GB and the CPU
+  credits a build would burn.
 
 Not cut: Vault, CloudNativePG, Grafana, Loki, Tempo, the Jenkins controller.
-If the node still runs out, the next cut is the Jenkins controller (build
-and deploy from Dan's machine with `helm upgrade`), then Tempo retention.
+If the node still runs out, the next cut is the Jenkins controller (deploy
+from Dan's machine with `helm upgrade`), then Tempo retention.
 Moving to `B4ps_v2` (16 GiB, about $65 a month in centralindia) is a Stop.
 
 Rules: every pod has a memory limit. App pods get a higher PriorityClass than
@@ -672,8 +683,8 @@ cores, so Keycloak starts slowly.
   `jenkins/jenkins:2.580.1-lts-jdk25`. Build rule: compile JARs and the SPA
   once in `FROM --platform=$BUILDPLATFORM` stages, and make final stages only
   COPY onto multi-arch bases, so no compile runs under QEMU. The Keycloak
-  image runs `kc.sh build` per platform, which is emulated for the foreign
-  one: slow but acceptable. Check both platforms with `docker buildx
+  image runs `kc.sh build` per platform: native on the CI runners, emulated
+  for arm64 on an x86 dev machine (slow but acceptable). Check both platforms with `docker buildx
   imagetools inspect` before any deploy.
 - **Ingress: Traefik.** Compose: `traefik:v3.7.16` with Docker labels. k3s:
   the Traefik that k3s ships. Not Caddy (v2.11.7): its automatic TLS is
@@ -851,24 +862,58 @@ Prometheus replaces Mimir 3.2.3 to fit 8 GiB.
 
 **Jenkins LTS 2.580.1 (`jenkins/jenkins:2.580.1-lts-jdk25`), Helm chart
 5.10.0, in namespace `ci` on the same k3s node, configured as code (JCasC).**
-Phase 2. Phase 1 has no Jenkins; images are built and pushed with buildx
-from Dan's machine.
+Phase 2. Jenkins does CD only (J1, J3): it deploys images that GitHub
+Actions built and published (see CI and CD below). It builds nothing, so it
+needs no build agent.
 
-- **Agent:** one inbound agent on Dan's machine (Docker Desktop, BuildKit),
-  connected over WebSocket through the SSH tunnel. It builds `linux/arm64`
-  and `linux/amd64` images and pushes them to GHCR. Builds run only while
-  Dan's machine is on, which matches a learning project.
 - **Reaching the cluster:** deploy steps run on the controller as a
   ServiceAccount bound to a Role in the `playground` namespace only (`helm
   upgrade`). No kubeconfig leaves the cluster, and 6443 stays closed to the
   internet.
 - **Triggers:** Jenkins polls GitHub every 5 minutes instead of taking
   webhooks, so it stays private. Tradeoff: up to 5 minutes of delay.
-- **Credentials:** a GitHub token with package write, stored in Vault and
-  synced by External Secrets.
+- **Credentials:** none for GHCR. The images are public, so pulls need no
+  token.
 
-Tradeoff: no builds while Dan's machine is off, and the tunnel is one more
-moving part. Revisit on AWS, where an agent node is cheap enough.
+### CI and CD: GitHub Actions builds, Jenkins deploys (2026-10-31)
+
+**CI runs in GitHub Actions; CD stays in Jenkins (J1, J3).** Dan decided
+this on 2026-10-31. Actions tests, scans, builds and publishes images; it
+never deploys. Jenkins arrives in phase 2 and deploys a published
+`sha-<git sha>` tag. Until then phase 1 deploys by hand on the VM
+(`docker compose pull` and `up -d` with the tag in `.env`).
+
+- **Workflow:** `.github/workflows/ci.yml`. Every pull request to `main`
+  runs, with nothing pushed: `./gradlew build` (with tests), web and theme
+  lint (oxlint) and tests (`node --test`), `./verify` against dev Keycloak
+  and Mailpit, Gitleaks over the whole history, Trivy (High and Critical in
+  npm lockfiles and in the built jars), and dependency review (fails on a
+  new High or Critical advisory). A push to `main` runs the same checks
+  except dependency review, then builds gateway, api and keycloak natively
+  on `ubuntu-24.04` and `ubuntu-24.04-arm`, pushes by digest, merges into
+  one tag `sha-<full git sha>` with `docker buildx imagetools create`, and
+  checks both platforms and their provenance with `imagetools inspect`.
+- **Supply chain:** actions pinned by commit SHA, scanner images by digest,
+  OCI source labels on every image and index, BuildKit provenance
+  (`mode=max`). `GITHUB_TOKEN` with `packages: write` only in the two jobs
+  that write to GHCR (push by digest, and merge); every other job has
+  `contents: read`. No personal token.
+- **Caches:** Gradle home (setup-gradle), npm (setup-node), and image
+  layers in the GitHub Actions cache, written on `main` only.
+- **Updates:** Dependabot, weekly, for actions, Gradle, npm, Dockerfiles and
+  compose files (`.github/dependabot.yml`). Not Renovate: Dependabot needs
+  no app install. Pinned versions in this file still change only when Dan
+  accepts the PR.
+- **Allowlists:** `.gitleaks.toml` (verify evidence, the throwaway test
+  password) and `.trivyignore.yaml` (the Spring Boot BOM findings, each
+  pinned to its version and expiring 2026-11-30, so CI fails again unless
+  Dan decides first).
+- **Tags:** only `sha-<git sha>`, no `latest`. Deploys pin all three
+  images to the same commit.
+- **Why:** native arm64 runners are free for public repos, so no QEMU, no
+  build load on the 8 GiB node, no dependency on Dan's machine being on,
+  and no GitHub token anywhere. Tradeoff: two tools, joined by the image
+  tag.
 
 ### Keycloak database and backups
 
@@ -1066,6 +1111,21 @@ Facts worth knowing:
   runs, mocked provider: phase 1 and phase 2 wiring, VM size and operator IP
   guards). Run order in `deploy/terraform/README.md`. azurerm 5 note:
   subnet service endpoints are `service_endpoint` blocks.
+- **Images (phase 1), built locally; CI written, not yet run on GitHub.** `gateway/Dockerfile` (with
+  `web/dist`), `api/Dockerfile` and `keycloak-theme/Dockerfile` build for
+  arm64 and amd64 with buildx; gateway and api run as uid 10001 on Spring
+  Boot layers with a bash `/dev/tcp` healthcheck. `compose.prod.yml` has the
+  gateway and api; the full stack from these images passes `check.mjs`
+  (43), `check-headers.mjs` (20) and `smoke.mjs` (45) locally with
+  `compose.local-test.yml`. Sizes and Trivy results:
+  `.shipit/records/images-2026-10-31.md` (Critical/High only in Spring Boot
+  BOM jars and the upstream Keycloak base). Building Keycloak for arm64 on
+  the dev machine needs QEMU registered (`tonistiigi/binfmt --install
+  arm64`), which Docker Desktop loses on restart.
+  `.github/workflows/ci.yml` passes actionlint 1.7.12. Checked locally:
+  `./gradlew build`, web and theme lint and tests, `./verify` (43/43) and
+  the Gitleaks and Trivy commands pass on the repo; Gitleaks fails on a
+  planted fake API key and Trivy on a planted lodash 4.17.20.
 - Deployment: nothing is provisioned yet. See `.shipit/open.md`.
 
 Next: every feature except Google and GitHub login is done. Feature 3 is

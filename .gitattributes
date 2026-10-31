@@ -1,3 +1,5 @@
 # Shell scripts and the Redis config run inside Linux containers.
 *.sh text eol=lf
 infra/redis/redis.conf text eol=lf
+# gradlew runs on Linux CI runners and in image builds.
+gradlew text eol=lf
