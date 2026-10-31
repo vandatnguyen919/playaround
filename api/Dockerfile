@@ -4,7 +4,7 @@
 # Compiling happens once on the build platform; the final stage only copies
 # onto the multi-arch JRE, so nothing compiles under QEMU.
 
-FROM --platform=$BUILDPLATFORM eclipse-temurin:26-jdk AS jar
+FROM --platform=$BUILDPLATFORM eclipse-temurin:27-jdk AS jar
 WORKDIR /src
 # Build scripts first, so dependency downloads stay cached across code edits.
 COPY gradlew settings.gradle build.gradle gradle.properties ./
@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew --no-daemon -q :api:bootJar \
     && java -Djarmode=tools -jar api/build/libs/api-*.jar extract --layers --launcher --destination /layers
 
-FROM eclipse-temurin:26-jre
+FROM eclipse-temurin:27-jre
 WORKDIR /app
 # Least to most often changed, one image layer each.
 COPY --from=jar /layers/dependencies/ ./
