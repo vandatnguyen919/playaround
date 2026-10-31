@@ -4,7 +4,7 @@
 #   docker buildx build --platform linux/arm64,linux/amd64 -t <image> keycloak-theme
 
 # The theme jar is plain files, so build it once on the build platform.
-FROM --platform=$BUILDPLATFORM node:22.20.0-alpine AS theme
+FROM --platform=$BUILDPLATFORM node:26.12.1-alpine AS theme
 # keycloakify build packages the jar with Maven (which pulls in a JDK).
 RUN apk add --no-cache maven
 WORKDIR /src
