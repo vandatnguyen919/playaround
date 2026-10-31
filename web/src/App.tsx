@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import axios from 'axios'
+import { outageMessage } from './outage.ts'
 import './App.css'
 
 // One origin for the browser: Vite proxies these paths to the gateway. Axios
@@ -33,21 +34,6 @@ type User = {
 
 type State = 'loading' | 'anonymous' | 'signed-in' | 'unavailable'
 
-const UNAVAILABLE = 'The service is temporarily unavailable. Please try again in a minute.'
-
-// The gateway answers 503 (Redis or the API down, circuit open) and 504 (API
-// too slow) with JSON { error, message } meant for the user.
-function outageMessage(error: unknown): string | null {
-  if (!axios.isAxiosError(error)) {
-    return null
-  }
-  const status = error.response?.status
-  if (status !== 502 && status !== 503 && status !== 504) {
-    return null
-  }
-  const message = (error.response?.data as { message?: unknown } | undefined)?.message
-  return typeof message === 'string' ? message : UNAVAILABLE
-}
 type Route = '/' | '/me' | '/admin' | '/forbidden'
 
 // Share one in-flight load so React StrictMode's double effect (and any double

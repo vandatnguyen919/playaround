@@ -9,6 +9,9 @@ import { randomBytes } from "node:crypto"
 
 const APP = process.env.APP_URL ?? "http://localhost:5174"
 const KC = process.env.KC_URL ?? "http://localhost:8080"
+// Keycloak as the browser sees it. Same as KC_URL in dev; in compose.prod.yml
+// KC_URL is the admin tunnel and this is https://AUTH_HOST.
+const KC_PUBLIC = process.env.KC_PUBLIC_URL ?? KC
 const REDIS_HOST = process.env.REDIS_HOST ?? "localhost"
 const REDIS_PORT = Number(process.env.REDIS_PORT ?? 6379)
 // The gateway's ACL user (infra/redis/start.sh); the default user is off.
@@ -110,7 +113,7 @@ class Browser {
 
 function loginAction(html) {
   const raw = html.match(/"loginAction":\s*"([^"]+)"/)?.[1]
-  return raw && new URL(raw.replace(/\\\//g, "/").replace(/\\u0026/g, "&").replace(/&amp;/g, "&"), KC).toString()
+  return raw && new URL(raw.replace(/\\\//g, "/").replace(/\\u0026/g, "&").replace(/&amp;/g, "&"), KC_PUBLIC).toString()
 }
 
 function pageId(html) {
@@ -266,7 +269,7 @@ async function checkLogout() {
   await b.xhr("/bff/csrf")
   const res = await b.xhr("/logout", { method: "POST" })
   const { logoutUrl } = await res.json()
-  assert("POST /logout is 200 with a Keycloak logoutUrl", res.status === 200 && logoutUrl?.startsWith(`${KC}/realms/${REALM}/`))
+  assert("POST /logout is 200 with a Keycloak logoutUrl", res.status === 200 && logoutUrl?.startsWith(`${KC_PUBLIC}/realms/${REALM}/`), logoutUrl)
   assert("logout expires the SESSION cookie", !b.cookies.has("SESSION"))
   assert("logout deletes the session from Redis", !(await sessionInRedis(session)))
   assert("logout removes the OIDC session registry entry", (await redis("EXISTS", `playground:oidc:session:${session}`)) === 0)

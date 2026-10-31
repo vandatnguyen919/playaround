@@ -1,0 +1,19 @@
+# Build context for gateway/Dockerfile and api/Dockerfile is the repo root.
+# keycloak-theme/Dockerfile uses its own directory and .dockerignore.
+**/node_modules
+**/build
+**/bin
+**/dist
+**/.gradle
+.git
+.idea
+.claude
+.shipit
+.playwright-mcp
+artifacts
+deploy
+infra
+keycloak-theme
+smoke
+**/*.env
+**/.env

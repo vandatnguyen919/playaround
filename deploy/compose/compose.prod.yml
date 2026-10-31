@@ -1,15 +1,18 @@
-# Phase 1 production stack, Keycloak slice: Traefik, Keycloak (production
-# mode, custom image), Postgres, keycloak-config-cli for the realm, and Redis
-# for the gateway. Gateway, api and web join here once they have images.
+# Phase 1 production stack: Traefik, Keycloak (production mode, custom
+# image), Postgres, keycloak-config-cli for the realm, Redis, the gateway
+# (BFF, serves the SPA) and the API.
 #
 #   cp .env.example .env    # fill in every value
-#   docker compose -f compose.prod.yml up -d --build
+#   docker compose -f compose.prod.yml pull && docker compose -f compose.prod.yml up -d
+# (or `up -d --build` to build the images here instead of pulling from GHCR)
 #
-# Public: https://${AUTH_HOST} serves only /realms/playground/ and /resources/.
-# Not public: the admin console and admin API (Traefik has no route for them),
-# the master realm, and health and metrics (management port 9000, never
-# published), and Redis (backend network only, password and ACL). Admin
-# console over an SSH tunnel:
+# Public: https://${APP_HOST} is the gateway (SPA, /bff, /api, login and
+# logout). https://${AUTH_HOST} serves only /realms/playground/ and
+# /resources/. Not public: the admin console and admin API (Traefik has no
+# route for them), the master realm, health and metrics (Keycloak 9000,
+# gateway 9181, never published), the API (backend network only, reached
+# through the gateway), and Redis (backend network only, password and ACL).
+# Admin console over an SSH tunnel:
 #   ssh -L 8080:127.0.0.1:8080 <vm>   then   http://localhost:8080/admin/
 name: playground-prod
 
@@ -230,6 +233,65 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
+
+  # The BFF. Public at https://${APP_HOST}: serves the SPA from the image
+  # (web/dist), holds sessions in Redis and relays tokens to the API. Talks to
+  # Keycloak over the private network (discovery, tokens, keys); the browser
+  # goes to the public AUTH_HOST. Keycloak's back-channel logout reaches it at
+  # http://gateway:8181 (keycloak-config).
+  gateway:
+    image: ${GATEWAY_IMAGE:-ghcr.io/vandatnguyen919/playground-gateway:latest}
+    build:
+      context: ../..
+      dockerfile: gateway/Dockerfile
+    environment:
+      APP_URL: https://${APP_HOST:?set APP_HOST}
+      # Issuer in tokens (public); discovery from the private URL, which
+      # answers with private token and key endpoints (backchannel dynamic).
+      KEYCLOAK_ISSUER_URI: https://${AUTH_HOST:?set AUTH_HOST}/realms/playground
+      KEYCLOAK_DISCOVERY_URI: http://keycloak:8080/realms/playground/.well-known/openid-configuration
+      GATEWAY_CLIENT_SECRET: ${GATEWAY_CLIENT_SECRET:?set GATEWAY_CLIENT_SECRET}
+      API_URL: http://api:8182
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD}
+      # TLS ends at Traefik: take scheme and client address from
+      # X-Forwarded-*, so HSTS, redirect URIs and rate limit keys are right.
+      FORWARD_HEADERS_STRATEGY: native
+      COOKIE_SECURE: "true"
+      # Management port 9181 for the image's healthcheck; never published.
+      MANAGEMENT_ADDRESS: 0.0.0.0
+    networks: [edge, backend]
+    mem_limit: 512m
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+      # Discovery needs the playground realm, which keycloak-config creates.
+      keycloak-config:
+        condition: service_completed_successfully
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.gateway.entrypoints=websecure
+      - traefik.http.routers.gateway.rule=Host(`${APP_HOST}`)
+      - traefik.http.routers.gateway.tls=true
+      - traefik.http.routers.gateway.tls.certresolver=${TLS_CERT_RESOLVER-le}
+      - traefik.http.services.gateway.loadbalancer.server.port=8181
+    restart: unless-stopped
+
+  # Resource server. Backend network only: the gateway is its one caller.
+  # Checks the public issuer; keys come from Keycloak's private URL.
+  api:
+    image: ${API_IMAGE:-ghcr.io/vandatnguyen919/playground-api:latest}
+    build:
+      context: ../..
+      dockerfile: api/Dockerfile
+    environment:
+      KEYCLOAK_ISSUER_URI: https://${AUTH_HOST:?set AUTH_HOST}/realms/playground
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/playground/protocol/openid-connect/certs
+    networks: [backend]
+    mem_limit: 400m
     restart: unless-stopped
 
 networks:

@@ -6,7 +6,11 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/playground
+          # Tokens must carry this issuer (Keycloak's public URL). Keys come
+          # from the JWKS URL directly, so the API never needs to reach the
+          # public URL: in compose it is http://keycloak:8080/... instead.
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/playground}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8080/realms/playground/protocol/openid-connect/certs}
 
 server:
   port: 8182

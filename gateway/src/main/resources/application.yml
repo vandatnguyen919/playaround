@@ -118,6 +118,11 @@ resilience4j:
         automatic-transition-from-open-to-half-open-enabled: true
 
 playground:
+  oidc:
+    # Private discovery URL for a gateway that cannot reach Keycloak's public
+    # URL (compose, Kubernetes): KeycloakBackChannelConfig. Empty in dev,
+    # where Spring Boot reads discovery from KEYCLOAK_ISSUER_URI.
+    discovery-uri: ${KEYCLOAK_DISCOVERY_URI:}
   # Where the built SPA is, ending in a slash. Example for a local run from
   # the repo root: SPA_LOCATION=file:web/dist/
   spa-location: ${SPA_LOCATION:classpath:/static/}

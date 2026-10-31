@@ -1,0 +1,12 @@
+# Gitleaks config for CI (.github/workflows/ci.yml): the default rules plus
+# allowlists for known, harmless test values.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Evidence saved by ./verify from a throwaway local Keycloak (auth session ids that expire in minutes)"
+paths = ['''^\.shipit/verify/evidence/''']
+
+[[allowlists]]
+description = "Password of the throwaway users ./verify creates and deletes"
+regexes = ['''^Attack-Test-1234$''']
