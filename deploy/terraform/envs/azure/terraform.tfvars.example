@@ -1,0 +1,12 @@
+subscription_id             = "00000000-0000-0000-0000-000000000000"
+location                    = "centralindia"
+vm_size                     = "Standard_B2pls_v2"
+ssh_public_key              = "ssh-ed25519 AAAA... dan@laptop"
+operator_ip                 = "203.0.113.10"
+alert_email                 = "you@example.com"
+backup_storage_account_name = "stplaygroundbkabcd"
+
+# Phase 2
+auto_shutdown_enabled = false
+seal_enabled          = false
+# key_vault_name      = "kv-playground-abcd"

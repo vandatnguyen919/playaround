@@ -1,0 +1,51 @@
+#cloud-config
+# First boot only. Mounts the data disk at /srv (formatting it only when it
+# has no filesystem, so a rebuilt VM keeps its data), moves Docker onto it,
+# and adds a 1 GiB swap file as a cushion for the 4 GiB size.
+
+package_update: true
+package_upgrade: true
+packages:
+  - docker.io
+  - docker-compose-v2
+  - unattended-upgrades
+
+write_files:
+  - path: /etc/docker/daemon.json
+    permissions: "0644"
+    content: |
+      {
+        "data-root": "/srv/docker",
+        "log-driver": "local",
+        "log-opts": { "max-size": "20m", "max-file": "3" }
+      }
+  - path: /usr/local/sbin/mount-data-disk
+    permissions: "0755"
+    content: |
+      #!/bin/sh
+      set -eu
+      for dev in /dev/disk/azure/data/by-lun/0 /dev/disk/azure/scsi1/lun0; do
+        [ -e "$dev" ] && break
+      done
+      [ -e "$dev" ] || { echo "data disk at LUN 0 not found" >&2; exit 1; }
+      dev=$(readlink -f "$dev")
+      if ! blkid "$dev" >/dev/null 2>&1; then
+        mkfs.ext4 -L srv "$dev"
+      fi
+      mkdir -p /srv
+      grep -q 'LABEL=srv' /etc/fstab || echo 'LABEL=srv /srv ext4 defaults,nofail,discard 0 2' >> /etc/fstab
+      mount -a
+      if [ ! -f /srv/swapfile ]; then
+        fallocate -l 1G /srv/swapfile
+        chmod 600 /srv/swapfile
+        mkswap /srv/swapfile
+      fi
+      grep -q '/srv/swapfile' /etc/fstab || echo '/srv/swapfile none swap sw,nofail 0 0' >> /etc/fstab
+      swapon -a
+      sysctl -w vm.swappiness=10
+      echo 'vm.swappiness=10' > /etc/sysctl.d/60-swappiness.conf
+
+runcmd:
+  - systemctl stop docker
+  - /usr/local/sbin/mount-data-disk
+  - systemctl enable --now docker

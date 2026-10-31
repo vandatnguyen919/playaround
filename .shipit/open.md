@@ -1,5 +1,43 @@
 # Open
 
+## Azure for Students replaces Oracle Cloud (2026-10-30)
+
+Decided: see Deployment platform in PRODUCT.md. Terraform written and
+checked offline (validate, mocked `terraform test`); nothing provisioned.
+Left:
+
+- **Dan:** activate the subscription (personal Microsoft account, school
+  email for verification), then read the "Allowed resource deployment
+  regions" policy and `az vm list-usage --location centralindia` for Bpsv2
+  quota. The region follows from that.
+- **First real plan:** after `az login`, run bootstrap then `envs/azure`
+  per `deploy/terraform/README.md` and show Dan both plans (apply is a
+  Stop). Unproven until then: the arm64 Ubuntu image in the chosen region,
+  the Bpsv2 quota, the student region policy, and cloud-init on a real VM
+  (data disk at LUN 0, Docker on `/srv`).
+- **Backup jobs** are not written yet: nightly `pg_dump` plus `azcopy login
+  --identity` upload to the backup container (phase 1).
+- **Email tooling still says OCI:** rewrite `deploy/compose/EMAIL.md` step 1
+  and the `SMTP_*` / `MAIL_*` comments in `.env.example` for Brevo once Dan
+  agrees to the account. `mailcheck.mjs` needs no change.
+
+## Real email delivery (2026-10-29)
+
+Built and checked locally: see Email delivery in PRODUCT.md. Left, blocked on
+Dan (Stops: new vendor account, a domain, DNS):
+
+- **Brevo account and SMTP key** (replaces the OCI step 1 in
+  `deploy/compose/EMAIL.md`, which is out of date).
+- **Domain and DNS records** (SPF, DKIM CNAME, DMARC), step 2. Needs the
+  domain on Cloudflare.
+- **Proof:** `mailcheck.mjs dns`, then `send <real mailbox>`, then `headers`
+  on both saved originals must pass; both links must work. Can run against
+  the local prod stack (`--insecure`, `PUBLIC_IP=127.0.0.1`) before the VM
+  exists, since the mail leaves through Brevo either way.
+- Later: put the Brevo DNS records in `dns-cloudflare` once Terraform
+  exists. The Brevo account and SMTP key stay manual (the key would land
+  in state).
+
 ## Auth abuse protection (2026-10-29)
 
 Done and checked: see Auth abuse protection in PRODUCT.md. Left:

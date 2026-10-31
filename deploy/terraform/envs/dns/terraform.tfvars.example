@@ -1,0 +1,11 @@
+zone_name = "example.com"
+host_ip   = "203.0.113.20"
+
+# Values as Brevo shows them when authenticating the domain.
+mail_records = [
+  { type = "TXT", name = "@", content = "brevo-code:0123456789abcdef" },
+  { type = "TXT", name = "@", content = "v=spf1 include:spf.brevo.com ~all" },
+  { type = "CNAME", name = "brevo1._domainkey", content = "b1.example-com.dkim.brevo.com" },
+  { type = "CNAME", name = "brevo2._domainkey", content = "b2.example-com.dkim.brevo.com" },
+  { type = "TXT", name = "_dmarc", content = "v=DMARC1; p=none; rua=mailto:<cloudflare dmarc address>" },
+]
