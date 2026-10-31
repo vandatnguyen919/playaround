@@ -5,7 +5,7 @@
 # Compiling happens once on the build platform; the final stage only copies
 # onto the multi-arch JRE, so nothing compiles under QEMU.
 
-FROM --platform=$BUILDPLATFORM node:22.20.0-alpine AS web
+FROM --platform=$BUILDPLATFORM node:26.12.1-alpine AS web
 WORKDIR /src/web
 COPY web/package.json web/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci --fetch-retries=5
