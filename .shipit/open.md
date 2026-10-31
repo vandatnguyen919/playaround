@@ -5,16 +5,8 @@
 Built and checked locally: see Current state in PRODUCT.md and
 `.shipit/records/images-2026-10-31.md`. Left:
 
-- **First run on `main`.** Pull request checks are proven (PR #11 passes;
-  #12 to #14 failed as planned and are closed). Next action: Dan merges
-  #11. Unproven until then: native arm64 builds on `ubuntu-24.04-arm`,
-  push by digest with `GITHUB_TOKEN`, the merge, and the attestation count
-  in the inspect check.
 - **Trivy ignores expire 2026-11-30** (`.trivyignore.yaml`). After that
   every CI run fails until the Spring Boot BOM item below is decided.
-- **Dan, after the first run on `main`:** make the three packages public
-  (GitHub, Packages, each package, Package settings, Change visibility).
-  They start private, so the VM cannot pull them without a login.
 - **Trivy Critical/High in Spring Boot BOM jars:** Tomcat 11.0.24 (4
   Critical, api) and Jackson 3.1.5 / 2.21.5 (High, both). Versions are
   pinned in PRODUCT.md, so Dan decides: a Spring Boot patch release that

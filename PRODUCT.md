@@ -1111,7 +1111,7 @@ Facts worth knowing:
   runs, mocked provider: phase 1 and phase 2 wiring, VM size and operator IP
   guards). Run order in `deploy/terraform/README.md`. azurerm 5 note:
   subnet service endpoints are `service_endpoint` blocks.
-- **Images (phase 1), built locally; CI checks run on GitHub, not yet on `main`.** `gateway/Dockerfile` (with
+- **Images (phase 1), published by CI.** `gateway/Dockerfile` (with
   `web/dist`), `api/Dockerfile` and `keycloak-theme/Dockerfile` build for
   arm64 and amd64 with buildx; gateway and api run as uid 10001 on Spring
   Boot layers with a bash `/dev/tcp` healthcheck. `compose.prod.yml` has the
@@ -1126,8 +1126,11 @@ Facts worth knowing:
   (PR #11). Each gate failed its own throwaway PR for the planted cause
   only: a failing JUnit test failed `gradle` (#12), a fake API key failed
   `gitleaks` (#13), lodash 4.17.20 failed `trivy` and `dependency-review`
-  (#14). Dependency review needs the repo's Dependency graph, now on. The
-  push, merge and inspect jobs have not run yet (they run on `main`).
+  (#14). Dependency review needs the repo's Dependency graph, now on. First
+  run on `main` (8721ca7) passed end to end: all three images on GHCR as
+  `sha-8721ca747da7fcc9a42bfa9630ae041742612a31`, each with linux/amd64,
+  linux/arm64 and 2 provenance attestations. The packages are public and
+  linked to the repo; `imagetools inspect` works without a login.
 - Deployment: nothing is provisioned yet. See `.shipit/open.md`.
 
 Next: every feature except Google and GitHub login is done. Feature 3 is
