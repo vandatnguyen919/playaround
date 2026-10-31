@@ -87,7 +87,9 @@ jobs:
           path: .shipit/verify/evidence/
           if-no-files-found: ignore
 
-  # Whole history, default rules plus the allowlists in .gitleaks.toml.
+  # Every commit reachable from the checked-out commit (not --all: the full
+  # fetch brings other branches, and their findings are not this PR's), with
+  # the default rules plus the allowlists in .gitleaks.toml.
   gitleaks:
     runs-on: ubuntu-24.04
     steps:
@@ -98,7 +100,7 @@ jobs:
       - run: >
           docker run --rm -u "$(id -u):$(id -g)" -v "$PWD:/repo" -w /repo
           zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
-          git --config .gitleaks.toml --redact --no-banner --verbose .
+          git --log-opts=HEAD --config .gitleaks.toml --redact --no-banner --verbose .
 
   # High and Critical in npm lockfiles and in the jars Gradle built (the Spring
   # Boot jars nest every dependency). Known findings: .trivyignore.yaml.
