@@ -6,7 +6,7 @@ variable "subscription_id" {
 variable "location" {
   description = "Region; must be on the subscription's allowed regions list."
   type        = string
-  default     = "centralindia"
+  default     = "southeastasia"
 }
 
 variable "state_storage_account_name" {

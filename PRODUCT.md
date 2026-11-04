@@ -505,10 +505,10 @@ upgrade is planned.
   deployment regions" policy whose list differs per subscription and is not
   published. Check Policy, Assignments (or the error text of a failed
   deploy) before choosing the region.
-- **No Cost Management budgets.** Microsoft lists Azure for Students
-  (MS-AZR-0170P) as an unsupported offer for Cost Management, so an
-  `azurerm_consumption_budget_*` resource or a portal budget is not an
-  option. See Budget and runway.
+- **Cost Management budgets: unproven.** Microsoft's docs disagree. Its offer
+  table lists Azure for Students (MS-AZR-0170P) as unsupported, while the
+  Education Hub page tells students to create budgets. Only a real apply
+  settles it. See Budget and runway.
 - **Port 25 outbound is blocked** for every subscription type except
   Enterprise Agreement and MCA-E. Authenticated relays on 587 are not
   blocked. See Email delivery.
@@ -516,9 +516,13 @@ upgrade is planned.
 ### VM size, region and cost
 
 **`Standard_B2pls_v2` (2 vCPU Ampere Altra arm64, 4 GiB) for phase 1, resized
-to `Standard_B2ps_v2` (2 vCPU, 8 GiB) for phase 2. Region `centralindia` if
-the allow list has it, else `southeastasia`, else the cheapest allowed region
-in the table.**
+to `Standard_B2ps_v2` (2 vCPU, 8 GiB) for phase 2. Region `southeastasia`
+(Dan, 2026-11-05).** The subscription allows `indonesiacentral`,
+`southeastasia`, `malaysiawest`, `japaneast` and `eastasia`, not
+`centralindia`. Of those, `southeastasia` is the cheapest with these sizes
+(`japaneast` $0.0432, `eastasia` $0.0464 for B2pls v2); `indonesiacentral` and
+`malaysiawest` list no price for them. Quota checked: Bpsv2 limit 10, regional
+vCPUs limit 6.
 
 | Region | B2pls v2 / h | B2ps v2 / h | Notes |
 | --- | --- | --- | --- |
@@ -561,17 +565,18 @@ and disk operations about $0.50, so about $12 fixed):
 
 ### Budget and runway
 
-Plan for one credit year: **phase 1 always on for about 6 weeks (about $43),
-then phase 2 on B2ps v2 with nightly auto-shutdown for about 6 weeks (about
-$38), keeping a reserve of about $19.** Phase 2 continues after the next
+Plan for one credit year, in southeastasia: **phase 1 always on for about 4
+weeks (about $39), then phase 2 on B2ps v2 with nightly auto-shutdown for about
+6 weeks (about $50), leaving about $11.** That passes the $20 runway rule before
+phase 2 ends. Phase 2 continues after the next
 renewal if it is not done.
 
 - **Auto-shutdown:** `azurerm_dev_test_global_vm_shutdown_schedule` stops and
   deallocates the VM every night (free). Off in phase 1, so the public demo
   stays up; on in phase 2. Dan starts the VM with `az vm start`. Deallocated
   compute costs nothing; disks and IP keep billing.
-- **Alerts without Cost Management:** cost is almost entirely fixed per
-  hour, so the runway is arithmetic. Two checks instead of a budget:
+- **Alerts:** cost is almost entirely fixed per hour, so the runway is
+  arithmetic. Three checks:
   1. Weekly, compare the balance in the Azure Sponsorships portal with the
      table above. A gap of more than $5 means something unplanned is
      running.
@@ -579,6 +584,13 @@ renewal if it is not done.
      50, and VM availability) with an email action group. Each metric alert
      rule is about $0.10 a month. This catches a stuck build or a crash loop, which
      the old OCI alarm covered.
+  3. A Cost Management budget (added 2026-11-04, Dan; free): $45 a month on
+     the subscription, mailing at 80% and 100% actual and 100% forecast. On
+     plan ($42) only the 80% mail fires, late in the month, which also proves
+     the budget sees cost. Off plan the others fire. It warns and stops
+     nothing. Cost data can lag up to 72 hours. If the offer refuses it,
+     `budget_enabled = false`, and checks 1 and 2 stand alone. Check 1 stays
+     either way: only it shows the credit balance.
 - **Runway rule:** at $20 left, copy the latest backups off Azure and decide
   with Dan: renew, upgrade to pay as you go (a Stop), or let it lapse. At
   zero the backups in Blob become unreachable along with everything else.
@@ -768,7 +780,8 @@ encryption, which OpenTofu has. Revisit if state encryption starts to matter.
   `use_cli = true`, in a `tfstate` container of a storage account made once by
   a `bootstrap` root (local state outside git). Blob versioning and soft
   delete on; shared key access off. Locking is a blob lease on the state
-  file.
+  file. No IP firewall on this account: it takes Entra ID only, and Dan's
+  changing address would lock the backend out of its state.
 - **Auth: Dan's own user through `az login`**, the subscription Owner. No
   service principal or client secret. Reason: Azure CLI auth needs no Entra
   app registration, which student tenants may block, and leaves no secret to
@@ -778,9 +791,13 @@ encryption, which OpenTofu has. Revisit if state encryption starts to matter.
   verification, so the subscription sits in Dan's own directory. Revisit
   when something other than Dan's machine must run Terraform: then OIDC
   workload identity, which does need an app registration.
-- **Guards:** `prevent_destroy` on the data disk, the state storage account,
-  the backup storage account and the Key Vault (also purge protection). The VM
-  itself can be rebuilt.
+- **Guards:** `prevent_destroy` on the data disk, the state and backup storage
+  accounts and their containers, and the Key Vault (also purge protection).
+  The VM itself can be rebuilt.
+- **Checks:** `deploy/terraform/check.sh`, the same locally and in CI (job
+  `terraform`): fmt, validate, mocked `terraform test`, tflint 0.65.0 with the
+  azurerm ruleset 0.33.0, and `trivy config` (Medium and up). Offline, from
+  pinned images. tflint added 2026-11-04 (Dan).
 - **VM identity:** a system-assigned managed identity, used by the backup jobs
   and by Vault. No credentials on the VM for Azure. A NetworkPolicy (phase
   2) blocks `169.254.169.254` for every namespace except `vault` and the
@@ -796,7 +813,8 @@ deploy/
       azure-host/         VNet, subnet, NSG, public IP, B-series VM, data disk,
                           cloud-init, managed identity, auto-shutdown, metric alerts
       azure-platform/     backup storage account and lifecycle rule, Key Vault
-                          and seal key, role assignments for the VM identity
+                          and seal key, role assignments for the VM identity,
+                          cost budget
       dns-cloudflare/     records
     envs/
       azure/              backend "azurerm"; outputs host_ip, backup_container_url,
@@ -979,9 +997,8 @@ backups, upgrades and restore drills. Revisit at the AWS step (RDS).
 
 ### Open questions for Dan
 
-- Is the Azure for Students subscription active, and under which account
-  (personal Microsoft account recommended)? Which regions does its "Allowed
-  resource deployment regions" policy list?
+- None open. Region and quota were answered on 2026-11-05 (see VM size, region
+  and cost).
 
 ### Sources (checked 2026-10-30)
 
@@ -996,6 +1013,8 @@ backups, upgrades and restore drills. Revisit at the AWS step (RDS).
   https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/general-purpose/bpsv2-series
 - Cost Management supported offers (Azure for Students unsupported):
   https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/understand-cost-mgt-data
+- Budgets on Azure for Students (rechecked 2026-11-04):
+  https://learn.microsoft.com/en-us/azure/education-hub/navigate-costs
 - Port 25 block:
   https://learn.microsoft.com/en-us/azure/virtual-network/troubleshoot-outbound-smtp-connectivity
 - ACS Email SMTP auth, limits and retirement:
@@ -1110,13 +1129,13 @@ Facts worth knowing:
   `AUTH_HOST`. Dan opened both links; Keycloak shows the account verified. The
   links were `auth.localhost`; the public hostname waits on the VM and A records.
   Dev still uses Mailpit, and the local stack is back on its placeholder SMTP.
-- **Terraform for Azure, written, not applied.** `deploy/terraform`
-  (bootstrap, `envs/azure`, `envs/dns`, `modules/azure-*`,
-  `modules/dns-cloudflare`) passes `terraform validate` against azurerm
-  5.12.0 and cloudflare 5.28.1, and `terraform -chdir=envs/azure test` (4
-  runs, mocked provider: phase 1 and phase 2 wiring, VM size and operator IP
-  guards). Run order in `deploy/terraform/README.md`. azurerm 5 note:
-  subnet service endpoints are `service_endpoint` blocks.
+- **Terraform for Azure, written, not applied, no real plan yet.**
+  `deploy/terraform` (bootstrap, `envs/azure`, `envs/dns`, `modules/azure-*`,
+  `modules/dns-cloudflare`) passes `deploy/terraform/check.sh` against azurerm
+  5.12.0 and cloudflare 5.28.1: fmt, validate, tflint, trivy config, and
+  `terraform test` (2 bootstrap runs and 7 `envs/azure` runs, mocked provider).
+  Run order in `deploy/terraform/README.md`. azurerm 5 note: subnet service
+  endpoints are `service_endpoint` blocks.
 - **Images (phase 1), published by CI.** `gateway/Dockerfile` (with
   `web/dist`), `api/Dockerfile` and `keycloak-theme/Dockerfile` build for
   arm64 and amd64 with buildx; gateway and api run as uid 10001 on Spring

@@ -5,7 +5,7 @@ variable "subscription_id" {
 variable "location" {
   description = "Must be on the subscription's allowed regions list."
   type        = string
-  default     = "centralindia"
+  default     = "southeastasia"
 }
 
 variable "vm_size" {
@@ -59,4 +59,31 @@ variable "seal_enabled" {
 variable "key_vault_name" {
   type    = string
   default = null
+}
+
+variable "budget_enabled" {
+  description = "Create the Cost Management budget. Set false if the subscription's offer refuses it."
+  type        = bool
+  default     = true
+}
+
+variable "budget_amount" {
+  description = "USD a month. Raise it with the region or phase; see the cost table in PRODUCT.md."
+  type        = number
+  default     = 45
+
+  validation {
+    condition     = var.budget_amount > 0 && var.budget_amount <= 100
+    error_message = "Use more than 0 and at most 100, the yearly credit."
+  }
+}
+
+variable "budget_start_date" {
+  description = "YYYY-MM-01, the current month or later."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[0-9]{4}-(0[1-9]|1[0-2])-01$", var.budget_start_date))
+    error_message = "Use the first of a month, as YYYY-MM-01."
+  }
 }

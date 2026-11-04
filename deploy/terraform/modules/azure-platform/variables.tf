@@ -53,6 +53,43 @@ variable "key_vault_name" {
   }
 }
 
+variable "subscription_id" {
+  description = "Subscription the budget covers."
+  type        = string
+}
+
+variable "alert_email" {
+  description = "Receives the budget alerts."
+  type        = string
+}
+
+variable "budget_enabled" {
+  description = "Create the Cost Management budget. Set false if the subscription's offer refuses it."
+  type        = bool
+  default     = true
+}
+
+variable "budget_amount" {
+  description = "USD a month, before credits. Phase 1 is about $42 in southeastasia, so $45 is quiet on plan and loud off it."
+  type        = number
+  default     = 45
+
+  validation {
+    condition     = var.budget_amount > 0 && var.budget_amount <= 100
+    error_message = "Use more than 0 and at most 100, the yearly credit."
+  }
+}
+
+variable "budget_start_date" {
+  description = "YYYY-MM-01, the current month or later. Changing it replaces the budget."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[0-9]{4}-(0[1-9]|1[0-2])-01$", var.budget_start_date))
+    error_message = "Use the first of a month, as YYYY-MM-01."
+  }
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

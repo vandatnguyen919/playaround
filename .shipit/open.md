@@ -20,18 +20,18 @@ Built and checked locally: see Current state in PRODUCT.md and
 ## Azure for Students replaces Oracle Cloud (2026-10-30)
 
 Decided: see Deployment platform in PRODUCT.md. Terraform written and
-checked offline (validate, mocked `terraform test`); nothing provisioned.
-Left:
+checked offline (`deploy/terraform/check.sh`); nothing provisioned. Left:
 
-- **Dan:** activate the subscription (personal Microsoft account, school
-  email for verification), then read the "Allowed resource deployment
-  regions" policy and `az vm list-usage --location centralindia` for Bpsv2
-  quota. The region follows from that.
 - **First real plan:** after `az login`, run bootstrap then `envs/azure`
   per `deploy/terraform/README.md` and show Dan both plans (apply is a
   Stop). Unproven until then: the arm64 Ubuntu image in the chosen region,
-  the Bpsv2 quota, the student region policy, and cloud-init on a real VM
-  (data disk at LUN 0, Docker on `/srv`).
+  the Bpsv2 quota, the student region policy, cloud-init on a real VM (data
+  disk at LUN 0, Docker on `/srv`), blob lease locking, and whether the offer
+  accepts the budget (apply it alone first, see the README; if refused, set
+  `budget_enabled = false`).
+- **Budget mail:** if no 80% mail arrives by the end of the first full month,
+  the budget is not seeing cost. Next action: Dan tells Claude, then turn it
+  off and keep the weekly balance check.
 - **Backup jobs** are not written yet: nightly `pg_dump` plus `azcopy login
   --identity` upload to the backup container (phase 1).
 

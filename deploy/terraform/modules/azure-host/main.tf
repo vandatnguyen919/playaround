@@ -1,7 +1,10 @@
 terraform {
+  required_version = "~> 1.17.1"
+
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
+      version = "= 5.12.0"
     }
   }
 }
@@ -36,6 +39,8 @@ resource "azurerm_network_security_group" "host" {
   location            = var.location
   tags                = var.tags
 
+  # The public demo. Port 22 stays limited to operator_ip below.
+  #trivy:ignore:AZU-0047
   security_rule {
     name                       = "http-https"
     priority                   = 100
@@ -75,6 +80,10 @@ resource "azurerm_public_ip" "host" {
   tags                = var.tags
 }
 
+# The NSG is on the subnet (AZU-0068). The VM is the public edge, with no load
+# balancer in the plan (AZU-0076).
+#trivy:ignore:AZU-0068
+#trivy:ignore:AZU-0076
 resource "azurerm_network_interface" "host" {
   name                = "nic-${var.name}"
   resource_group_name = var.resource_group_name

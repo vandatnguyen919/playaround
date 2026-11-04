@@ -1,6 +1,7 @@
 # CI for the whole repo. CD (deploying an image) is Jenkins' job, not this one.
 # Pull requests: Gradle build and tests, web and theme lint and tests,
-# ./verify, Gitleaks, Trivy and dependency review. Nothing is pushed.
+# ./verify, Gitleaks, Trivy, Terraform checks and dependency review. Nothing is
+# pushed.
 # main: the same checks, then gateway, api and keycloak built natively on
 # amd64 and arm64 runners, pushed by digest, merged into one tag
 # sha-<git sha>, and checked for both platforms and their provenance.
@@ -124,6 +125,17 @@ jobs:
           trivy fs --skip-dirs jars --skip-dirs .trivy-cache .
           trivy rootfs --skip-db-update jars
 
+  # fmt, validate, mocked terraform test, tflint and trivy config. Runs offline
+  # from Azure: no credentials and no plan. The token only lifts GitHub's rate
+  # limit when tflint downloads its plugin.
+  terraform:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: bash deploy/terraform/check.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
   # Fails on a new dependency with a High or Critical advisory, for whatever
   # GitHub's dependency graph sees (npm lockfiles, actions). Gradle
   # dependencies are covered by the Trivy jar scan.
@@ -138,7 +150,7 @@ jobs:
 
   push:
     if: github.event_name == 'push'
-    needs: [gradle, web, verify, gitleaks, trivy]
+    needs: [gradle, web, verify, gitleaks, trivy, terraform]
     runs-on: ${{ matrix.arch.runner }}
     permissions:
       contents: read
