@@ -467,7 +467,7 @@ Stated assumptions:
 - Local dev runs via docker-compose in `/infra`. The public deployment is
   described in Deployment platform.
 - Email is delivered to Mailpit in dev, not a real inbox. Deployed
-  environments send real mail (Brevo SMTP, see Email delivery).
+  environments send real mail (Resend SMTP, see Email delivery).
 
 Unresolved questions: none blocking the first build. Real Google and GitHub
 OAuth credentials are needed before feature 3 can be tested live.
@@ -708,46 +708,50 @@ cores, so Keycloak starts slowly.
 
 ### Email delivery
 
-**Brevo free plan over SMTP (STARTTLS, 587), from `no-reply@<domain>`.**
-Changed 2026-10-30: OCI Email Delivery went with the OCI tenancy. Brevo was
-already the named fallback. Needs a Brevo account (a Stop).
+**Resend free plan over SMTP (STARTTLS, 587), from `no-reply@<domain>`.**
+Changed 2026-11-04 (Dan) from Brevo, which replaced OCI Email Delivery on
+2026-10-30. Resend was the named fallback.
 
-| | Brevo free | Azure Communication Services Email | Resend free |
+| | Resend free | Brevo free | Azure Communication Services Email |
 | --- | --- | --- | --- |
-| Free volume | 300 a day | none; $0.00025 a mail from the credit | 3,000 a month, 100 a day |
-| Rate | not stated | 30 a minute, 100 an hour (custom domain) | not stated |
-| SMTP login | SMTP key | Entra app registration, client secret, SMTP Username resource | API key |
-| Future | | retiring 2028-09-30; Microsoft advises against new onboarding | |
-| Survives the credit lapsing, moves to AWS | yes | no | yes |
+| Free volume | 3,000 a month, 100 a day | 300 a day | none; $0.00025 a mail from the credit |
+| Rate | 10 requests a second | not stated | 30 a minute, 100 an hour (custom domain) |
+| SMTP login | word `resend`, API key | SMTP key | Entra app registration, client secret, SMTP Username resource |
+| Link tracking | off by default | on; no self-serve off found | |
+| Future | | | retiring 2028-09-30; Microsoft advises against new onboarding |
+| Survives the credit lapsing, moves to AWS | yes | yes | no |
 
-Reason: verify and reset mail is a few a day. ACS Email is retiring and
-needs an Entra app registration, which a student tenant may not allow, and it
-stops with the subscription. Brevo needs one sign-up, is independent of the
-cloud, and the realm only sees `SMTP_*` values. Tradeoff: one more vendor
-account. Resend is the fallback (same settings shape). Revisit at the AWS
-step (SES).
+Reason: real mail through Brevo passed SPF, DKIM and DMARC, but Brevo rewrote
+the HTML links through `r.mail.<domain>`, which served an expired certificate
+for another name (`r.mailin.fr`, expired 2024-04-18), so the button link failed
+certificate checks. Tracking also sends action tokens through a third party.
+Tradeoff: a lower daily cap, still far above a few verify and reset mails a day.
+Revisit at the AWS step (SES).
 
 - **Per environment, one realm file.** `smtpServer` in
   `infra/playground-realm.json` is all `$(env:SMTP_*)`. Dev compose sets
   Mailpit (no auth, no TLS); `compose.prod.yml` takes host, from, user and
   password from `.env` and refuses to start without them, with STARTTLS
   and auth on by default.
-- **Settings:** `SMTP_HOST=smtp-relay.brevo.com`, port 587, the Brevo SMTP
-  login and an SMTP key as the password.
-- **DNS on `<domain>`:** the `brevo-code` TXT, DKIM as the two CNAMEs Brevo
-  gives (`brevo1._domainkey`, `brevo2._domainkey`), SPF
-  `include:spf.brevo.com ~all`, DMARC `p=none` with reports to Cloudflare
-  DMARC Management, moved to `p=quarantine` after a week of clean reports.
-  DMARC passes through DKIM alignment (`d=<domain>`). `mailcheck.mjs dns`
-  reads the selector and SPF include from `.env`
-  (`MAIL_DKIM_SELECTOR=brevo1`, `MAIL_SPF_INCLUDE=spf.brevo.com`); TXT
-  lookups follow the CNAME.
+- **Settings:** `SMTP_HOST=smtp.resend.com`, port 587, `SMTP_USER=resend`
+  and an API key (Sending access, this domain only) as the password.
+- **Limits:** 100 mails a day (UTC), 3,000 a month, 3 domains, 10 requests a
+  second, 30 days of logs. Over the cap a send fails; Keycloak logs it and the
+  user sees no error on reset.
+- **DNS:** on the return-path host Resend shows (`rsend.tickin.me`) an MX for
+  bounces and SPF `include:amazonses.com ~all`; on `<domain>` DKIM at
+  `resend._domainkey`
+  and DMARC `p=none` with reports to Cloudflare DMARC Management, moved to
+  `p=quarantine` after a week of clean reports. An SPF record on `<domain>`
+  itself is unaffected. Tracking stays off, so no tracking record.
+  `mailcheck.mjs dns` reads these from `.env` (`MAIL_DKIM_SELECTOR=resend`,
+  `MAIL_SPF_HOST=rsend.<domain>`, `MAIL_SPF_INCLUDE=amazonses.com`).
 - **Check:** `node deploy/compose/mailcheck.mjs` with `dns` (records in
   public DNS), `send <mailbox>` (registration and reset through the public
   host, plus the Keycloak log, since the reset page reads the same whether
   or not the mail went out), `headers <eml>...` (topmost
   `Authentication-Results` needs spf, dkim signed by `<domain>`, and dmarc
-  pass) and `cleanup`.
+  pass, and every link must go straight to `AUTH_HOST`) and `cleanup`.
 
 ### IaC: Terraform
 
@@ -808,8 +812,8 @@ deploy/
 Dockerfiles live in each module (`gateway/Dockerfile` and so on). Portability
 rule: only `modules/azure-*` and `overlays/azure` know about Azure;
 everything else reads module outputs. DNS has its own module and is applied
-on its own, so DNS changes are always deliberate. Not in Terraform: the Brevo
-account and SMTP key (the key would land in state).
+on its own, so DNS changes are always deliberate. Not in Terraform: the Resend
+account and API key (the key would land in state).
 
 ### Secrets: Vault
 
@@ -978,8 +982,6 @@ backups, upgrades and restore drills. Revisit at the AWS step (RDS).
 - Is the Azure for Students subscription active, and under which account
   (personal Microsoft account recommended)? Which regions does its "Allowed
   resource deployment regions" policy list?
-- Create a Brevo account for SMTP? Needed before real mail; a new vendor.
-- Which domain? It needs registering (cost) and pointing at Cloudflare.
 
 ### Sources (checked 2026-10-30)
 
@@ -1002,8 +1004,12 @@ backups, upgrades and restore drills. Revisit at the AWS step (RDS).
   https://learn.microsoft.com/en-us/azure/communication-services/acs-retirement-and-breaking-changes-guide
 - Student region allow list (community answers, no official list):
   https://learn.microsoft.com/en-us/answers/questions/5638283/azure-policy-blocking-resource-deployment-in-multi
-- Brevo domain authentication:
-  https://developers.brevo.com/docs/domain-authentication-and-verification
+- Resend SMTP, DNS on Cloudflare, tracking, limits and free plan:
+  https://resend.com/docs/send-with-smtp,
+  https://resend.com/docs/knowledge-base/cloudflare,
+  https://resend.com/docs/dashboard/domains/tracking,
+  https://resend.com/docs/knowledge-base/account-quotas-and-limits,
+  https://resend.com/pricing
 - Terraform `azurerm` backend: https://developer.hashicorp.com/terraform/language/backend/azurerm
 - Vault Azure Key Vault seal: https://developer.hashicorp.com/vault/docs/configuration/seal/azurekeyvault
 - k3s requirements: https://docs.k3s.io/installation/requirements
@@ -1097,13 +1103,13 @@ Facts worth knowing:
   roles, IdPs, user profile, no test users). A console edit is undone by
   rerunning keycloak-config. Checked on the dev machine with `auth.localhost`
   and Traefik's self-signed cert, not yet with a real domain or Let's Encrypt.
-- **Real email, prepared, not yet sent.** Provider chosen, realm and
-  compose ready, `mailcheck.mjs` checked locally: `send` passes against the
-  local prod stack pointed at Mailpit (both mails arrive) and fails on a
-  dead SMTP host; `headers` and `dns` pass and fail on fixtures and public
-  domains. Real mailbox and SPF/DKIM proof wait on a Brevo account, a
-  domain and DNS. `deploy/compose/EMAIL.md` step 1 and `.env.example` still
-  describe OCI.
+- **Real email through Resend, proven on the local prod stack (2026-11-04).**
+  From `no-reply@tickin.me`, region ap-northeast-1. `mailcheck.mjs` `dns`,
+  `send` and `headers` pass: verify and reset mail reached the Gmail inbox with
+  SPF, DKIM signed by `tickin.me` and DMARC passing, and links straight to
+  `AUTH_HOST`. Dan opened both links; Keycloak shows the account verified. The
+  links were `auth.localhost`; the public hostname waits on the VM and A records.
+  Dev still uses Mailpit, and the local stack is back on its placeholder SMTP.
 - **Terraform for Azure, written, not applied.** `deploy/terraform`
   (bootstrap, `envs/azure`, `envs/dns`, `modules/azure-*`,
   `modules/dns-cloudflare`) passes `terraform validate` against azurerm
@@ -1154,7 +1160,7 @@ Pause and ask before:
 - The region choice, and starting or resizing the VM (it starts the meter).
 - New vendor accounts: Brevo, Resend, or any other.
 - Cloud credentials: `az login` sessions, role assignments to people,
-  Entra app registrations or client secrets, the Brevo SMTP key, AWS keys,
+  Entra app registrations or client secrets, the Resend API key, AWS keys,
   Cloudflare API tokens, GitHub tokens, or Vault recovery keys.
 - DNS changes: nameservers, records, SPF and DKIM.
 - Deleting data: disks, storage accounts, containers, backups, databases,

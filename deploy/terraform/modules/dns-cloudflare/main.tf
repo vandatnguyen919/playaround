@@ -24,7 +24,7 @@ resource "cloudflare_dns_record" "host" {
   proxied = false
 }
 
-# Mail authentication (Brevo code, DKIM CNAMEs, SPF, DMARC), as given by the
+# Mail authentication (return-path MX and SPF, DKIM, DMARC), as given by the
 # provider. Names are relative to the zone; "@" is the apex.
 resource "cloudflare_dns_record" "mail" {
   for_each = { for r in var.mail_records : "${r.type} ${r.name} ${r.content}" => r }
@@ -35,4 +35,6 @@ resource "cloudflare_dns_record" "mail" {
   content = each.value.content
   ttl     = 3600
   proxied = false
+  # MX only; null for TXT and CNAME.
+  priority = each.value.priority
 }

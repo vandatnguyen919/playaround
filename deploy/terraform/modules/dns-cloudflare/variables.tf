@@ -23,11 +23,18 @@ variable "mail_records" {
     type    = string
     name    = string
     content = string
+    # MX only.
+    priority = optional(number)
   }))
   default = []
 
   validation {
-    condition     = alltrue([for r in var.mail_records : contains(["TXT", "CNAME"], r.type)])
-    error_message = "Mail records are TXT or CNAME."
+    condition     = alltrue([for r in var.mail_records : contains(["TXT", "CNAME", "MX"], r.type)])
+    error_message = "Mail records are TXT, CNAME or MX."
+  }
+
+  validation {
+    condition     = alltrue([for r in var.mail_records : (r.type == "MX") == (r.priority != null)])
+    error_message = "MX records need a priority; other types take none."
   }
 }

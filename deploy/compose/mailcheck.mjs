@@ -2,14 +2,15 @@
 // Checks real mail delivery for the compose.prod.yml stack (see EMAIL.md).
 // Usage: node deploy/compose/mailcheck.mjs <command> [--env-file <path>] [options]
 //
-//   dns                     SPF, DKIM and DMARC records of the SMTP_FROM domain,
-//                           read from public DNS (1.1.1.1, 8.8.8.8).
+//   dns                     SPF (at MAIL_SPF_HOST), DKIM and DMARC records of the
+//                           SMTP_FROM domain, read from public DNS (1.1.1.1, 8.8.8.8).
 //   send <mailbox>          Registers a fresh user and asks for a password reset at
 //                           https://AUTH_HOST, so Keycloak sends both mails. The
 //                           user's address is <mailbox> with a +mailcheck-<time>
 //                           tag (Gmail and most providers deliver it to <mailbox>).
 //   headers <file.eml>...   Reads saved messages (Gmail: Show original, Download)
-//                           and requires spf, dkim and dmarc pass for the domain.
+//                           and requires spf, dkim and dmarc pass for the domain, and
+//                           links that go straight to AUTH_HOST (no click tracker).
 //   cleanup                 Deletes the +mailcheck- users over the admin tunnel.
 //
 // Options:
@@ -17,7 +18,7 @@
 //   --insecure  accept a self-signed cert (local stack without Let's Encrypt)
 //   PUBLIC_IP=1.2.3.4 connects there for AUTH_HOST instead of resolving it
 //   (127.0.0.1 for a local stack whose AUTH_HOST is auth.localhost).
-// .env keys: SMTP_FROM, MAIL_DKIM_SELECTOR, MAIL_SPF_INCLUDE, AUTH_HOST,
+// .env keys: SMTP_FROM, MAIL_DKIM_SELECTOR, MAIL_SPF_HOST, MAIL_SPF_INCLUDE, AUTH_HOST,
 // APP_HOST, KC_ADMIN_PORT, KC_BOOTSTRAP_ADMIN_USERNAME/PASSWORD.
 // Exits nonzero on failure.
 import https from "node:https"
@@ -32,7 +33,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const args = process.argv.slice(2)
 const flag = (name) => args.includes(name)
 const option = (name) => (flag(name) ? args[args.indexOf(name) + 1] : undefined)
-const valued = ["--env-file", "--domain", "--selector", "--spf-include"]
+const valued = ["--env-file", "--domain", "--selector", "--spf-host", "--spf-include"]
 const positional = args.filter((a, i) => !a.startsWith("--") && !valued.includes(args[i - 1]))
 const [command, ...rest] = positional
 const envFile = option("--env-file") ?? join(here, ".env")
@@ -79,11 +80,13 @@ async function checkDns() {
   if (!domain || !selector || !include) {
     throw new Error("Needs SMTP_FROM, MAIL_DKIM_SELECTOR and MAIL_SPF_INCLUDE (or --domain, --selector, --spf-include)")
   }
+  // The return-path host, which may be a subdomain (send.<domain>). Default: the domain.
+  const spfHost = option("--spf-host") ?? (env.MAIL_SPF_HOST || domain)
   const resolver = new Resolver()
   resolver.setServers(["1.1.1.1", "8.8.8.8"])
 
-  const spf = (await txt(resolver, domain)).filter((r) => /^v=spf1(\s|$)/i.test(r))
-  check(`one SPF record on ${domain}`, spf.length === 1, spf.length ? spf.join(" | ") : "none")
+  const spf = (await txt(resolver, spfHost)).filter((r) => /^v=spf1(\s|$)/i.test(r))
+  check(`one SPF record on ${spfHost}`, spf.length === 1, spf.length ? spf.join(" | ") : "none")
   if (spf.length === 1) {
     const terms = spf[0].split(/\s+/)
     check(`SPF includes ${include}`, terms.includes(`include:${include}`))
@@ -303,6 +306,27 @@ function verdict(raw, domain) {
   }
 }
 
+// Links in the decoded text and HTML parts of a saved message.
+function bodyLinks(raw) {
+  const links = []
+  for (const part of raw.split(/^--[^\r\n]+\r?$/m)) {
+    const [head, ...rest] = part.replace(/^\r?\n/, "").split(/\r?\n\r?\n/)
+    const type = head.match(/^content-type:\s*text\/(plain|html)/im)?.[1]?.toLowerCase()
+    if (!type) continue
+    const encoding = head.match(/^content-transfer-encoding:\s*([\w-]+)/im)?.[1]?.toLowerCase()
+    const body = rest.join("\n\n")
+    const text =
+      encoding === "base64"
+        ? Buffer.from(body, "base64").toString("utf8")
+        : encoding === "quoted-printable"
+          ? body.replace(/=\r?\n/g, "").replace(/=([0-9A-Fa-f]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16)))
+          : body
+    const pattern = type === "html" ? /href=["'](https?:[^"']+)["']/gi : /(https?:\/\/[^\s<>"']+)/g
+    links.push(...[...text.matchAll(pattern)].map((m) => m[1]))
+  }
+  return links
+}
+
 function checkHeaders(files) {
   const domain = fromDomain()
   if (!domain) throw new Error("Needs SMTP_FROM in the .env or --domain")
@@ -314,6 +338,13 @@ function checkHeaders(files) {
     check("SPF pass", v.spf, v.spfDetail)
     check(`DKIM pass signed by ${domain}`, v.dkim, v.dkimDetail)
     check("DMARC pass", v.dmarc, v.dmarcDetail)
+    if (env.AUTH_HOST) {
+      // A provider's click tracker sees the action token and adds its own failure point.
+      const hosts = [...new Set(bodyLinks(readFileSync(file, "utf8")).map((l) => new URL(l).hostname))]
+      check(`links go straight to ${env.AUTH_HOST}`, hosts.length > 0 && hosts.every((h) => h === env.AUTH_HOST), hosts.join(", ") || "no links")
+    } else {
+      console.log("SKIP  links check (no AUTH_HOST)")
+    }
   }
 }
 

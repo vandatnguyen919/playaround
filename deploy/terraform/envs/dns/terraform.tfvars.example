@@ -1,11 +1,12 @@
 zone_name = "example.com"
 host_ip   = "203.0.113.20"
 
-# Values as Brevo shows them when authenticating the domain.
+# Values as Resend shows them on the domain page (the return-path name, send
+# or rsend, and the MX host depend on the domain and region). Tracking stays
+# off, so there is no tracking CNAME.
 mail_records = [
-  { type = "TXT", name = "@", content = "brevo-code:0123456789abcdef" },
-  { type = "TXT", name = "@", content = "v=spf1 include:spf.brevo.com ~all" },
-  { type = "CNAME", name = "brevo1._domainkey", content = "b1.example-com.dkim.brevo.com" },
-  { type = "CNAME", name = "brevo2._domainkey", content = "b2.example-com.dkim.brevo.com" },
+  { type = "MX", name = "send", content = "feedback-smtp.ap-northeast-1.amazonses.com", priority = 10 },
+  { type = "TXT", name = "send", content = "v=spf1 include:amazonses.com ~all" },
+  { type = "TXT", name = "resend._domainkey", content = "p=<key from Resend>" },
   { type = "TXT", name = "_dmarc", content = "v=DMARC1; p=none; rua=mailto:<cloudflare dmarc address>" },
 ]
