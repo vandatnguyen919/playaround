@@ -34,26 +34,20 @@ Left:
   (data disk at LUN 0, Docker on `/srv`).
 - **Backup jobs** are not written yet: nightly `pg_dump` plus `azcopy login
   --identity` upload to the backup container (phase 1).
-- **Email tooling still says OCI:** rewrite `deploy/compose/EMAIL.md` step 1
-  and the `SMTP_*` / `MAIL_*` comments in `.env.example` for Brevo once Dan
-  agrees to the account. `mailcheck.mjs` needs no change.
 
-## Real email delivery (2026-10-29)
+## Real email delivery (Resend, proven locally 2026-11-04)
 
-Built and checked locally: see Email delivery in PRODUCT.md. Left, blocked on
-Dan (Stops: new vendor account, a domain, DNS):
+See Email delivery and Current state in PRODUCT.md. Left:
 
-- **Brevo account and SMTP key** (replaces the OCI step 1 in
-  `deploy/compose/EMAIL.md`, which is out of date).
-- **Domain and DNS records** (SPF, DKIM CNAME, DMARC), step 2. Needs the
-  domain on Cloudflare.
-- **Proof:** `mailcheck.mjs dns`, then `send <real mailbox>`, then `headers`
-  on both saved originals must pass; both links must work. Can run against
-  the local prod stack (`--insecure`, `PUBLIC_IP=127.0.0.1`) before the VM
-  exists, since the mail leaves through Brevo either way.
-- Later: put the Brevo DNS records in `dns-cloudflare` once Terraform
-  exists. The Brevo account and SMTP key stay manual (the key would land
-  in state).
+- **Public link check:** when `auth.tickin.me` points at the VM, run
+  `mailcheck.mjs send` and `headers` there and open both links; so far links
+  are only `auth.localhost`.
+- **`send.tickin.me` records, unexplained:** MX `feedback.forge.rmta.net` and an
+  SPF with fixed IPs. Mail uses `rsend.tickin.me`. Next action: Dan says whether
+  they are needed, then remove them if not.
+- **DMARC:** move to `p=quarantine` after a week of clean reports in Cloudflare.
+- Later: put the DNS records in `dns-cloudflare` once Terraform runs (plan not
+  yet run with the MX record). The account and key stay manual.
 
 ## Auth abuse protection (2026-10-29)
 

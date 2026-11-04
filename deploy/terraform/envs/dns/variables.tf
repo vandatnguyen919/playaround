@@ -12,6 +12,8 @@ variable "mail_records" {
     type    = string
     name    = string
     content = string
+    # MX only.
+    priority = optional(number)
   }))
   default = []
 }
