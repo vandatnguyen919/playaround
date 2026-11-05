@@ -1,0 +1,8 @@
+# Accepted for this learning project: each needs a paid resource outside the
+# plan in PRODUCT.md. Findings tied to one resource are ignored inline next to
+# it instead, so a new resource is still scanned.
+misconfigurations:
+  - id: AZU-0057
+    statement: Storage logging needs a paid log sink; not in the plan
+  - id: AZU-0060
+    statement: Customer-managed keys need a Key Vault for each account; Microsoft-managed keys are enough here

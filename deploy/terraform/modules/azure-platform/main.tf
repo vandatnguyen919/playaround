@@ -1,7 +1,10 @@
 terraform {
+  required_version = "~> 1.17.1"
+
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
+      version = "= 5.12.0"
     }
   }
 }
@@ -11,19 +14,20 @@ data "azurerm_client_config" "current" {}
 # Backups: pg_dump (phase 1), Barman Cloud and Vault snapshots (phase 2).
 # Reachable only from the host subnet and Dan's IP; no shared keys.
 resource "azurerm_storage_account" "backups" {
-  name                            = var.backup_storage_account_name
-  resource_group_name             = var.resource_group_name
-  location                        = var.location
-  account_kind                    = "StorageV2"
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  access_tier                     = "Hot"
-  min_tls_version                 = "TLS1_2"
-  https_traffic_only_enabled      = true
-  shared_access_key_enabled       = false
-  allow_nested_items_to_be_public = false
-  default_to_oauth_authentication = true
-  tags                            = var.tags
+  name                              = var.backup_storage_account_name
+  resource_group_name               = var.resource_group_name
+  location                          = var.location
+  account_kind                      = "StorageV2"
+  account_tier                      = "Standard"
+  account_replication_type          = "LRS"
+  infrastructure_encryption_enabled = true
+  access_tier                       = "Hot"
+  min_tls_version                   = "TLS1_2"
+  https_traffic_only_enabled        = true
+  shared_access_key_enabled         = false
+  allow_nested_items_to_be_public   = false
+  default_to_oauth_authentication   = true
+  tags                              = var.tags
 
   network_rules {
     default_action             = "Deny"
@@ -41,6 +45,10 @@ resource "azurerm_storage_container" "backups" {
   name                  = "backups"
   storage_account_id    = azurerm_storage_account.backups.id
   container_access_type = "private"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "azurerm_storage_management_policy" "backups" {
@@ -135,4 +143,44 @@ resource "azurerm_role_assignment" "host_seal" {
   scope                = azurerm_key_vault_key.seal[0].resource_versionless_id
   role_definition_name = "Key Vault Crypto User"
   principal_id         = var.host_principal_id
+}
+
+# Free. Tracks cost before credits for the whole subscription, so anything
+# outside this env counts too. It only warns: nothing stops at the threshold.
+# Microsoft's docs disagree on whether Azure for Students supports budgets, so
+# budget_enabled = false is the way out if the API refuses it.
+# 80% actual fires late in a normal month ($36 of about $42). That mail is the
+# proof the budget sees cost; if none arrives, rely on the weekly balance check.
+resource "azurerm_consumption_budget_subscription" "monthly" {
+  count = var.budget_enabled ? 1 : 0
+
+  name            = "budget-playground-monthly"
+  subscription_id = "/subscriptions/${var.subscription_id}"
+  amount          = var.budget_amount
+  time_grain      = "Monthly"
+
+  time_period {
+    start_date = "${var.budget_start_date}T00:00:00Z"
+  }
+
+  notification {
+    threshold      = 80
+    operator       = "GreaterThanOrEqualTo"
+    threshold_type = "Actual"
+    contact_emails = [var.alert_email]
+  }
+
+  notification {
+    threshold      = 100
+    operator       = "GreaterThanOrEqualTo"
+    threshold_type = "Actual"
+    contact_emails = [var.alert_email]
+  }
+
+  notification {
+    threshold      = 100
+    operator       = "GreaterThanOrEqualTo"
+    threshold_type = "Forecasted"
+    contact_emails = [var.alert_email]
+  }
 }

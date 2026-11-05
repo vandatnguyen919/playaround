@@ -29,3 +29,7 @@ output "key_vault_uri" {
 output "seal_key_name" {
   value = module.platform.seal_key_name
 }
+
+output "budget_name" {
+  value = module.platform.budget_name
+}

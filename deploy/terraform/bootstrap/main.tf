@@ -35,19 +35,23 @@ resource "azurerm_resource_group" "state" {
   tags     = local.tags
 }
 
+# Reached with Entra ID only (no shared keys, no public blobs). No IP firewall:
+# Dan's address changes, and the backend would then be locked out of its state.
+#trivy:ignore:AZU-0012
 resource "azurerm_storage_account" "state" {
-  name                            = var.state_storage_account_name
-  resource_group_name             = azurerm_resource_group.state.name
-  location                        = azurerm_resource_group.state.location
-  account_kind                    = "StorageV2"
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  min_tls_version                 = "TLS1_2"
-  https_traffic_only_enabled      = true
-  shared_access_key_enabled       = false
-  allow_nested_items_to_be_public = false
-  default_to_oauth_authentication = true
-  tags                            = local.tags
+  name                              = var.state_storage_account_name
+  resource_group_name               = azurerm_resource_group.state.name
+  location                          = azurerm_resource_group.state.location
+  account_kind                      = "StorageV2"
+  account_tier                      = "Standard"
+  account_replication_type          = "LRS"
+  infrastructure_encryption_enabled = true
+  min_tls_version                   = "TLS1_2"
+  https_traffic_only_enabled        = true
+  shared_access_key_enabled         = false
+  allow_nested_items_to_be_public   = false
+  default_to_oauth_authentication   = true
+  tags                              = local.tags
 
   blob_properties {
     versioning_enabled = true
@@ -70,6 +74,10 @@ resource "azurerm_storage_container" "state" {
   name                  = "tfstate"
   storage_account_id    = azurerm_storage_account.state.id
   container_access_type = "private"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # Subscription Owner has no blob data rights; the azurerm backend needs them.

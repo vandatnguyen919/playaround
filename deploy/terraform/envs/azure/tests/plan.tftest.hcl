@@ -89,6 +89,7 @@ variables {
   operator_ip                 = "203.0.113.10"
   alert_email                 = "ops@example.com"
   backup_storage_account_name = "stplaygroundbktest"
+  budget_start_date           = "2026-11-01"
 }
 
 run "rejects_bigger_vm" {
@@ -111,6 +112,39 @@ run "rejects_operator_cidr" {
   expect_failures = [var.operator_ip]
 }
 
+run "rejects_budget_start_not_first_of_month" {
+  command = plan
+
+  variables {
+    budget_start_date = "2026-11-04"
+  }
+
+  expect_failures = [var.budget_start_date]
+}
+
+run "rejects_budget_above_credit" {
+  command = plan
+
+  variables {
+    budget_amount = 101
+  }
+
+  expect_failures = [var.budget_amount]
+}
+
+run "budget_can_be_turned_off" {
+  command = apply
+
+  variables {
+    budget_enabled = false
+  }
+
+  assert {
+    condition     = output.budget_name == null
+    error_message = "budget_enabled = false must not create the budget."
+  }
+}
+
 run "phase1_defaults" {
   command = apply
 
@@ -127,6 +161,11 @@ run "phase1_defaults" {
   assert {
     condition     = output.backup_container_url == "https://stplaygroundbktest.blob.core.windows.net/backups"
     error_message = "Backup container URL is wrong."
+  }
+
+  assert {
+    condition     = output.budget_name == "budget-playground-monthly"
+    error_message = "The budget is on by default."
   }
 }
 

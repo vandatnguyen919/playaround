@@ -9,3 +9,7 @@ output "key_vault_uri" {
 output "seal_key_name" {
   value = var.seal_enabled ? azurerm_key_vault_key.seal[0].name : null
 }
+
+output "budget_name" {
+  value = one(azurerm_consumption_budget_subscription.monthly[*].name)
+}

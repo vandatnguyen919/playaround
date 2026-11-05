@@ -63,5 +63,10 @@ module "platform" {
   backup_storage_account_name = var.backup_storage_account_name
   seal_enabled                = var.seal_enabled
   key_vault_name              = var.key_vault_name
+  subscription_id             = var.subscription_id
+  alert_email                 = var.alert_email
+  budget_enabled              = var.budget_enabled
+  budget_amount               = var.budget_amount
+  budget_start_date           = var.budget_start_date
   tags                        = local.tags
 }
