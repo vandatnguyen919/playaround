@@ -22,10 +22,14 @@ Built and checked locally: see Current state in PRODUCT.md and
 Decided: see Deployment platform in PRODUCT.md. Host provisioned and hardened:
 see Current state. The meter is running. Left:
 
-- **Next step on the VM:** the compose stack. `app.tickin.me` and
-  `auth.tickin.me` resolve to `104.215.148.123`, not proxied (set by Dan by hand,
-  not through `envs/dns`). Next action: move them into `dns-cloudflare` with the
-  mail records, which needs a Cloudflare token (a Stop).
+- **DNS by hand:** `app.tickin.me` and `auth.tickin.me` resolve to
+  `104.215.148.123`, not proxied, set by Dan, not through `envs/dns`. Next action:
+  move them into `dns-cloudflare` with the mail records, which needs a Cloudflare
+  token (a Stop).
+- **Google and GitHub buttons do not work in public** (placeholders). Next action:
+  Dan decides between real credentials (a Stop) and hiding them until then.
+- **Deploys copy files by hand** (README, The VM) because the VM has no checkout.
+  Next action: revisit when Jenkins arrives in phase 2.
 - **Backup storage not applied:** the rest of `azure-platform` was left out
   with `-target`. Next action: show Dan a full `envs/azure` plan with the backup
   jobs.
@@ -40,13 +44,10 @@ see Current state. The meter is running. Left:
 - **Backup jobs** are not written yet: nightly `pg_dump` plus `azcopy login
   --identity` upload to the backup container (phase 1).
 
-## Real email delivery (Resend, proven locally 2026-11-04)
+## Real email delivery (Resend, proven on the public host 2026-11-05)
 
 See Email delivery and Current state in PRODUCT.md. Left:
 
-- **Public link check:** when `auth.tickin.me` points at the VM, run
-  `mailcheck.mjs send` and `headers` there and open both links; so far links
-  are only `auth.localhost`.
 - **`send.tickin.me` records, unexplained:** MX `feedback.forge.rmta.net` and an
   SPF with fixed IPs. Mail uses `rsend.tickin.me`. Next action: Dan says whether
   they are needed, then remove them if not.
@@ -74,7 +75,3 @@ Done and checked locally: see Current state in PRODUCT.md. Left:
   `keycloak-admin-url`): a master frontend URL change moves the token issuer.
 - **Multi-arch image to GHCR:** CI publishes it on `main` (see Images
   above).
-- **smoke.mjs against the public URL** needs a way to create its throwaway
-  users (it uses the master realm admin API, which is not public) and Redis
-  access (local runs publish it with `compose.local-test.yml`, never on the
-  VM). Next action: run it over the SSH tunnel with both forwarded.

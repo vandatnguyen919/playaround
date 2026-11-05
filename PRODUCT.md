@@ -618,8 +618,9 @@ proxy headers, Secure cookies, TLS, real SMTP, Postgres) are easier to see
 without Kubernetes in the way, Traefik carries over to k3s, and phase 1 fits
 on the cheaper 4 GiB size. Revisit: skip straight to phase 2 if Dan prefers.
 
-**Phase 1 memory (4 GiB, limits):** OS and Docker 0.6, Traefik 0.1, Keycloak
-1.4, Postgres 0.3, Redis 0.1, gateway 0.5, api 0.4: about 3.4 GB.
+**Phase 1 memory (4 GiB, limits):** OS and Docker 0.6, Traefik 0.16 (it reached
+86 MiB of a 100 MiB limit while issuing certs), Keycloak 1.4, Postgres 0.3, Redis
+0.1, gateway 0.5, api 0.4: about 3.5 GB.
 Tight but under 4 GiB with JVM heaps capped (`-XX:MaxRAMPercentage`) and a 1
 GiB swap file on the data disk as a cushion, not as working memory. If
 Keycloak is OOM killed, resize to B2ps v2 early.
@@ -1135,9 +1136,24 @@ Facts worth knowing:
   `104.215.148.123`, 64 GiB data disk on `/srv`, alerts, and the $45 budget
   (the offer accepts it). State is in the `azurerm` backend, and its lease
   locking works. Auto-shutdown exists and is off (phase 1). No application runs
-  on it yet, so 80 and 443 refuse connections. Not applied: the rest of
+  of its own beyond the compose stack below. Not applied: the rest of
   `azure-platform` (backup storage), left out with `-target` until the backup
-  jobs exist, and `envs/dns`.
+  jobs exist, and `envs/dns` (Dan set the A records by hand).
+- **v1 is public at https://app.tickin.me (compose, phase 1).** Images
+  `sha-13163e5...`, in `/srv/playground` on the data disk, with a root-owned 0600
+  `.env` whose secrets were made on the VM. Let's Encrypt production certs for
+  `app` and `auth`, issued after staging. From outside: `smoke.mjs` 45 of 45
+  through `deploy/compose/smoke-public.mjs` (admin API over an SSH tunnel with a
+  throwaway realm client, nothing new public), `check-headers.mjs` 20 of 20; on the
+  VM `check.mjs` 43 of 43. A full port scan shows 80 and 443, plus 22 only from
+  Dan's IP; other networks see 22 and 8080 closed. After a reboot the stack comes
+  back alone and smoke passes. Restart policies and log rotation (local driver,
+  20 MB, 3 files) confirmed with `docker inspect`. Google and GitHub buttons show
+  but do not work: their credentials are placeholders (feature 3, a Stop).
+- **Real mail on the public host (2026-11-05).** Register and reset mail through
+  `auth.tickin.me` reached the Gmail inbox: SPF, DKIM signed by `tickin.me` and
+  DMARC pass, every link straight to `auth.tickin.me`. The verify link activated
+  the account. The API key is only in the VM's `.env`.
 - **Hardening, checked on the real VM.** SSH key only, `AllowUsers playground`,
   local forwarding only; password and root logins refused from outside. `ufw`
   matches the NSG. A `DOCKER-USER` chain limits published ports to 80 and 443
@@ -1179,8 +1195,8 @@ Facts worth knowing:
   linked to the repo; `imagetools inspect` works without a login.
 
 Next: every feature except Google and GitHub login is done. Feature 3 is
-blocked on real OAuth credentials (a Stop). Deployment phase 1 continues with
-the compose stack on the VM; the A records are in place. See `.shipit/open.md`.
+blocked on real OAuth credentials (a Stop). Phase 1 is public; backups are what it
+still lacks. See `.shipit/open.md`.
 
 ## Stops
 

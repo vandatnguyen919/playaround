@@ -231,6 +231,53 @@ NODE_TLS_REJECT_UNAUTHORIZED=0 APP_URL=https://app.localhost KC_PUBLIC_URL=https
 `localhost-dns.mjs` resolves `*.localhost` to 127.0.0.1 inside Node, which
 Windows does not do.
 
+### The VM
+
+The stack lives in `/srv/playground` on the data disk, so a VM rebuild keeps it
+with its database. `deploy/compose/.env` there is root-owned, mode 0600. Its
+secrets were made on the VM by `vm-env.sh` and never leave it. Set the mail key
+with a hidden prompt:
+
+```
+ssh -t playground@<vm> sudo sh /srv/playground/deploy/compose/vm-env.sh set-smtp-password
+```
+
+To deploy, copy the files that changed, set the image tags in `.env` to one
+`sha-<git sha>` that CI published on `main`, then start:
+
+```
+tar -cf - deploy/compose/compose.prod.yml infra/playground-realm.json infra/redis/redis.conf infra/redis/start.sh | ssh playground@<vm> sudo tar -xf - --no-same-owner -C /srv/playground
+ssh playground@<vm> "cd /srv/playground/deploy/compose && sudo docker compose -f compose.prod.yml pull -q && sudo docker compose -f compose.prod.yml up -d --no-build"
+```
+
+Let's Encrypt keeps its account and certs in one file, so moving from staging to
+production means removing `acme.json` from the `letsencrypt` volume and setting
+the production CA (`vm-env.sh set-acme-production`).
+
+Checks from this machine, against the public URL:
+
+```
+node deploy/compose/smoke-public.mjs playground@<vm> smoke
+node deploy/compose/smoke-public.mjs playground@<vm> headers
+node deploy/compose/smoke-public.mjs playground@<vm> mail-cleanup
+```
+
+`smoke-public.mjs` opens an SSH tunnel to Keycloak's loopback port and signs in
+as `smoke-runner`, a client limited to the playground realm that lasts one run.
+Redis checks are a single `EXISTS` through `smoke-access.sh` on the VM. No port
+is opened, and no master realm credential or Redis password leaves the VM. The
+`refresh` check briefly changes the realm's access token lifespan and puts it
+back. Rerunning `keycloak-config` also restores it. Run `smoke` at most about
+once a minute: it signs in 8 times and the edge allows 10 sign-ins a minute per
+address.
+
+`check.mjs` runs on the VM, in a throwaway container with the Docker CLI and
+Node:
+
+```
+ssh playground@<vm> "sudo docker run --rm --network host -v /var/run/docker.sock:/var/run/docker.sock -v /srv/playground:/srv/playground:ro docker:29.1-cli sh -c 'apk add -q nodejs; node /srv/playground/deploy/compose/check.mjs'"
+```
+
 ## Smoke test
 
 With the whole stack running (steps 2 to 4):
