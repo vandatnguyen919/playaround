@@ -30,9 +30,17 @@ see Current state. The meter is running. Left:
   Dan decides between real credentials (a Stop) and hiding them until then.
 - **Deploys copy files by hand** (README, The VM) because the VM has no checkout.
   Next action: revisit when Jenkins arrives in phase 2.
-- **Backup storage not applied:** the rest of `azure-platform` was left out
-  with `-target`. Next action: show Dan a full `envs/azure` plan with the backup
-  jobs.
+- **Backups still to be seen working (see `deploy/compose/RESTORE.md`):** the resolve
+  mail arrived after Dan verified the receiver; a firing mail has not been seen since.
+  Next action: on the next real firing, confirm its mail arrives. On 2026-11-06 check `backup.sh list` shows the 19:00 UTC dump; on or after
+  2026-11-20 check the 2026-11-05 dump is gone, which proves the lifecycle rule.
+- **Drill scratch left (2026-11-05):** on the VM, stopped Docker project
+  `playground-drill` with its volumes, `/srv/playground/drill.dump` and `drill.env`;
+  on Dan's machine, Docker projects `playground-drill` and `playground-drill2` with
+  their volumes, and a plain dump in the session scratchpad. Next action: Dan decides
+  on removing them (deleting a database or backup is a Stop).
+- **Copy of `.env` in a password manager:** it lives only on the data disk. Next
+  action: Dan keeps one (RESTORE.md).
 - **k3s and the firewall (phase 2):** `ufw` and `DOCKER-USER` were written for
   Docker. Next action: revisit them when k3s replaces compose.
 - **Install Terraform 1.17.1 properly:** this session ran a checksum-checked copy
@@ -41,8 +49,6 @@ see Current state. The meter is running. Left:
 - **Budget mail:** if no 80% mail arrives by the end of the first full month,
   the budget is not seeing cost. Next action: Dan tells Claude, then turn it
   off and keep the weekly balance check.
-- **Backup jobs** are not written yet: nightly `pg_dump` plus `azcopy login
-  --identity` upload to the backup container (phase 1).
 
 ## Real email delivery (Resend, proven on the public host 2026-11-05)
 

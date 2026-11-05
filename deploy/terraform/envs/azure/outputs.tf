@@ -22,6 +22,22 @@ output "backup_container_url" {
   value = module.platform.backup_container_url
 }
 
+output "backup_retention_days" {
+  value = module.platform.backup_retention_days
+}
+
+output "backup_reader_scope" {
+  value = module.platform.backup_reader_scope
+}
+
+output "backup_alert_threshold_hours" {
+  value = module.host.backup_alert_threshold_hours
+}
+
+output "metrics_role_scope" {
+  value = module.host.metrics_role_scope
+}
+
 output "key_vault_uri" {
   value = module.platform.key_vault_uri
 }

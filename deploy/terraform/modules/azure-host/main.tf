@@ -220,6 +220,43 @@ resource "azurerm_monitor_metric_alert" "cpu_credits" {
   }
 }
 
+# backup.sh report publishes the age of the newest dump in Blob every hour, so
+# one rule catches every way a backup can go missing: a failed dump or upload, a
+# dead nightly timer, a lost role. The nightly run makes a healthy age reach
+# about 24 h; 26 h leaves room for a slow run or a reboot.
+# A VM that is down publishes nothing: the availability alert below covers it.
+resource "azurerm_monitor_metric_alert" "backup_age" {
+  name                = "alert-${var.name}-backup-age"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_linux_virtual_machine.host.id]
+  description         = "Newest Postgres backup in Blob is over 26 hours old, or cannot be read. See deploy/compose/RESTORE.md."
+  severity            = 1
+  frequency           = "PT15M"
+  window_size         = "PT1H"
+  tags                = var.tags
+
+  criteria {
+    metric_namespace = "playground/backups"
+    metric_name      = "BackupAgeHours"
+    aggregation      = "Maximum"
+    operator         = "GreaterThan"
+    threshold        = 26
+    # A custom metric does not exist until the first report.
+    skip_metric_validation = true
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.operator.id
+  }
+}
+
+# Only this VM's own metrics, and it cannot read them back.
+resource "azurerm_role_assignment" "host_metrics" {
+  scope                = azurerm_linux_virtual_machine.host.id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = azurerm_linux_virtual_machine.host.identity[0].principal_id
+}
+
 # Off while auto-shutdown is on, or it would fire every night.
 resource "azurerm_monitor_metric_alert" "availability" {
   name                = "alert-${var.name}-availability"

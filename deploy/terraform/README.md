@@ -142,7 +142,9 @@ az vm run-command invoke -g rg-playground-azure -n vm-playground \
 ## Rebuilding the VM
 
 The data disk and the public IP stay. The attachment, the auto-shutdown schedule
-and anything tied to the VM's identity are rebuilt with it:
+and anything tied to the VM's identity (its blob and metrics roles included) are
+rebuilt with it. `backup-install.service` puts the backup timers back from the data
+disk:
 
 ```
 terraform plan -replace='module.host.azurerm_linux_virtual_machine.host' -out tfplan   # show Dan

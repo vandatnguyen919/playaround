@@ -102,6 +102,24 @@ write_files:
 
       [Install]
       WantedBy=multi-user.target
+  # A rebuilt VM comes up with no backup timers. The script and azcopy are on the
+  # data disk, so this puts the timers back. No alert would fire without them:
+  # with no timers there is no metric. On a first boot the script is not there yet.
+  - path: /etc/systemd/system/backup-install.service
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Install the Postgres backup timers from the data disk
+      Requires=data-disk.service
+      After=data-disk.service
+      ConditionPathExists=/srv/playground/deploy/compose/backup.sh
+
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/sh /srv/playground/deploy/compose/backup.sh install
+
+      [Install]
+      WantedBy=multi-user.target
   # Runs on every boot. Formats only a disk with nothing on it: any blkid answer
   # other than "nothing found" leaves the disk alone, so a rebuilt VM keeps its
   # data. Also adds the 1 GiB swap file, a cushion for the 4 GiB size.
@@ -203,6 +221,6 @@ runcmd:
   - systemctl restart fail2ban
   - systemctl enable --now unattended-upgrades
   - systemctl daemon-reload
-  - systemctl enable data-disk.service docker.service
+  - systemctl enable data-disk.service docker.service backup-install.service
   # No wait: the disk may still be on its way, and cloud-init must finish.
   - systemctl start --no-block docker.service

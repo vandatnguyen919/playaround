@@ -363,6 +363,23 @@ async function checkRefresh() {
   }
 }
 
+// Restore drill (deploy/compose/RESTORE.md). The other checks make their own
+// users, so they would pass on an empty database. This one proves the data came
+// back: a user made before the dump signs in with its old password, and a user
+// made after it does not exist.
+async function checkRestored() {
+  const before = process.env.DRILL_BEFORE_USER
+  const after = process.env.DRILL_AFTER_USER
+  if (!before || !after) throw new Error("Set DRILL_BEFORE_USER, DRILL_BEFORE_PASSWORD and DRILL_AFTER_USER")
+  const b = new Browser()
+  await signIn(b, { username: before, password: process.env.DRILL_BEFORE_PASSWORD })
+  const me = await b.xhr("/bff/me")
+  assert("a user from before the dump signs in with its old password", me.status === 200, `HTTP ${me.status}`)
+  assert("the profile is that user's", (await me.json()).preferredUsername === before)
+  const found = await (await adminApi(`/users?exact=true&username=${encodeURIComponent(after)}`)).json()
+  assert("a user from after the dump does not exist", found.length === 0, `${found.length} found`)
+}
+
 const checks = {
   anonymous: checkAnonymous,
   login: checkLogin,
@@ -372,7 +389,10 @@ const checks = {
   fixation: checkFixation,
   backchannel: checkBackchannel,
   refresh: checkRefresh,
+  restored: checkRestored,
 }
+// Runs only when asked for: it needs the drill's markers.
+const defaults = Object.keys(checks).filter((n) => n !== "restored")
 const requested = process.argv.slice(2)
 const unknownNames = requested.filter((n) => !(n in checks))
 if (unknownNames.length) {
@@ -385,7 +405,7 @@ try {
   await createUser(USER)
   await createUser(ADMIN)
   // A failing check is reported and the rest still run.
-  for (const name of requested.length ? requested : Object.keys(checks)) {
+  for (const name of requested.length ? requested : defaults) {
     console.log(`\n== ${name}`)
     const before = results.length
     try {

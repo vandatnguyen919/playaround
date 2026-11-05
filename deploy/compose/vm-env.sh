@@ -5,6 +5,9 @@
 #   vm-env.sh init <app-host> <auth-host> <smtp-from> <acme-email> <image-sha>
 #   vm-env.sh set-smtp-password      prompts for the Resend API key, hidden
 #   vm-env.sh set-acme-production    switches Let's Encrypt from staging to production
+#   vm-env.sh set-backup-url <url>   where backup.sh writes (Terraform: backup_container_url)
+#   vm-env.sh drill-env <file>       env for the scratch stack in RESTORE.md: the live
+#                                    images, fresh secrets, placeholder mail
 set -eu
 umask 077
 ENV_FILE="$(dirname "$0")/.env"
@@ -76,8 +79,44 @@ EOF
   set-acme-production)
     set_value ACME_CA_SERVER https://acme-v02.api.letsencrypt.org/directory
     ;;
+  set-backup-url)
+    case "${2:-}" in
+      https://*.blob.core.windows.net/*) ;;
+      *) echo "usage: vm-env.sh set-backup-url https://<account>.blob.core.windows.net/<container>" >&2; exit 2 ;;
+    esac
+    set_value BACKUP_CONTAINER_URL "$2"
+    ;;
+  drill-env)
+    [ -n "${2:-}" ] || { echo "usage: vm-env.sh drill-env <file>" >&2; exit 2; }
+    [ ! -e "$2" ] || { echo "$2 exists, not overwriting it" >&2; exit 1; }
+    {
+      grep -E '^(KEYCLOAK|GATEWAY|API)_IMAGE=' "$ENV_FILE"
+      # Required by compose.prod.yml, unused or overridden in the drill.
+      cat <<EOF
+APP_HOST=drill.invalid
+AUTH_HOST=drill.invalid
+GOOGLE_CLIENT_ID=not-configured
+GOOGLE_CLIENT_SECRET=not-configured
+GITHUB_CLIENT_ID=not-configured
+GITHUB_CLIENT_SECRET=not-configured
+SMTP_HOST=drill.invalid
+SMTP_FROM=no-reply@drill.invalid
+SMTP_USER=none
+SMTP_PASSWORD=none
+KC_BOOTSTRAP_ADMIN_USERNAME=drill-admin
+KC_CONFIG_CLIENT_ID=keycloak-config-recovery
+KC_DB_PASSWORD=$(secret)
+KC_BOOTSTRAP_ADMIN_PASSWORD=$(secret)
+KC_CONFIG_CLIENT_SECRET=$(secret)
+REDIS_PASSWORD=$(secret)
+GATEWAY_CLIENT_SECRET=$(secret)
+EOF
+    } > "$2"
+    chmod 600 "$2"
+    echo "wrote $2"
+    ;;
   *)
-    sed -n '2,7p' "$0" >&2
+    sed -n '2,10p' "$0" >&2
     exit 2
     ;;
 esac

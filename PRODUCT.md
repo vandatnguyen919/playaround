@@ -958,8 +958,18 @@ backups, upgrades and restore drills. Revisit at the AWS step (RDS).
   lifecycle rule deletes blobs after 14 days. Size is well under 1 GB, so
   cents a month.
 - **Phase 1:** a `postgres:18.6-alpine` container with its volume on the data
-  disk. A nightly `pg_dump -Fc` is uploaded with `azcopy` using `azcopy
-  login --identity`.
+  disk. A nightly `pg_dump -Fc` is uploaded with `azcopy` using the VM's managed
+  identity (`deploy/compose/backup.sh`, runbook in `deploy/compose/RESTORE.md`).
+  Blob soft delete keeps a deleted blob 7 more days, since the identity can delete.
+- **No client-side encryption (2026-11-05).** Everyone who can read the blobs can
+  already read the live database, and the data disk holds the same data under the
+  same kind of keys, so it would keep out nobody new and add a key whose loss means
+  no restore. A copy leaving Azure is encrypted first. Revisit if anyone else gets a
+  role on this subscription, or if real users' data arrives.
+- **Failed backups alert (2026-11-05):** `backup.sh report` publishes the newest
+  dump's age hourly as custom metric `BackupAgeHours` ("Monitoring Metrics
+  Publisher" on the VM only); a metric alert mails over 26 hours. It watches what is
+  in Blob, not the job, so one rule covers every way a backup can go missing.
 - **Phase 2:** CloudNativePG 1.30.1, one instance, with the Barman Cloud
   plugin 0.15.1 for WAL archiving and a daily base backup to the same
   container through its native Azure Blob support with managed identity
@@ -1136,9 +1146,8 @@ Facts worth knowing:
   `104.215.148.123`, 64 GiB data disk on `/srv`, alerts, and the $45 budget
   (the offer accepts it). State is in the `azurerm` backend, and its lease
   locking works. Auto-shutdown exists and is off (phase 1). No application runs
-  of its own beyond the compose stack below. Not applied: the rest of
-  `azure-platform` (backup storage), left out with `-target` until the backup
-  jobs exist, and `envs/dns` (Dan set the A records by hand).
+  of its own beyond the compose stack below. Backup storage and its alert were
+  applied 2026-11-05. Not applied: `envs/dns` (Dan set the A records by hand).
 - **v1 is public at https://app.tickin.me (compose, phase 1).** Images
   `sha-13163e5...`, in `/srv/playground` on the data disk, with a root-owned 0600
   `.env` whose secrets were made on the VM. Let's Encrypt production certs for
@@ -1194,9 +1203,15 @@ Facts worth knowing:
   linux/arm64 and 2 provenance attestations. The packages are public and
   linked to the repo; `imagetools inspect` works without a login.
 
+- **Backups run on the Azure VM (2026-11-05).** A real dump went to Blob with the
+  managed identity, and the timer is set for 19:00 UTC. The drill restored it into a
+  scratch stack on the VM: `smoke.mjs` 48 of 48 including `restored`, about 2 minutes
+  of work on a 255 KiB database, live site up throughout. The identity is refused
+  outside its container. Results and what is unverified:
+  `deploy/compose/RESTORE.md`.
+
 Next: every feature except Google and GitHub login is done. Feature 3 is
-blocked on real OAuth credentials (a Stop). Phase 1 is public; backups are what it
-still lacks. See `.shipit/open.md`.
+blocked on real OAuth credentials (a Stop). See `.shipit/open.md`.
 
 ## Stops
 

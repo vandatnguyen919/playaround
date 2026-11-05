@@ -19,6 +19,15 @@ output "principal_id" {
   value       = azurerm_linux_virtual_machine.host.identity[0].principal_id
 }
 
+output "backup_alert_threshold_hours" {
+  value = one(azurerm_monitor_metric_alert.backup_age.criteria).threshold
+}
+
+output "metrics_role_scope" {
+  description = "Scope of the VM's metrics role, for the plan tests."
+  value       = azurerm_role_assignment.host_metrics.scope
+}
+
 output "cloud_init" {
   description = "Rendered cloud-init, for the plan tests. Holds no secrets."
   value       = local.cloud_init
