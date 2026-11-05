@@ -6,6 +6,7 @@
 #   vm-env.sh set-smtp-password      prompts for the Resend API key, hidden
 #   vm-env.sh set-acme-production    switches Let's Encrypt from staging to production
 #   vm-env.sh set-backup-url <url>   where backup.sh writes (Terraform: backup_container_url)
+#   vm-env.sh add-jenkins-client-secret   makes the Jenkins client secret if .env has none
 #   vm-env.sh drill-env <file>       env for the scratch stack in RESTORE.md: the live
 #                                    images, fresh secrets, placeholder mail
 set -eu
@@ -46,6 +47,7 @@ KC_CONFIG_CLIENT_ID=keycloak-config
 KC_CONFIG_CLIENT_SECRET=$(secret)
 REDIS_PASSWORD=$(secret)
 GATEWAY_CLIENT_SECRET=$(secret)
+JENKINS_CLIENT_SECRET=$(secret)
 GOOGLE_CLIENT_ID=google-client-id-not-configured
 GOOGLE_CLIENT_SECRET=google-client-secret-not-configured
 GITHUB_CLIENT_ID=github-client-id-not-configured
@@ -79,6 +81,14 @@ EOF
   set-acme-production)
     set_value ACME_CA_SERVER https://acme-v02.api.letsencrypt.org/directory
     ;;
+  add-jenkins-client-secret)
+    # A .env from before Jenkins. Never replaces a secret Keycloak already has.
+    if grep -q '^JENKINS_CLIENT_SECRET=' "$ENV_FILE"; then
+      echo "JENKINS_CLIENT_SECRET is already set, nothing changed" >&2
+    else
+      set_value JENKINS_CLIENT_SECRET "$(secret)"
+    fi
+    ;;
   set-backup-url)
     case "${2:-}" in
       https://*.blob.core.windows.net/*) ;;
@@ -110,13 +120,14 @@ KC_BOOTSTRAP_ADMIN_PASSWORD=$(secret)
 KC_CONFIG_CLIENT_SECRET=$(secret)
 REDIS_PASSWORD=$(secret)
 GATEWAY_CLIENT_SECRET=$(secret)
+JENKINS_CLIENT_SECRET=$(secret)
 EOF
     } > "$2"
     chmod 600 "$2"
     echo "wrote $2"
     ;;
   *)
-    sed -n '2,10p' "$0" >&2
+    sed -n '2,11p' "$0" >&2
     exit 2
     ;;
 esac

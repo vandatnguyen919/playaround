@@ -1,5 +1,23 @@
 # Open
 
+## Jenkins as code (proven locally 2026-11-05, not deployed)
+
+See Jenkins and Current state in PRODUCT.md, runbook in `deploy/k8s/jenkins/README.md`. Left:
+
+- **Before the next `up` on the VM:** `compose.prod.yml` now refuses to start without
+  `JENKINS_CLIENT_SECRET`. Next action: copy the new `vm-env.sh`, compose file and realm to
+  the VM, run `sudo sh vm-env.sh add-jenkins-client-secret`, then `up`. Same for any local
+  stack env file.
+- **Waits on phase 2:** k3s, the 8 GiB resize (a Stop), and the app chart
+  `deploy/k8s/playground`; until that exists the job stops with a clear error. Next action:
+  when phase 2 starts, install per the README, grant `jenkins-admin` to Dan by hand, and add
+  a `smoke.mjs` stage to `deploy.Jenkinsfile`, which phase 2's done-when needs.
+- **Not proven until then:** arm64, a real Blob upload (wiring checked with a stub
+  `azcopy`), the block on `169.254.169.254` (the policy exists, but no metadata service
+  runs locally), and polling GitHub itself (the drill polled a scratch repo).
+- **Tight memory:** controller about 530 of 640 Mi at light use. Next action: watch it on
+  the real node, since the 1.0 GB budget has no room to raise it.
+
 ## Images for phase 1 (2026-10-31)
 
 Built and checked locally: see Current state in PRODUCT.md and

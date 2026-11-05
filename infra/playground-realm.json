@@ -128,6 +128,10 @@
         "description": "Application administrator"
       },
       {
+        "name": "jenkins-admin",
+        "description": "May use Jenkins. Not a default role: granted by hand."
+      },
+      {
         "name": "offline_access",
         "description": "${role_offline-access}"
       },
@@ -230,6 +234,63 @@
         "pkce.code.challenge.method": "S256",
         "oauth2.device.authorization.grant.enabled": "false",
         "client.secret.creation.time": "2026-10-18T00:00:00Z"
+      }
+    },
+    {
+      "clientId": "jenkins",
+      "name": "Jenkins",
+      "description": "Sign-in to the private Jenkins controller, reached over a tunnel. Only the jenkins-admin role gets any permission there.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "$(env:JENKINS_CLIENT_SECRET)",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "frontchannelLogout": false,
+      "redirectUris": [
+        "http://localhost:8090/securityRealm/finishLogin"
+      ],
+      "webOrigins": [],
+      "defaultClientScopes": [
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "full name from the fullName attribute",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "fullName",
+            "claim.name": "name",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "false",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "realm roles as groups for Jenkins",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "groups",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "false",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:8090/",
+        "pkce.code.challenge.method": "S256",
+        "oauth2.device.authorization.grant.enabled": "false"
       }
     }
   ],

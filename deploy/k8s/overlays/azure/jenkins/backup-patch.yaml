@@ -1,0 +1,18 @@
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: upload
+              envFrom:
+                - configMapRef: { name: jenkins-backup-target }
+              volumeMounts:
+                - { name: azcopy, mountPath: /azcopy/azcopy, readOnly: true }
+          volumes:
+            # The file, not its folder: backup.sh runs with umask 077, so the folder
+            # may be closed to this pod's user.
+            - name: azcopy
+              hostPath:
+                path: /srv/playground/bin/azcopy
+                type: File

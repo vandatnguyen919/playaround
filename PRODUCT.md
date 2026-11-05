@@ -660,7 +660,7 @@ backups. Accepted for a learning project.
 | web (static files) | playground | 0.05 GB |
 | Vault and External Secrets | vault | 0.4 GB |
 | Grafana, Prometheus, Loki, Tempo, Alloy | observability | 1.7 GB |
-| Jenkins controller | ci | 1.0 GB |
+| Jenkins controller and its one deploy agent | ci | 1.0 GB |
 | **Total** | | **about 7.7 of 8 GiB** |
 
 **What phase 2 cut to fit 8 GiB** (both were the fallbacks already named in
@@ -825,6 +825,7 @@ deploy/
       aws/                later: backend "s3", aws-* modules with the same outputs
   compose/                phase 1: compose.prod.yml, Traefik config
   k8s/                    phase 2: Helm values and manifests, cloud-neutral
+    jenkins/              Jenkins as code, runbook and recreate drill
     overlays/azure/       seal config, Blob backup target, storage class
     overlays/aws/         later
 ```
@@ -887,17 +888,45 @@ Prometheus replaces Mimir 3.2.3 to fit 8 GiB.
 **Jenkins LTS 2.580.1 (`jenkins/jenkins:2.580.1-lts-jdk25`), Helm chart
 5.10.0, in namespace `ci` on the same k3s node, configured as code (JCasC).**
 Phase 2. Jenkins does CD only (J1, J3): it deploys images that GitHub
-Actions built and published (see CI and CD below). It builds nothing, so it
-needs no build agent.
+Actions built and published (see CI and CD below). It builds nothing. Everything
+is in `deploy/k8s/jenkins` (runbook in its README); each start rebuilds config and
+plugins from there, so a change made in the UI is gone at the next restart.
 
-- **Reaching the cluster:** deploy steps run on the controller as a
-  ServiceAccount bound to a Role in the `playground` namespace only (`helm
-  upgrade`). No kubeconfig leaves the cluster, and 6443 stays closed to the
-  internet.
+- **Deploy-only agent (changed 2026-11-05, Dan):** the controller has 0 executors.
+  Each deploy runs on one short-lived pod (inbound agent plus `alpine/helm:3.22.1`),
+  which has no cluster rights of its own. Before this, steps ran on the controller.
+- **Deploy credential (changed 2026-11-05, Dan):** the token of ServiceAccount
+  `jenkins-deploy`, whose Role is in namespace `playground` only (`helm upgrade`, no
+  RBAC writes), lives in the Jenkins credential store as `playground-deploy-token`,
+  loaded by JCasC from a Kubernetes Secret, and reaches the agent only inside
+  `withCredentials`. No kubeconfig leaves the cluster, and 6443 stays closed to the
+  internet. None for GHCR or GitHub: the images and repo are public.
+- **Sign-in (added 2026-11-05, Dan): OIDC through our Keycloak** with `oic-auth`,
+  client `jenkins`, PKCE S256, no local users. The realm has public registration, so
+  only the realm role `jenkins-admin` (not a default role, granted by hand) gets any
+  permission; anyone else who signs in gets 403. Discovery uses Keycloak's private
+  name and the browser the public host, as for the gateway. Tradeoff: with Keycloak
+  down nobody signs in, while polling and deploys go on; no escape hatch, so a bad
+  Keycloak deploy is fixed with `helm upgrade` on the VM.
+- **Not public:** ClusterIP only, no Ingress, inbound agent port off, a NetworkPolicy
+  letting only namespace `ci` reach it. Reached by SSH and `kubectl port-forward` at
+  `localhost:8090`.
 - **Triggers:** Jenkins polls GitHub every 5 minutes instead of taking
-  webhooks, so it stays private. Tradeoff: up to 5 minutes of delay.
-- **Credentials:** none for GHCR. The images are public, so pulls need no
-  token.
+  webhooks, so it stays private. Tradeoff: up to 5 minutes of delay. The job then
+  waits up to 45 minutes for `sha-<git sha>` on GHCR, so a commit whose CI failed
+  deploys nothing.
+- **Plugins (added 2026-11-05):** all 63 pinned with dependencies in `plugins.yaml`,
+  and `check.sh` fails if the list differs from what they resolve to. Downloaded at
+  each start from the update center, using the stock image. Tradeoff: an update center
+  outage stops a restart. Not a custom image, which would need its own CI job and
+  registry path for a single controller. Revisit if that outage bites.
+- **Memory: 1.0 GB in total, as budgeted:** controller 640 Mi, agent 256 Mi plus 128 Mi,
+  one agent at most. PriorityClass `ci` is negative, so Jenkins goes first under
+  pressure. The plugin init step takes 640 Mi, before the controller starts.
+- **JENKINS_HOME backup (added 2026-11-05, Dan):** daily to `jenkins/` in the backup
+  container, 14 day lifecycle rule. It holds build history only. Config comes from the
+  repo, and the master key, credentials and users are left out on purpose, so a copy
+  opens nothing. Not watched by `BackupAgeHours`: losing it loses no config.
 
 ### CI and CD: GitHub Actions builds, Jenkins deploys (2026-10-31)
 
@@ -1209,6 +1238,15 @@ Facts worth knowing:
   of work on a 255 KiB database, live site up throughout. The identity is refused
   outside its container. Results and what is unverified:
   `deploy/compose/RESTORE.md`.
+
+- **Jenkins as code, proven locally, not deployed (2026-11-05).** `deploy/k8s/jenkins`
+  on a local k3s v1.36.5 (amd64) with the local prod stack's Keycloak: all 67 drill checks
+  pass (`.shipit/records/jenkins-recreate-2026-11-05.md`). Deleting the namespace and
+  JENKINS_HOME and recreating from the repo took 98 s and gave the same JCasC export, job
+  config, plugins and credential ids, and the new controller deployed with a new token.
+  Own memory about 530 of 640 Mi, agent peak 185 Mi of 384. It waits on phase 2: k3s, the
+  8 GiB resize (a Stop) and the app chart. Not run: arm64, real Blob upload (wiring checked
+  with a stub `azcopy`), the instance metadata block, or GitHub itself as the polled repo.
 
 Next: every feature except Google and GitHub login is done. Feature 3 is
 blocked on real OAuth credentials (a Stop). See `.shipit/open.md`.

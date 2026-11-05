@@ -160,6 +160,13 @@ check("realm roles map to realm_access.roles", mappers["oidc-usermodel-realm-rol
 const secret = await api(`/clients/${gateway.id}/client-secret`)
 check("gateway secret comes from the env", secret.value === env.GATEWAY_CLIENT_SECRET)
 
+const [jenkins] = await api("/clients?clientId=jenkins")
+check("jenkins client is confidential with standard flow only", jenkins && !jenkins.publicClient && jenkins.standardFlowEnabled && !jenkins.directAccessGrantsEnabled)
+check("jenkins redirect URI is the tunnel only", JSON.stringify(jenkins.redirectUris) === JSON.stringify(["http://localhost:8090/securityRealm/finishLogin"]), jenkins.redirectUris.join(","))
+check("jenkins requires PKCE S256", jenkins.attributes["pkce.code.challenge.method"] === "S256")
+check("jenkins secret comes from the env", (await api(`/clients/${jenkins.id}/client-secret`)).value === env.JENKINS_CLIENT_SECRET)
+check("jenkins-admin is not a default role", !defaults.includes("jenkins-admin"), defaults.join(","))
+
 const profile = await api("/users/profile")
 const fullName = profile.attributes.find((a) => a.name === "fullName")
 check("user profile has a required fullName with a pattern validator", fullName?.required && fullName?.validations?.pattern)

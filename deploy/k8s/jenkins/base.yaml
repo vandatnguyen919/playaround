@@ -1,0 +1,114 @@
+# What the chart does not create. Applied by install.sh before the chart.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ci
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: playground
+---
+# Under memory pressure Jenkins goes first (PRODUCT.md). Negative, so it ranks
+# below any pod with no class at all, and it never evicts anything to fit.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: ci
+value: -100
+preemptionPolicy: Never
+description: Jenkins and its deploy agent. First to go under memory pressure.
+---
+# Who deploys. Jenkins holds this token in its credential store; the agent pod
+# itself has no cluster rights.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jenkins-deploy
+  namespace: ci
+automountServiceAccountToken: false
+---
+# Kubernetes fills in the token. Deleted with the namespace, so a recreate rotates it.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: jenkins-deploy-token
+  namespace: ci
+  annotations:
+    kubernetes.io/service-account.name: jenkins-deploy
+type: kubernetes.io/service-account-token
+---
+# helm upgrade in namespace playground and nowhere else. Helm keeps its release
+# state in Secrets there, which is why it may touch them.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: jenkins-deploy
+  namespace: playground
+rules:
+  - apiGroups: [""]
+    resources: [configmaps, secrets, services, serviceaccounts, persistentvolumeclaims]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [""]
+    resources: [pods, pods/log, events]
+    verbs: [get, list, watch]
+  - apiGroups: [apps]
+    resources: [deployments, statefulsets, replicasets]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [batch]
+    resources: [jobs, cronjobs]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [networking.k8s.io]
+    resources: [ingresses, networkpolicies]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [rbac.authorization.k8s.io]
+    resources: [roles, rolebindings]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jenkins-deploy
+  namespace: playground
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: jenkins-deploy
+subjects:
+  - kind: ServiceAccount
+    name: jenkins-deploy
+    namespace: ci
+---
+# Nothing outside the namespace reaches Jenkins; a tunnel goes through
+# kubectl port-forward, which these rules do not see.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ci-ingress-only-from-ci
+  namespace: ci
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: {}
+---
+# The VM's managed identity is reachable from any pod through this address, so
+# only the backup job may call it (PRODUCT.md, VM identity).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ci-no-instance-metadata
+  namespace: ci
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: NotIn
+        values: [jenkins-backup]
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: [169.254.169.254/32]

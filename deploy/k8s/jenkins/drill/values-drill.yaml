@@ -1,0 +1,11 @@
+# Drill only, on top of values.yaml. The only differences from the real install:
+# where the repo is, and which published image tag to check.
+controller:
+  containerEnv:
+    - name: PLAYGROUND_REPO_URL
+      value: git://git.drill.svc.cluster.local/playground.git
+    - name: KEYCLOAK_WELL_KNOWN_URL
+      value: http://keycloak.playground.svc.cluster.local:8080/realms/playground/.well-known/openid-configuration
+    # The scratch commits are not on GHCR. This one is, so the image wait is real.
+    - name: DEPLOY_TAG_PIN
+      value: sha-8721ca747da7fcc9a42bfa9630ae041742612a31

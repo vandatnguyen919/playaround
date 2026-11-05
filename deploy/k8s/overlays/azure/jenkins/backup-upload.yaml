@@ -1,0 +1,24 @@
+# Where the Jenkins backup goes on Azure: prefix jenkins/ of the same Blob container
+# as the database dumps, so the same 14 day lifecycle rule expires it. Uses the VM's
+# managed identity, so no credentials exist. Patches in azcopy from the data disk,
+# where deploy/compose/backup.sh installs it, and the container URL.
+#
+#   kubectl -n ci create configmap jenkins-backup-target \
+#     --from-literal=BACKUP_CONTAINER_URL=<terraform output backup_container_url>
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jenkins-backup-upload
+  namespace: ci
+data:
+  upload.sh: |
+    set -eu
+    set -- /out/*.tar.gz
+    if [ ! -e "$1" ]; then
+      echo "nothing to upload"
+      exit 0
+    fi
+    export AZCOPY_AUTO_LOGIN_TYPE=MSI AZCOPY_LOG_LOCATION=/work AZCOPY_JOB_PLAN_LOCATION=/work
+    /azcopy/azcopy copy "$1" "${BACKUP_CONTAINER_URL%/}/jenkins/$(basename "$1")" \
+      --overwrite=false --put-md5 --output-level=essential --log-level=ERROR
+    echo "uploaded $(basename "$1")"

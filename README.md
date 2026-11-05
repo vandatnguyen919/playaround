@@ -127,7 +127,8 @@ compile once in `FROM --platform=$BUILDPLATFORM` stages; the final stages only
 copy onto `eclipse-temurin:26-jre` (or the Keycloak image).
 
 **CI publishes them** (`.github/workflows/ci.yml`, GitHub Actions). CI never
-deploys; that is Jenkins' job in phase 2, and by hand before then.
+deploys; that is Jenkins' job in phase 2 (`deploy/k8s/jenkins/README.md`), and by
+hand before then.
 
 - Every pull request to `main`, nothing pushed: `./gradlew build`, web and
   theme `npm run lint` and `npm test`, `./verify` (dev Keycloak and Mailpit
