@@ -505,10 +505,11 @@ upgrade is planned.
   deployment regions" policy whose list differs per subscription and is not
   published. Check Policy, Assignments (or the error text of a failed
   deploy) before choosing the region.
-- **Cost Management budgets: unproven.** Microsoft's docs disagree. Its offer
-  table lists Azure for Students (MS-AZR-0170P) as unsupported, while the
-  Education Hub page tells students to create budgets. Only a real apply
-  settles it. See Budget and runway.
+- **Cost Management budgets: accepted (applied 2026-11-05).** Microsoft's docs
+  disagree: its offer table lists Azure for Students (MS-AZR-0170P) as
+  unsupported, while the Education Hub page tells students to create budgets.
+  Whether it sees cost is unproven until the first 80% mail. See Budget and
+  runway.
 - **Port 25 outbound is blocked** for every subscription type except
   Enterprise Agreement and MCA-E. Authenticated relays on 587 are not
   blocked. See Email delivery.
@@ -1129,13 +1130,33 @@ Facts worth knowing:
   `AUTH_HOST`. Dan opened both links; Keycloak shows the account verified. The
   links were `auth.localhost`; the public hostname waits on the VM and A records.
   Dev still uses Mailpit, and the local stack is back on its placeholder SMTP.
-- **Terraform for Azure, written, not applied, no real plan yet.**
-  `deploy/terraform` (bootstrap, `envs/azure`, `envs/dns`, `modules/azure-*`,
-  `modules/dns-cloudflare`) passes `deploy/terraform/check.sh` against azurerm
+- **Azure host provisioned and hardened (`rg-playground-azure`,
+  `southeastasia`).** `vm-playground`, `Standard_B2pls_v2`, static IP
+  `104.215.148.123`, 64 GiB data disk on `/srv`, alerts, and the $45 budget
+  (the offer accepts it). State is in the `azurerm` backend, and its lease
+  locking works. Auto-shutdown exists and is off (phase 1). No application runs
+  on it yet, so 80 and 443 refuse connections. Not applied: the rest of
+  `azure-platform` (backup storage), left out with `-target` until the backup
+  jobs exist, and `envs/dns`.
+- **Hardening, checked on the real VM.** SSH key only, `AllowUsers playground`,
+  local forwarding only; password and root logins refused from outside. `ufw`
+  matches the NSG. A `DOCKER-USER` chain limits published ports to 80 and 443
+  (with its 443 rule removed, a published port stopped answering). fail2ban
+  banned a real run of failed logins, and `az vm run-command` undid it, which
+  is also the way back in. Unattended upgrades are on, rebooting at 20:00 UTC
+  when a kernel fix needs it.
+- **VM rebuild, checked.** `terraform apply -replace` on the VM kept the same
+  disk (`uniqueId`, filesystem UUID), IP, a marker file, a Docker volume and a
+  pulled image; hardening came back from cloud-init with no errors. A destroy
+  plan for the disk stops on `prevent_destroy`.
+- **Docker's containerd image store is off** (`daemon.json`). Docker 29 turns it
+  on for fresh installs, and it keeps images in `/var/lib/containerd` on the OS
+  disk whatever `data-root` says. The first rebuild lost an image that way.
+- **Terraform checks.** `deploy/terraform/check.sh` passes against azurerm
   5.12.0 and cloudflare 5.28.1: fmt, validate, tflint, trivy config, and
-  `terraform test` (2 bootstrap runs and 7 `envs/azure` runs, mocked provider).
-  Run order in `deploy/terraform/README.md`. azurerm 5 note: subnet service
-  endpoints are `service_endpoint` blocks.
+  `terraform test` (mocked provider). Run order in
+  `deploy/terraform/README.md`. azurerm 5 note: subnet service endpoints are
+  `service_endpoint` blocks, and it does not register resource providers.
 - **Images (phase 1), published by CI.** `gateway/Dockerfile` (with
   `web/dist`), `api/Dockerfile` and `keycloak-theme/Dockerfile` build for
   arm64 and amd64 with buildx; gateway and api run as uid 10001 on Spring
@@ -1156,11 +1177,10 @@ Facts worth knowing:
   `sha-8721ca747da7fcc9a42bfa9630ae041742612a31`, each with linux/amd64,
   linux/arm64 and 2 provenance attestations. The packages are public and
   linked to the repo; `imagetools inspect` works without a login.
-- Deployment: nothing is provisioned yet. See `.shipit/open.md`.
 
 Next: every feature except Google and GitHub login is done. Feature 3 is
-blocked on real OAuth credentials (a Stop). Deployment phase 1 can start once
-the open questions in Deployment platform are answered.
+blocked on real OAuth credentials (a Stop). Deployment phase 1 continues with
+the compose stack on the VM; the A records are in place. See `.shipit/open.md`.
 
 ## Stops
 

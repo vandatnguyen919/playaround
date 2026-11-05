@@ -169,6 +169,30 @@ run "phase1_defaults" {
   }
 }
 
+run "host_firewall_matches_nsg" {
+  command = apply
+
+  assert {
+    condition     = strcontains(module.host.cloud_init, "setup-host-firewall \"203.0.113.10\"")
+    error_message = "The host firewall must allow SSH from the same operator_ip as the NSG."
+  }
+
+  assert {
+    condition     = strcontains(module.host.cloud_init, "AllowUsers playground")
+    error_message = "SSH must allow only the admin user."
+  }
+
+  assert {
+    condition     = strcontains(module.host.cloud_init, "PasswordAuthentication no")
+    error_message = "SSH passwords must stay off."
+  }
+
+  assert {
+    condition     = strcontains(module.host.cloud_init, "\"containerd-snapshotter\": false")
+    error_message = "Docker images must stay on the data disk, not in /var/lib/containerd."
+  }
+}
+
 run "phase2_seal_and_shutdown" {
   command = apply
 

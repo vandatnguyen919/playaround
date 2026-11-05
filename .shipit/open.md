@@ -19,16 +19,21 @@ Built and checked locally: see Current state in PRODUCT.md and
 
 ## Azure for Students replaces Oracle Cloud (2026-10-30)
 
-Decided: see Deployment platform in PRODUCT.md. Terraform written and
-checked offline (`deploy/terraform/check.sh`); nothing provisioned. Left:
+Decided: see Deployment platform in PRODUCT.md. Host provisioned and hardened:
+see Current state. The meter is running. Left:
 
-- **First real plan:** after `az login`, run bootstrap then `envs/azure`
-  per `deploy/terraform/README.md` and show Dan both plans (apply is a
-  Stop). Unproven until then: the arm64 Ubuntu image in the chosen region,
-  the Bpsv2 quota, the student region policy, cloud-init on a real VM (data
-  disk at LUN 0, Docker on `/srv`), blob lease locking, and whether the offer
-  accepts the budget (apply it alone first, see the README; if refused, set
-  `budget_enabled = false`).
+- **Next step on the VM:** the compose stack. `app.tickin.me` and
+  `auth.tickin.me` resolve to `104.215.148.123`, not proxied (set by Dan by hand,
+  not through `envs/dns`). Next action: move them into `dns-cloudflare` with the
+  mail records, which needs a Cloudflare token (a Stop).
+- **Backup storage not applied:** the rest of `azure-platform` was left out
+  with `-target`. Next action: show Dan a full `envs/azure` plan with the backup
+  jobs.
+- **k3s and the firewall (phase 2):** `ufw` and `DOCKER-USER` were written for
+  Docker. Next action: revisit them when k3s replaces compose.
+- **Install Terraform 1.17.1 properly:** this session ran a checksum-checked copy
+  from an old temp folder, and winget stops at 1.16.6. Next action: Dan installs
+  it from the releases page (README).
 - **Budget mail:** if no 80% mail arrives by the end of the first full month,
   the budget is not seeing cost. Next action: Dan tells Claude, then turn it
   off and keep the weekly balance check.

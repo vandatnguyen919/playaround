@@ -19,6 +19,11 @@ output "principal_id" {
   value       = azurerm_linux_virtual_machine.host.identity[0].principal_id
 }
 
+output "cloud_init" {
+  description = "Rendered cloud-init, for the plan tests. Holds no secrets."
+  value       = local.cloud_init
+}
+
 output "admin_username" {
   value = var.admin_username
 }

@@ -20,8 +20,9 @@ backend takes by itself.
 
 ## Before the first run
 
-1. Install Terraform 1.17.1 (the code refuses other minor versions) and the
-   Azure CLI: `winget install Hashicorp.Terraform --version 1.17.1` and
+1. Install Terraform 1.17.1 (the code refuses other minor versions) from
+   https://releases.hashicorp.com/terraform/1.17.1/ and check it against
+   `SHA256SUMS` (winget stops at 1.16.6), and the Azure CLI:
    `winget install Microsoft.AzureCLI`.
 2. `az login`, then `az account show` is the Azure for Students subscription.
 3. Check the allowed regions (Policy, Assignments, "Allowed resource
@@ -30,6 +31,10 @@ backend takes by itself.
    regional vCPUs need at least 2).
 4. Pick globally unique names for the two storage accounts (and later the
    Key Vault).
+5. Register the resource providers azurerm 5 does not register by itself. A new
+   subscription fails the apply with `MissingSubscriptionRegistration` otherwise:
+   `az provider register -n Microsoft.DevTestLab --wait` and
+   `az provider register -n Microsoft.Insights --wait`.
 
 ## Run order
 
@@ -109,8 +114,39 @@ locking; the first real plan and apply do that.
   days.
 - The budget is $45 a month and only warns. In another region or phase, set
   `budget_amount` from the cost table in `PRODUCT.md`.
-- cloud-init runs on first boot only: it formats the data disk only if it has
-  no filesystem, mounts it at `/srv`, puts Docker's data there and adds a
-  1 GiB swap file. Changing it does not rebuild the VM.
+- cloud-init runs on first boot only; changing it does not rebuild the VM. It
+  hardens SSH (key only, `AllowUsers`, local forwarding only), turns on `ufw`
+  with the NSG's rules, fail2ban and unattended upgrades (with a reboot at
+  20:00 UTC when a kernel fix needs one), and installs Docker.
+- `data-disk.service` waits for LUN 0, because Terraform attaches the disk after
+  the VM exists. It formats the disk only if it has nothing on it, mounts it at
+  `/srv` and adds a 1 GiB swap file. Docker's data is there and Docker will not
+  start without it.
+- Published Docker ports skip ufw's INPUT rules, so a `DOCKER-USER` chain in
+  `/etc/ufw/after.rules` drops everything from outside except 80 and 443.
+  k3s (phase 2) needs this firewall revisited.
+
+## When your IP changes
+
+Port 22 is limited twice, by the NSG and by `ufw`. Move both. SSH is closed by
+then, so the second step goes through the VM agent:
+
+```
+# in envs/azure: set operator_ip in terraform.tfvars
+terraform plan -out tfplan                        # show Dan
+terraform apply tfplan
+az vm run-command invoke -g rg-playground-azure -n vm-playground \
+  --command-id RunShellScript --scripts "/usr/local/sbin/set-operator-ip <new-ip>"
+```
+
+## Rebuilding the VM
+
+The data disk and the public IP stay. The attachment, the auto-shutdown schedule
+and anything tied to the VM's identity are rebuilt with it:
+
+```
+terraform plan -replace='module.host.azurerm_linux_virtual_machine.host' -out tfplan   # show Dan
+terraform apply tfplan
+```
 - Lock files hold Windows and Linux amd64 provider hashes. Add others with
   `terraform providers lock -platform=<os_arch>` if another OS runs it.

@@ -9,6 +9,14 @@ terraform {
   }
 }
 
+locals {
+  # The same operator_ip as the ssh-operator NSG rule, so both firewalls agree.
+  cloud_init = templatefile("${path.module}/cloud-init.yaml", {
+    admin_username = var.admin_username
+    operator_ip    = var.operator_ip
+  })
+}
+
 resource "azurerm_virtual_network" "this" {
   name                = "vnet-${var.name}"
   resource_group_name = var.resource_group_name
@@ -106,7 +114,7 @@ resource "azurerm_linux_virtual_machine" "host" {
   admin_username                  = var.admin_username
   disable_password_authentication = true
   network_interface_ids           = [azurerm_network_interface.host.id]
-  custom_data                     = base64encode(file("${path.module}/cloud-init.yaml"))
+  custom_data                     = base64encode(local.cloud_init)
   tags                            = var.tags
 
   admin_ssh_key {
