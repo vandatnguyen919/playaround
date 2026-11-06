@@ -169,6 +169,59 @@ run "phase1_defaults" {
   }
 }
 
+run "backups_are_scoped_and_watched" {
+  command = apply
+
+  assert {
+    condition     = output.backup_retention_days == 14
+    error_message = "The lifecycle rule must keep 14 days of dumps."
+  }
+
+  assert {
+    condition     = endswith(output.backup_reader_scope, "/containers/backups")
+    error_message = "The VM's blob role must stop at the backups container, not the account."
+  }
+
+  assert {
+    condition     = output.metrics_role_scope == module.host.vm_id
+    error_message = "The VM's metrics role must stop at the VM."
+  }
+
+  assert {
+    condition     = output.backup_alert_threshold_hours == 26
+    error_message = "A nightly backup makes a healthy age reach 24 h, so the alert sits just above it."
+  }
+
+  assert {
+    condition     = strcontains(module.host.cloud_init, "backup.sh install")
+    error_message = "A rebuilt VM must get its backup timers back."
+  }
+}
+
+run "host_firewall_matches_nsg" {
+  command = apply
+
+  assert {
+    condition     = strcontains(module.host.cloud_init, "setup-host-firewall \"203.0.113.10\"")
+    error_message = "The host firewall must allow SSH from the same operator_ip as the NSG."
+  }
+
+  assert {
+    condition     = strcontains(module.host.cloud_init, "AllowUsers playground")
+    error_message = "SSH must allow only the admin user."
+  }
+
+  assert {
+    condition     = strcontains(module.host.cloud_init, "PasswordAuthentication no")
+    error_message = "SSH passwords must stay off."
+  }
+
+  assert {
+    condition     = strcontains(module.host.cloud_init, "\"containerd-snapshotter\": false")
+    error_message = "Docker images must stay on the data disk, not in /var/lib/containerd."
+  }
+}
+
 run "phase2_seal_and_shutdown" {
   command = apply
 

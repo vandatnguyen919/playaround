@@ -1,51 +1,226 @@
 #cloud-config
-# First boot only. Mounts the data disk at /srv (formatting it only when it
-# has no filesystem, so a rebuilt VM keeps its data), moves Docker onto it,
-# and adds a 1 GiB swap file as a cushion for the 4 GiB size.
+# First boot only (rendered by templatefile, see main.tf). Hardens SSH, turns on
+# the host firewall, fail2ban and unattended upgrades, and installs Docker with
+# its data on the data disk.
+#
+# Terraform attaches the data disk after the VM exists, so the disk is usually
+# not there yet when this runs. data-disk.service waits for it, and Docker
+# starts only after the service succeeds. Nothing here may block on the disk.
+
+ssh_pwauth: false
+disable_root: true
 
 package_update: true
 package_upgrade: true
 packages:
   - docker.io
   - docker-compose-v2
+  - fail2ban
+  - python3-systemd
+  - ufw
   - unattended-upgrades
 
 write_files:
+  # Stops apt from starting Docker before the disk is there. Removed in runcmd.
+  - path: /usr/sbin/policy-rc.d
+    permissions: "0755"
+    content: |
+      #!/bin/sh
+      exit 101
+  - path: /etc/ssh/sshd_config.d/10-hardening.conf
+    permissions: "0644"
+    content: |
+      # First value wins, and this file sorts before the image's own.
+      AllowUsers ${admin_username}
+      PermitRootLogin no
+      AuthenticationMethods publickey
+      PubkeyAuthentication yes
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitEmptyPasswords no
+      MaxAuthTries 3
+      LoginGraceTime 30
+      ClientAliveInterval 300
+      ClientAliveCountMax 2
+      X11Forwarding no
+      AllowAgentForwarding no
+      PermitTunnel no
+      GatewayPorts no
+      # Local only: the admin consoles are reached with ssh -L.
+      AllowTcpForwarding local
+  - path: /etc/fail2ban/jail.d/sshd.local
+    permissions: "0644"
+    content: |
+      [sshd]
+      enabled = true
+      backend = systemd
+      banaction = ufw
+      maxretry = 5
+      findtime = 10m
+      # Short: behind the NSG the only address it can ban is the operator's.
+      bantime = 10m
+  - path: /etc/apt/apt.conf.d/52playground-upgrades
+    permissions: "0644"
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+      APT::Periodic::AutocleanInterval "7";
+      Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+      Unattended-Upgrade::Remove-Unused-Dependencies "true";
+      // Kernel fixes need a reboot. 20:00 UTC is 03:00 in Vietnam.
+      Unattended-Upgrade::Automatic-Reboot "true";
+      Unattended-Upgrade::Automatic-Reboot-Time "20:00";
+  # Docker 29's containerd image store ignores data-root and keeps images in
+  # /var/lib/containerd on the OS disk, so a rebuild would lose them. Off here.
   - path: /etc/docker/daemon.json
     permissions: "0644"
     content: |
       {
         "data-root": "/srv/docker",
+        "features": { "containerd-snapshotter": false },
         "log-driver": "local",
         "log-opts": { "max-size": "20m", "max-file": "3" }
       }
+  - path: /etc/systemd/system/docker.service.d/10-data-disk.conf
+    permissions: "0644"
+    content: |
+      [Unit]
+      Requires=data-disk.service
+      After=data-disk.service
+  - path: /etc/systemd/system/data-disk.service
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Mount the data disk at /srv
+      Before=docker.service
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStart=/usr/local/sbin/mount-data-disk
+      TimeoutStartSec=20min
+
+      [Install]
+      WantedBy=multi-user.target
+  # A rebuilt VM comes up with no backup timers. The script and azcopy are on the
+  # data disk, so this puts the timers back. No alert would fire without them:
+  # with no timers there is no metric. On a first boot the script is not there yet.
+  - path: /etc/systemd/system/backup-install.service
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Install the Postgres backup timers from the data disk
+      Requires=data-disk.service
+      After=data-disk.service
+      ConditionPathExists=/srv/playground/deploy/compose/backup.sh
+
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/sh /srv/playground/deploy/compose/backup.sh install
+
+      [Install]
+      WantedBy=multi-user.target
+  # Runs on every boot. Formats only a disk with nothing on it: any blkid answer
+  # other than "nothing found" leaves the disk alone, so a rebuilt VM keeps its
+  # data. Also adds the 1 GiB swap file, a cushion for the 4 GiB size.
   - path: /usr/local/sbin/mount-data-disk
     permissions: "0755"
     content: |
       #!/bin/sh
       set -eu
-      for dev in /dev/disk/azure/data/by-lun/0 /dev/disk/azure/scsi1/lun0; do
-        [ -e "$dev" ] && break
-      done
-      [ -e "$dev" ] || { echo "data disk at LUN 0 not found" >&2; exit 1; }
-      dev=$(readlink -f "$dev")
-      if ! blkid "$dev" >/dev/null 2>&1; then
-        mkfs.ext4 -L srv "$dev"
+      if ! mountpoint -q /srv; then
+        dev=""
+        tries=0
+        while [ "$tries" -lt 180 ]; do
+          for link in /dev/disk/azure/data/by-lun/0 /dev/disk/azure/scsi1/lun0; do
+            [ -e "$link" ] && dev=$(readlink -f "$link") && break
+          done
+          [ -n "$dev" ] && break
+          tries=$((tries + 1))
+          sleep 5
+        done
+        [ -n "$dev" ] || { echo "data disk at LUN 0 not found" >&2; exit 1; }
+        rc=0
+        blkid -p "$dev" >/dev/null 2>&1 || rc=$?
+        case "$rc" in
+          0) echo "keeping the existing filesystem on $dev" ;;
+          2) echo "formatting empty disk $dev"; mkfs.ext4 -L srv "$dev" ;;
+          *) echo "blkid failed with $rc on $dev, not touching it" >&2; exit 1 ;;
+        esac
+        udevadm settle
+        mkdir -p /srv
+        grep -q 'LABEL=srv' /etc/fstab || echo 'LABEL=srv /srv ext4 defaults,nofail,discard 0 2' >> /etc/fstab
+        systemctl daemon-reload
+        mount /srv
       fi
-      mkdir -p /srv
-      grep -q 'LABEL=srv' /etc/fstab || echo 'LABEL=srv /srv ext4 defaults,nofail,discard 0 2' >> /etc/fstab
-      mount -a
       if [ ! -f /srv/swapfile ]; then
         fallocate -l 1G /srv/swapfile
         chmod 600 /srv/swapfile
         mkswap /srv/swapfile
       fi
       grep -q '/srv/swapfile' /etc/fstab || echo '/srv/swapfile none swap sw,nofail 0 0' >> /etc/fstab
-      swapon -a
-      sysctl -w vm.swappiness=10
+      swapon --show=NAME --noheadings | grep -q '^/srv/swapfile$' || swapon /srv/swapfile
+      sysctl -q -w vm.swappiness=10
       echo 'vm.swappiness=10' > /etc/sysctl.d/60-swappiness.conf
+  # Same rules as the NSG. Published Docker ports skip ufw's INPUT rules, so
+  # DOCKER-USER applies the same 80/443 limit to them.
+  - path: /usr/local/sbin/setup-host-firewall
+    permissions: "0755"
+    content: |
+      #!/bin/sh
+      set -eu
+      operator_ip="$1"
+      iface=$(ip route show default | awk '{print $5; exit}')
+      if ! grep -q 'playground DOCKER-USER' /etc/ufw/after.rules; then
+        cat >> /etc/ufw/after.rules <<EOF
+
+      # playground DOCKER-USER: only 80 and 443 reach published ports from outside.
+      *filter
+      :DOCKER-USER - [0:0]
+      -A DOCKER-USER -i $iface -m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
+      -A DOCKER-USER -i $iface -p tcp -m conntrack --ctorigdstport 80 --ctdir ORIGINAL -j RETURN
+      -A DOCKER-USER -i $iface -p tcp -m conntrack --ctorigdstport 443 --ctdir ORIGINAL -j RETURN
+      -A DOCKER-USER -i $iface -j DROP
+      -A DOCKER-USER -j RETURN
+      COMMIT
+      EOF
+      fi
+      ufw default deny incoming
+      ufw default allow outgoing
+      ufw default deny routed
+      ufw allow 80/tcp comment 'http'
+      ufw allow 443/tcp comment 'https'
+      ufw allow from "$operator_ip" to any port 22 proto tcp comment 'ssh-operator'
+      mkdir -p /etc/playground
+      echo "$operator_ip" > /etc/playground/operator-ip
+      ufw --force enable
+      ufw reload
+  # Moves port 22 to a new address after the NSG has moved. SSH is closed at
+  # that point, so it runs through az vm run-command (see the Terraform README).
+  - path: /usr/local/sbin/set-operator-ip
+    permissions: "0755"
+    content: |
+      #!/bin/sh
+      set -eu
+      new="$1"
+      echo "$new" | grep -Eq '^[0-9]{1,3}(\.[0-9]{1,3}){3}$' || { echo "plain IPv4 only" >&2; exit 1; }
+      old=$(cat /etc/playground/operator-ip)
+      [ "$new" = "$old" ] && exit 0
+      ufw allow from "$new" to any port 22 proto tcp comment 'ssh-operator'
+      ufw delete allow from "$old" to any port 22 proto tcp
+      echo "$new" > /etc/playground/operator-ip
 
 runcmd:
-  - systemctl stop docker
-  - /usr/local/sbin/mount-data-disk
-  - systemctl enable --now docker
+  - rm -f /usr/sbin/policy-rc.d
+  # An SSH config that fails its own test must not lock anyone out.
+  - install -d -m 0755 /run/sshd
+  - sshd -t || rm -f /etc/ssh/sshd_config.d/10-hardening.conf
+  - systemctl restart ssh
+  - /usr/local/sbin/setup-host-firewall "${operator_ip}"
+  - systemctl enable --now fail2ban
+  - systemctl restart fail2ban
+  - systemctl enable --now unattended-upgrades
+  - systemctl daemon-reload
+  - systemctl enable data-disk.service docker.service backup-install.service
+  # No wait: the disk may still be on its way, and cloud-init must finish.
+  - systemctl start --no-block docker.service

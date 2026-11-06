@@ -1,0 +1,14 @@
+# Drill only: keeps the backup on the k3s container's disk, where deleting namespace
+# ci does not reach it. The real target is overlays/azure.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jenkins-backup-upload
+  namespace: ci
+data:
+  upload.sh: |
+    set -eu
+    set -- /out/*.tar.gz
+    [ -e "$1" ] || { echo "nothing to upload"; exit 0; }
+    cp "$1" /kept/
+    echo "kept $(basename "$1")"

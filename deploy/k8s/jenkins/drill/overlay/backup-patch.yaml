@@ -1,0 +1,14 @@
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: upload
+              volumeMounts:
+                - { name: kept, mountPath: /kept }
+          volumes:
+            - name: kept
+              hostPath:
+                path: /var/lib/jk-drill-backups
+                type: Directory

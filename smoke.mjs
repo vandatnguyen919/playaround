@@ -4,6 +4,9 @@
 // the API (:8182), the gateway (:8181) and the SPA dev server (:5174).
 // Checks: anonymous, login, roles, csrf, logout, fixation, backchannel, refresh. No arguments runs all.
 // Exits nonzero on any failure.
+// Against the deployed stack use deploy/compose/smoke-public.mjs, which sets the
+// SMOKE_* variables below.
+import { execFile } from "node:child_process"
 import net from "node:net"
 import { randomBytes } from "node:crypto"
 
@@ -19,6 +22,11 @@ const REDIS_USERNAME = process.env.REDIS_USERNAME ?? "gateway"
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD ?? "redis-dev-password"
 const ADMIN_USER = process.env.KC_BOOTSTRAP_ADMIN_USERNAME ?? "admin"
 const ADMIN_PASS = process.env.KC_BOOTSTRAP_ADMIN_PASSWORD ?? "admin"
+// A service account client in the realm, used instead of the master admin.
+const ADMIN_CLIENT_ID = process.env.SMOKE_ADMIN_CLIENT_ID
+const ADMIN_CLIENT_SECRET = process.env.SMOKE_ADMIN_CLIENT_SECRET
+// JSON argv that answers EXISTS <key>, for a Redis that has no reachable port.
+const REDIS_EXEC = process.env.SMOKE_REDIS_EXEC && JSON.parse(process.env.SMOKE_REDIS_EXEC)
 // Set COOKIE_SECURE=true when the gateway runs with the same variable.
 const COOKIE_SECURE = process.env.COOKIE_SECURE === "true"
 const REALM = "playground"
@@ -136,6 +144,14 @@ async function signIn(browser, user) {
 // Minimal RESP client: AUTH, then one command per connection, integer
 // replies only.
 function redis(...args) {
+  if (REDIS_EXEC) {
+    return new Promise((resolve, reject) => {
+      execFile(REDIS_EXEC[0], [...REDIS_EXEC.slice(1), args[1]], (err, stdout) => {
+        if (err) reject(err)
+        else resolve(Number(stdout.trim()))
+      })
+    })
+  }
   const encode = (parts) => `*${parts.length}\r\n` + parts.map((a) => `$${Buffer.byteLength(a)}\r\n${a}\r\n`).join("")
   return new Promise((resolve, reject) => {
     const socket = net.connect(REDIS_PORT, REDIS_HOST)
@@ -188,10 +204,14 @@ async function createUser(user) {
 }
 
 async function adminToken() {
-  const res = await fetch(`${KC}/realms/master/protocol/openid-connect/token`, {
+  const res = await fetch(`${KC}/realms/${ADMIN_CLIENT_ID ? REALM : "master"}/protocol/openid-connect/token`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ grant_type: "password", client_id: "admin-cli", username: ADMIN_USER, password: ADMIN_PASS }),
+    body: new URLSearchParams(
+      ADMIN_CLIENT_ID
+        ? { grant_type: "client_credentials", client_id: ADMIN_CLIENT_ID, client_secret: ADMIN_CLIENT_SECRET }
+        : { grant_type: "password", client_id: "admin-cli", username: ADMIN_USER, password: ADMIN_PASS },
+    ),
   })
   if (!res.ok) throw new Error(`Admin token failed: HTTP ${res.status}`)
   return (await res.json()).access_token
@@ -343,6 +363,23 @@ async function checkRefresh() {
   }
 }
 
+// Restore drill (deploy/compose/RESTORE.md). The other checks make their own
+// users, so they would pass on an empty database. This one proves the data came
+// back: a user made before the dump signs in with its old password, and a user
+// made after it does not exist.
+async function checkRestored() {
+  const before = process.env.DRILL_BEFORE_USER
+  const after = process.env.DRILL_AFTER_USER
+  if (!before || !after) throw new Error("Set DRILL_BEFORE_USER, DRILL_BEFORE_PASSWORD and DRILL_AFTER_USER")
+  const b = new Browser()
+  await signIn(b, { username: before, password: process.env.DRILL_BEFORE_PASSWORD })
+  const me = await b.xhr("/bff/me")
+  assert("a user from before the dump signs in with its old password", me.status === 200, `HTTP ${me.status}`)
+  assert("the profile is that user's", (await me.json()).preferredUsername === before)
+  const found = await (await adminApi(`/users?exact=true&username=${encodeURIComponent(after)}`)).json()
+  assert("a user from after the dump does not exist", found.length === 0, `${found.length} found`)
+}
+
 const checks = {
   anonymous: checkAnonymous,
   login: checkLogin,
@@ -352,7 +389,10 @@ const checks = {
   fixation: checkFixation,
   backchannel: checkBackchannel,
   refresh: checkRefresh,
+  restored: checkRestored,
 }
+// Runs only when asked for: it needs the drill's markers.
+const defaults = Object.keys(checks).filter((n) => n !== "restored")
 const requested = process.argv.slice(2)
 const unknownNames = requested.filter((n) => !(n in checks))
 if (unknownNames.length) {
@@ -365,7 +405,7 @@ try {
   await createUser(USER)
   await createUser(ADMIN)
   // A failing check is reported and the rest still run.
-  for (const name of requested.length ? requested : Object.keys(checks)) {
+  for (const name of requested.length ? requested : defaults) {
     console.log(`\n== ${name}`)
     const before = results.length
     try {

@@ -1,0 +1,68 @@
+# Restore drill only: a scratch copy of the stack on its own project, volumes and
+# networks. See RESTORE.md. Everything is published on loopback, plain HTTP, so
+# it can run on the VM beside the live stack (over an SSH tunnel) or on a laptop.
+#
+#   docker compose -p playground-drill -f compose.prod.yml -f compose.drill.yml \
+#     --env-file drill.env up -d postgres
+#
+# Traefik never starts here, and Traefik labels are cleared on purpose. The live
+# Traefik watches every container on the host: a second router named "gateway" or
+# "keycloak" would conflict with its own and take the public site down.
+services:
+  traefik:
+    profiles: [never]
+
+  postgres:
+    # Scratch data stays in the drill's own volume.
+    volumes: !override
+      - drill-db:/var/lib/postgresql
+
+  keycloak:
+    environment:
+      KC_HOSTNAME: http://localhost:28080
+      KC_HOSTNAME_ADMIN: http://localhost:28080
+    ports: !override
+      - "127.0.0.1:28080:8080"
+    labels: !reset []
+
+  keycloak-config:
+    environment:
+      APP_URL: http://localhost:28181
+
+  keycloak-admin-url:
+    environment:
+      KC_ADMIN_URL: http://localhost:28080
+
+  redis:
+    # On the internal network alone Docker publishes nothing, and smoke.mjs reads
+    # session keys. A drill.env password, not the live one.
+    networks: !override [backend, edge]
+    ports:
+      - "127.0.0.1:26379:6379"
+    volumes: !override
+      - ../../infra/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ../../infra/redis/start.sh:/usr/local/etc/redis/start.sh:ro
+      - drill-redis:/data
+
+  gateway:
+    environment:
+      APP_URL: http://localhost:28181
+      KEYCLOAK_ISSUER_URI: http://localhost:28080/realms/playground
+      COOKIE_SECURE: "false"
+    ports:
+      - "127.0.0.1:28181:8181"
+    labels: !reset []
+
+  api:
+    environment:
+      KEYCLOAK_ISSUER_URI: http://localhost:28080/realms/playground
+
+networks:
+  # The fixed subnet exists for Traefik's fixed address, and would collide with
+  # the live stack's.
+  edge:
+    ipam: !reset null
+
+volumes:
+  drill-db:
+  drill-redis:

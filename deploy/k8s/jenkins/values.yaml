@@ -1,0 +1,258 @@
+# Jenkins for CD only, chart jenkins/jenkins 5.10.0. CI is GitHub Actions; this
+# deploys images it published and builds nothing. Everything Jenkins knows comes
+# from this file, plugins.yaml, base.yaml and two Secrets (see README.md):
+# overwriteConfiguration and overwritePlugins make each start rebuild the config
+# and plugins from here, so a change made in the UI lasts until the next restart.
+fullnameOverride: jenkins
+
+controller:
+  image:
+    tag: 2.580.1-lts-jdk25
+    pullPolicy: IfNotPresent
+  # No local users: sign-in is OIDC only.
+  admin:
+    createSecret: false
+  numExecutors: 0
+  executorMode: EXCLUSIVE
+  disableRememberMe: true
+  priorityClassName: ci
+
+  # PRODUCT.md gives Jenkins 1.0 GB. This 640 Mi plus the one agent pod's 384 Mi
+  # (see the cloud below) is exactly 1024 Mi. Heap is capped well under the limit
+  # because metaspace, code cache and threads live outside it.
+  resources:
+    requests: { cpu: 100m, memory: 640Mi }
+    limits: { cpu: "1", memory: 640Mi }
+  # Runs before the controller, never beside it. The plugin tool parses the update
+  # center's large JSON files and fails with 96 MB of heap.
+  initContainerResources:
+    requests: { cpu: 100m, memory: 640Mi }
+    limits: { cpu: "1", memory: 640Mi }
+  initContainerEnv:
+    - name: JDK_JAVA_OPTIONS
+      value: -XX:MaxRAMPercentage=75
+  javaOpts: >-
+    -XX:MaxRAMPercentage=50
+    -XX:+UseSerialGC
+    -XX:MaxMetaspaceSize=192m
+    -XX:ReservedCodeCacheSize=64m
+    -Xss512k
+    -Dhudson.model.UsageStatistics.disabled=true
+
+  containerEnv:
+    - name: PLAYGROUND_REPO_URL
+      value: https://github.com/vandatnguyen919/playaround.git
+    - name: KEYCLOAK_WELL_KNOWN_URL
+      value: http://keycloak.playground.svc.cluster.local:8080/realms/playground/.well-known/openid-configuration
+    # Empty: each deploy uses the image tag of its own commit. Set to sha-<git sha>
+    # to hold every deploy on one published version.
+    - name: DEPLOY_TAG_PIN
+      value: ""
+
+  # No public exposure: ClusterIP only, no Ingress, reached through a tunnel.
+  # Agents connect by WebSocket on 8080, so the inbound agent port stays closed.
+  ingress:
+    enabled: false
+  serviceType: ClusterIP
+  agentListenerEnabled: false
+
+  # A slow arm64 start with 60 plugins takes minutes. The probes hit /login, which
+  # answers without Keycloak, so a Keycloak outage never restarts Jenkins.
+  probes:
+    startupProbe:
+      failureThreshold: 60
+
+  # All plugins are pinned (plugins.yaml), dependencies included. Nothing floats.
+  installLatestPlugins: false
+  installLatestSpecifiedPlugins: false
+  overwritePlugins: true
+  overwritePluginsFromImage: true
+
+  # Mounted under /run/secrets/additional; JCasC reads them as ${<name>-<key>}.
+  additionalExistingSecrets:
+    - name: jenkins-secrets
+      keyName: oidc-client-secret
+    - name: jenkins-deploy-token
+      keyName: token
+
+  sidecars:
+    # Config changes go through install.sh and a restart. Saves about 100 MB.
+    configAutoReload:
+      enabled: false
+
+  JCasC:
+    defaultConfig: false
+    overwriteConfiguration: true
+    configScripts:
+      security: |
+        jenkins:
+          systemMessage: "Configured as code from deploy/k8s/jenkins. Changes made here are lost on restart."
+          numExecutors: 0
+          mode: EXCLUSIVE
+          disableRememberMe: true
+          slaveAgentPort: -1
+          securityRealm:
+            oic:
+              clientId: jenkins
+              clientSecret: "${jenkins-secrets-oidc-client-secret}"
+              serverConfiguration:
+                wellKnown:
+                  wellKnownOpenIDConfigurationUrl: "${KEYCLOAK_WELL_KNOWN_URL}"
+                  scopesOverride: "openid profile email"
+              userNameField: preferred_username
+              fullNameFieldName: name
+              emailFieldName: email
+              groupsFieldName: groups
+              logoutFromOpenidProvider: true
+              postLogoutRedirectUrl: "http://localhost:8090/"
+              avatarHandler: noAvatar
+              properties:
+                - pkce
+          # The realm has public registration, so signing in proves nothing. Only
+          # the realm role jenkins-admin gets any permission, reading included.
+          authorizationStrategy:
+            globalMatrix:
+              entries:
+                - group:
+                    name: jenkins-admin
+                    permissions:
+                      - Overall/Administer
+          crumbIssuer: standard
+        security:
+          apiToken:
+            creationOfLegacyTokenEnabled: false
+            tokenGenerationOnCreationEnabled: false
+        unclassified:
+          location:
+            url: "http://localhost:8090/"
+      agents: |
+        jenkins:
+          globalNodeProperties:
+            - envVars:
+                env:
+                  - key: DEPLOY_TAG_PIN
+                    value: "${DEPLOY_TAG_PIN:-}"
+          clouds:
+            - kubernetes:
+                name: kubernetes
+                serverUrl: https://kubernetes.default.svc
+                namespace: ci
+                jenkinsUrl: http://jenkins.ci.svc.cluster.local:8080
+                webSocket: true
+                # One agent pod at most, or the memory budget above does not hold.
+                containerCapStr: "1"
+                retentionTimeout: 5
+                templates:
+                  # Fixed, or Jenkins makes a new random id at each start.
+                  - id: deploy
+                    name: deploy
+                    label: deploy
+                    nodeUsageMode: EXCLUSIVE
+                    idleMinutes: 0
+                    slaveConnectTimeout: 300
+                    showRawYaml: false
+                    yaml: |
+                      apiVersion: v1
+                      kind: Pod
+                      metadata:
+                        labels:
+                          app.kubernetes.io/component: jenkins-agent
+                      spec:
+                        priorityClassName: ci
+                        # No cluster rights from the pod itself. The deploy step gets
+                        # them only inside withCredentials, from the credential store.
+                        automountServiceAccountToken: false
+                        enableServiceLinks: false
+                        securityContext:
+                          runAsNonRoot: true
+                          runAsUser: 1000
+                          runAsGroup: 1000
+                          fsGroup: 1000
+                          seccompProfile:
+                            type: RuntimeDefault
+                        containers:
+                          - name: jnlp
+                            image: jenkins/inbound-agent:3395.v6e5377b_0fb_3c-3-jdk25
+                            env:
+                              - name: JAVA_OPTS
+                                value: -Xmx96m -XX:+UseSerialGC -Xss512k
+                            resources:
+                              requests: { cpu: 50m, memory: 256Mi }
+                              limits: { cpu: 500m, memory: 256Mi }
+                            securityContext:
+                              allowPrivilegeEscalation: false
+                              capabilities: { drop: [ALL] }
+                          - name: helm
+                            image: alpine/helm:3.22.1
+                            command: [sleep]
+                            args: [infinity]
+                            env:
+                              - name: HOME
+                                value: /home/jenkins/agent
+                            resources:
+                              requests: { cpu: 50m, memory: 128Mi }
+                              limits: { cpu: 500m, memory: 128Mi }
+                            securityContext:
+                              allowPrivilegeEscalation: false
+                              capabilities: { drop: [ALL] }
+                            volumeMounts:
+                              - name: kube-ca
+                                mountPath: /run/kube-ca
+                                readOnly: true
+                        volumes:
+                          - name: kube-ca
+                            configMap:
+                              name: kube-root-ca.crt
+      credentials: |
+        credentials:
+          system:
+            domainCredentials:
+              - credentials:
+                  # Token of ServiceAccount jenkins-deploy (base.yaml), whose Role is
+                  # in namespace playground only. It never leaves the cluster.
+                  - string:
+                      scope: GLOBAL
+                      id: playground-deploy-token
+                      description: Deploys to namespace playground
+                      secret: "${jenkins-deploy-token-token}"
+      jobs: |
+        jobs:
+          - script: |
+              pipelineJob('deploy-playground') {
+                description('Deploys the images GitHub Actions published for each commit on main.')
+                logRotator { numToKeep(30) }
+                properties {
+                  disableConcurrentBuilds()
+                  pipelineTriggers {
+                    triggers {
+                      // No webhooks, since nothing here is public. Up to 5 minutes of delay.
+                      pollSCM { scmpoll_spec('H/5 * * * *') }
+                    }
+                  }
+                }
+                definition {
+                  cpsScm {
+                    lightweight(true)
+                    scriptPath('deploy/k8s/jenkins/deploy.Jenkinsfile')
+                    scm {
+                      git {
+                        remote { url(System.getenv('PLAYGROUND_REPO_URL')) }
+                        branch('*/main')
+                      }
+                    }
+                  }
+                }
+              }
+
+# JENKINS_HOME: build history. Sizes well under this with 30 builds kept.
+persistence:
+  enabled: true
+  size: 4Gi
+
+# The chart's Role lets the controller run agent pods in namespace ci, nothing else.
+rbac:
+  create: true
+  readSecrets: false
+
+agent:
+  enabled: false

@@ -8,5 +8,9 @@ description = "Evidence saved by ./verify from a throwaway local Keycloak (auth 
 paths = ['''^\.shipit/verify/evidence/''']
 
 [[allowlists]]
+description = "Pinned Jenkins plugin versions, whose hashes look like keys. The file holds nothing else."
+paths = ['''deploy/k8s/jenkins/plugins\.yaml$''']
+
+[[allowlists]]
 description = "Password of the throwaway users ./verify creates and deletes"
 regexes = ['''^Attack-Test-1234$''']

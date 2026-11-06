@@ -43,6 +43,7 @@ services:
       edge:
         # Fixed so Keycloak trusts X-Forwarded-* from this address only.
         ipv4_address: 172.30.10.10
+    mem_limit: 160m
     restart: unless-stopped
 
   postgres:
@@ -55,6 +56,7 @@ services:
       # Postgres 18 images keep data under /var/lib/postgresql/<major>/docker.
       - keycloak-db:/var/lib/postgresql
     networks: [backend]
+    mem_limit: 300m
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
       interval: 5s
@@ -92,6 +94,7 @@ services:
       # Loopback only: reached through an SSH tunnel, never the internet.
       - "127.0.0.1:${KC_ADMIN_PORT:-8080}:8080"
     networks: [edge, backend]
+    mem_limit: 1400m
     depends_on:
       postgres:
         condition: service_healthy
@@ -173,6 +176,7 @@ services:
       APP_URL: https://${APP_HOST:?set APP_HOST}
       GATEWAY_BACKCHANNEL_LOGOUT_URL: http://gateway:8181/logout/connect/back-channel/gateway
       GATEWAY_CLIENT_SECRET: ${GATEWAY_CLIENT_SECRET:?set GATEWAY_CLIENT_SECRET}
+      JENKINS_CLIENT_SECRET: ${JENKINS_CLIENT_SECRET:?set JENKINS_CLIENT_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?set GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?set GOOGLE_CLIENT_SECRET}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:?set GITHUB_CLIENT_ID}

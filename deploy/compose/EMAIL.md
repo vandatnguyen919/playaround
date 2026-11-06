@@ -91,3 +91,8 @@ Resend's domain), and `dmarc=pass`. It also needs every link to go straight to
 
 For a local stack (`auth.localhost`, self-signed cert) add `--insecure` and
 `PUBLIC_IP=127.0.0.1`.
+
+On the VM the `.env` stays there, so give `send` and `headers` a file holding only
+the public values (`AUTH_HOST`, `APP_HOST`, `SMTP_FROM`) with `--env-file`, read
+the Keycloak log over SSH, and clean up with
+`node deploy/compose/smoke-public.mjs playground@<vm> mail-cleanup`.

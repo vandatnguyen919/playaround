@@ -1,5 +1,23 @@
 # Open
 
+## Jenkins as code (proven locally 2026-11-05, not deployed)
+
+See Jenkins and Current state in PRODUCT.md, runbook in `deploy/k8s/jenkins/README.md`. Left:
+
+- **Before the next `up` on the VM:** `compose.prod.yml` now refuses to start without
+  `JENKINS_CLIENT_SECRET`. Next action: copy the new `vm-env.sh`, compose file and realm to
+  the VM, run `sudo sh vm-env.sh add-jenkins-client-secret`, then `up`. Same for any local
+  stack env file.
+- **Waits on phase 2:** k3s, the 8 GiB resize (a Stop), and the app chart
+  `deploy/k8s/playground`; until that exists the job stops with a clear error. Next action:
+  when phase 2 starts, install per the README, grant `jenkins-admin` to Dan by hand, and add
+  a `smoke.mjs` stage to `deploy.Jenkinsfile`, which phase 2's done-when needs.
+- **Not proven until then:** arm64, a real Blob upload (wiring checked with a stub
+  `azcopy`), the block on `169.254.169.254` (the policy exists, but no metadata service
+  runs locally), and polling GitHub itself (the drill polled a scratch repo).
+- **Tight memory:** controller about 530 of 640 Mi at light use. Next action: watch it on
+  the real node, since the 1.0 GB budget has no room to raise it.
+
 ## Images for phase 1 (2026-10-31)
 
 Built and checked locally: see Current state in PRODUCT.md and
@@ -19,29 +37,41 @@ Built and checked locally: see Current state in PRODUCT.md and
 
 ## Azure for Students replaces Oracle Cloud (2026-10-30)
 
-Decided: see Deployment platform in PRODUCT.md. Terraform written and
-checked offline (`deploy/terraform/check.sh`); nothing provisioned. Left:
+Decided: see Deployment platform in PRODUCT.md. Host provisioned and hardened:
+see Current state. The meter is running. Left:
 
-- **First real plan:** after `az login`, run bootstrap then `envs/azure`
-  per `deploy/terraform/README.md` and show Dan both plans (apply is a
-  Stop). Unproven until then: the arm64 Ubuntu image in the chosen region,
-  the Bpsv2 quota, the student region policy, cloud-init on a real VM (data
-  disk at LUN 0, Docker on `/srv`), blob lease locking, and whether the offer
-  accepts the budget (apply it alone first, see the README; if refused, set
-  `budget_enabled = false`).
+- **DNS by hand:** `app.tickin.me` and `auth.tickin.me` resolve to
+  `104.215.148.123`, not proxied, set by Dan, not through `envs/dns`. Next action:
+  move them into `dns-cloudflare` with the mail records, which needs a Cloudflare
+  token (a Stop).
+- **Google and GitHub buttons do not work in public** (placeholders). Next action:
+  Dan decides between real credentials (a Stop) and hiding them until then.
+- **Deploys copy files by hand** (README, The VM) because the VM has no checkout.
+  Next action: revisit when Jenkins arrives in phase 2.
+- **Backups still to be seen working (see `deploy/compose/RESTORE.md`):** the resolve
+  mail arrived after Dan verified the receiver; a firing mail has not been seen since.
+  Next action: on the next real firing, confirm its mail arrives. On 2026-11-06 check `backup.sh list` shows the 19:00 UTC dump; on or after
+  2026-11-20 check the 2026-11-05 dump is gone, which proves the lifecycle rule.
+- **Drill scratch left (2026-11-05):** on the VM, stopped Docker project
+  `playground-drill` with its volumes, `/srv/playground/drill.dump` and `drill.env`;
+  on Dan's machine, Docker projects `playground-drill` and `playground-drill2` with
+  their volumes, and a plain dump in the session scratchpad. Next action: Dan decides
+  on removing them (deleting a database or backup is a Stop).
+- **Copy of `.env` in a password manager:** it lives only on the data disk. Next
+  action: Dan keeps one (RESTORE.md).
+- **k3s and the firewall (phase 2):** `ufw` and `DOCKER-USER` were written for
+  Docker. Next action: revisit them when k3s replaces compose.
+- **Install Terraform 1.17.1 properly:** this session ran a checksum-checked copy
+  from an old temp folder, and winget stops at 1.16.6. Next action: Dan installs
+  it from the releases page (README).
 - **Budget mail:** if no 80% mail arrives by the end of the first full month,
   the budget is not seeing cost. Next action: Dan tells Claude, then turn it
   off and keep the weekly balance check.
-- **Backup jobs** are not written yet: nightly `pg_dump` plus `azcopy login
-  --identity` upload to the backup container (phase 1).
 
-## Real email delivery (Resend, proven locally 2026-11-04)
+## Real email delivery (Resend, proven on the public host 2026-11-05)
 
 See Email delivery and Current state in PRODUCT.md. Left:
 
-- **Public link check:** when `auth.tickin.me` points at the VM, run
-  `mailcheck.mjs send` and `headers` there and open both links; so far links
-  are only `auth.localhost`.
 - **`send.tickin.me` records, unexplained:** MX `feedback.forge.rmta.net` and an
   SPF with fixed IPs. Mail uses `rsend.tickin.me`. Next action: Dan says whether
   they are needed, then remove them if not.
@@ -69,7 +99,3 @@ Done and checked locally: see Current state in PRODUCT.md. Left:
   `keycloak-admin-url`): a master frontend URL change moves the token issuer.
 - **Multi-arch image to GHCR:** CI publishes it on `main` (see Images
   above).
-- **smoke.mjs against the public URL** needs a way to create its throwaway
-  users (it uses the master realm admin API, which is not public) and Redis
-  access (local runs publish it with `compose.local-test.yml`, never on the
-  VM). Next action: run it over the SSH tunnel with both forwarded.

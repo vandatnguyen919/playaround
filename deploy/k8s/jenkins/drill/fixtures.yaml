@@ -1,0 +1,75 @@
+# Drill only. What a real phase 2 cluster already has: a Keycloak at its in-cluster
+# name (here, the local compose stack's Keycloak, IP filled in by drill.mjs), and
+# something Jenkins can poll without pushing to GitHub.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: playground
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: playground
+spec:
+  ports:
+    - { port: 8080, targetPort: 8080 }
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: keycloak-compose
+  namespace: playground
+  labels:
+    kubernetes.io/service-name: keycloak
+addressType: IPv4
+ports:
+  - { port: 8080 }
+endpoints:
+  - addresses: ["__KEYCLOAK_IP__"]
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: drill
+---
+# A scratch copy of the repo, served over git://. drill.mjs loads new commits into it
+# as bundles, for the poll to find.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: git
+  namespace: drill
+  labels: { app: git }
+spec:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+  containers:
+    - name: git
+      image: jenkins/jenkins:2.580.1-lts-jdk25
+      command: [sh, -c]
+      args:
+        - |
+          export HOME=/srv
+          git init -q --bare -b main /srv/playground.git
+          exec git daemon --reuseaddr --export-all --base-path=/srv /srv
+      ports:
+        - containerPort: 9418
+      volumeMounts:
+        - { name: srv, mountPath: /srv }
+  volumes:
+    - name: srv
+      emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: git
+  namespace: drill
+spec:
+  selector: { app: git }
+  ports:
+    - { port: 9418, targetPort: 9418 }

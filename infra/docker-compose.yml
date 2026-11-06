@@ -46,6 +46,7 @@ services:
       APP_URL: http://localhost:5174
       GATEWAY_BACKCHANNEL_LOGOUT_URL: http://host.docker.internal:8181/logout/connect/back-channel/gateway
       GATEWAY_CLIENT_SECRET: ${GATEWAY_CLIENT_SECRET:-gateway-dev-secret}
+      JENKINS_CLIENT_SECRET: ${JENKINS_CLIENT_SECRET:-jenkins-dev-secret}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-google-client-id-not-configured}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-google-client-secret-not-configured}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-github-client-id-not-configured}

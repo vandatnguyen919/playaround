@@ -136,6 +136,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+  # Jenkins as code: nothing public, full pinned plugin set, memory budget.
+  jenkins:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: bash deploy/k8s/jenkins/check.sh
+
   # Fails on a new dependency with a High or Critical advisory, for whatever
   # GitHub's dependency graph sees (npm lockfiles, actions). Gradle
   # dependencies are covered by the Trivy jar scan.
@@ -150,7 +157,7 @@ jobs:
 
   push:
     if: github.event_name == 'push'
-    needs: [gradle, web, verify, gitleaks, trivy, terraform]
+    needs: [gradle, web, verify, gitleaks, trivy, terraform, jenkins]
     runs-on: ${{ matrix.arch.runner }}
     permissions:
       contents: read

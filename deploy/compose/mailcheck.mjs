@@ -352,10 +352,16 @@ function checkHeaders(files) {
 
 async function cleanup() {
   const admin = `http://127.0.0.1:${env.KC_ADMIN_PORT ?? "8080"}`
-  const tokenRes = await fetch(`${admin}/realms/master/protocol/openid-connect/token`, {
+  // SMOKE_ADMIN_*: the throwaway realm client from smoke-public.mjs.
+  const client = env.SMOKE_ADMIN_CLIENT_ID
+  const tokenRes = await fetch(`${admin}/realms/${client ? REALM : "master"}/protocol/openid-connect/token`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: form({ grant_type: "password", client_id: "admin-cli", username: env.KC_BOOTSTRAP_ADMIN_USERNAME, password: env.KC_BOOTSTRAP_ADMIN_PASSWORD }),
+    body: form(
+      client
+        ? { grant_type: "client_credentials", client_id: client, client_secret: env.SMOKE_ADMIN_CLIENT_SECRET }
+        : { grant_type: "password", client_id: "admin-cli", username: env.KC_BOOTSTRAP_ADMIN_USERNAME, password: env.KC_BOOTSTRAP_ADMIN_PASSWORD },
+    ),
   })
   if (!tokenRes.ok) throw new Error(`Admin sign-in at ${admin} failed: HTTP ${tokenRes.status} (is the SSH tunnel up?)`)
   const auth = { authorization: `Bearer ${(await tokenRes.json()).access_token}` }

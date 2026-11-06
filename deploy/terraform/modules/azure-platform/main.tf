@@ -29,6 +29,15 @@ resource "azurerm_storage_account" "backups" {
   default_to_oauth_authentication   = true
   tags                              = var.tags
 
+  # The VM's identity can delete blobs ("Data Contributor" has no write-only
+  # form). A deleted blob stays restorable this long, so a stolen identity or a
+  # script bug cannot wipe the backups at once.
+  blob_properties {
+    delete_retention_policy {
+      days = 7
+    }
+  }
+
   network_rules {
     default_action             = "Deny"
     bypass                     = ["AzureServices"]
