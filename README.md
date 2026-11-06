@@ -127,8 +127,7 @@ compile once in `FROM --platform=$BUILDPLATFORM` stages; the final stages only
 copy onto `eclipse-temurin:26-jre` (or the Keycloak image).
 
 **CI publishes them** (`.github/workflows/ci.yml`, GitHub Actions). CI never
-deploys; that is Jenkins' job (`deploy/k8s/jenkins/README.md`), and by hand until
-it is installed.
+deploys; that is Jenkins' job (`deploy/k8s/jenkins/README.md`).
 
 - Every pull request to `main`, nothing pushed: `./gradlew build`, web and
   theme `npm run lint` and `npm test`, `./verify` (dev Keycloak and Mailpit
@@ -243,9 +242,9 @@ with a hidden prompt:
 ssh -t playground@<vm> sudo sh /srv/playground/deploy/compose/vm-env.sh set-smtp-password
 ```
 
-Jenkins deploys here over SSH once it is installed (`deploy/k8s/jenkins/README.md`).
-Until then, copy the files that changed, set the image tags in `.env` to one
-`sha-<git sha>` that CI published on `main`, then start:
+Jenkins deploys here over SSH (`deploy/k8s/jenkins/README.md`). If you need to do it
+by hand without Jenkins, copy the files that changed, set the image tags in `.env` to
+one `sha-<git sha>` that CI published on `main`, then start:
 
 ```
 tar -cf - deploy/compose/compose.prod.yml infra/playground-realm.json infra/redis/redis.conf infra/redis/start.sh | ssh playground@<vm> sudo tar -xf - --no-same-owner -C /srv/playground

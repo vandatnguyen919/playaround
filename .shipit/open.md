@@ -1,21 +1,16 @@
 # Open
 
-## Jenkins CD (proven on a stand-in VM 2026-11-06, not deployed)
+## Jenkins CD (live on the VM, phase 1 of Jenkins closed 2026-11-06)
 
 See Jenkins and Current state in PRODUCT.md, runbook in `deploy/k8s/jenkins/README.md`. Left:
 
-- **Install on the VM (Dan chose it 2026-11-06, 4 GiB):** `ufw` rules are in, k3s is not: the
-  auto mode permission check refused the install. `vm-install.sh` has not been run yet. Next
-  action: merge this pipeline, then the README's Install steps 2 to 4.
-- **Before the next `up` on the VM:** `compose.prod.yml` now refuses to start without
-  `JENKINS_CLIENT_SECRET`; `vm-install.sh` makes it. Same for any local stack env file.
-- **First real ship:** give Jenkins a Resend sending key (a Stop), or it sends no mail, not
-  even the approval request. Then ship one good commit. A commit from before PR 29 cannot
-  ship: `smoke-access.sh` is not in the repo there, and it stops before changing anything.
-- **Not proven until then:** k3s beside compose under real memory, a deploy on the real VM,
-  pods reaching the VM by SSH and Keycloak by its public name, real polling of GitHub and raw
-  fetch from the VM, mail through Resend, arm64, a real Blob upload (wiring checked with a
-  stub `azcopy`), and the block on `169.254.169.254` (no metadata service runs locally).
+- **Local stacks:** `compose.prod.yml` now refuses to start without `JENKINS_CLIENT_SECRET`.
+  The VM has it. Any local stack env file needs it too.
+- **Copy of `.env`:** it gained `JENKINS_CLIENT_SECRET`. Next action: Dan updates the copy in
+  the password manager.
+- **Not proven on the VM:** a real Blob upload of Jenkins history (wiring checked with a stub
+  `azcopy`). Next action: after 19:30 UTC check `kubectl -n ci get jobs`. Also the block on
+  `169.254.169.254`.
 - **A smoke failure on the public site was not run.** It would break the site for real, for
   about 2 minutes per deploy plus the rollback. Next action: Dan decides whether to run it.
 - **Tight memory:** controller 627 of 640 Mi in the worst full run, about 530 in others.
@@ -56,8 +51,6 @@ see Current state. The meter is running. Left:
   token (a Stop).
 - **Google and GitHub buttons do not work in public** (placeholders). Next action:
   Dan decides between real credentials (a Stop) and hiding them until then.
-- **Deploys copy files by hand** (README, The VM) until Jenkins CD is installed (see
-  Jenkins CD above). `vm-deploy.sh` then fetches them at the exact commit.
 - **Backups still to be seen working (see `deploy/compose/RESTORE.md`):** the resolve
   mail arrived after Dan verified the receiver; a firing mail has not been seen since.
   Next action: on the next real firing, confirm its mail arrives. On 2026-11-06 check `backup.sh list` shows the 19:00 UTC dump; on or after
