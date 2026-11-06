@@ -1,22 +1,32 @@
 # Open
 
-## Jenkins as code (proven locally 2026-11-05, not deployed)
+## Jenkins CD (proven on a stand-in VM 2026-11-06, not deployed)
 
 See Jenkins and Current state in PRODUCT.md, runbook in `deploy/k8s/jenkins/README.md`. Left:
 
+- **Install on the VM (Dan chose it 2026-11-06, 4 GiB):** `ufw` rules are in, k3s is not: the
+  auto mode permission check refused the install. `vm-install.sh` has not been run yet. Next
+  action: merge this pipeline, then the README's Install steps 2 to 4.
 - **Before the next `up` on the VM:** `compose.prod.yml` now refuses to start without
-  `JENKINS_CLIENT_SECRET`. Next action: copy the new `vm-env.sh`, compose file and realm to
-  the VM, run `sudo sh vm-env.sh add-jenkins-client-secret`, then `up`. Same for any local
-  stack env file.
-- **Waits on phase 2:** k3s, the 8 GiB resize (a Stop), and the app chart
-  `deploy/k8s/playground`; until that exists the job stops with a clear error. Next action:
-  when phase 2 starts, install per the README, grant `jenkins-admin` to Dan by hand, and add
-  a `smoke.mjs` stage to `deploy.Jenkinsfile`, which phase 2's done-when needs.
-- **Not proven until then:** arm64, a real Blob upload (wiring checked with a stub
-  `azcopy`), the block on `169.254.169.254` (the policy exists, but no metadata service
-  runs locally), and polling GitHub itself (the drill polled a scratch repo).
-- **Tight memory:** controller about 530 of 640 Mi at light use. Next action: watch it on
-  the real node, since the 1.0 GB budget has no room to raise it.
+  `JENKINS_CLIENT_SECRET`; `vm-install.sh` makes it. Same for any local stack env file.
+- **First real ship:** give Jenkins a Resend sending key (a Stop), or it sends no mail, not
+  even the approval request. Then ship one good commit. A commit from before PR 29 cannot
+  ship: `smoke-access.sh` is not in the repo there, and it stops before changing anything.
+- **Not proven until then:** k3s beside compose under real memory, a deploy on the real VM,
+  pods reaching the VM by SSH and Keycloak by its public name, real polling of GitHub and raw
+  fetch from the VM, mail through Resend, arm64, a real Blob upload (wiring checked with a
+  stub `azcopy`), and the block on `169.254.169.254` (no metadata service runs locally).
+- **A smoke failure on the public site was not run.** It would break the site for real, for
+  about 2 minutes per deploy plus the rollback. Next action: Dan decides whether to run it.
+- **Tight memory:** controller 627 of 640 Mi in the worst full run, about 530 in others.
+  An OOM kill during a deploy was not tested. Next action: move 64 Mi from the agent (peak
+  253 of 384), which keeps the 1.0 GB budget, and rerun the drill.
+- **Disk:** every release leaves its images on the VM's 64 GiB data disk, and nothing prunes
+  them. Next action: add pruning that keeps the good releases' images, before the disk fills.
+- **Downtime:** a deploy restarts all three images, about 2 minutes unavailable on the
+  stand-in. Accepted for one instance; phase 2 can do better.
+- **Provenance is not signed:** revisit with `actions/attest-build-provenance` if anyone
+  else gets write access to the packages.
 
 ## Images for phase 1 (2026-10-31)
 
@@ -46,8 +56,8 @@ see Current state. The meter is running. Left:
   token (a Stop).
 - **Google and GitHub buttons do not work in public** (placeholders). Next action:
   Dan decides between real credentials (a Stop) and hiding them until then.
-- **Deploys copy files by hand** (README, The VM) because the VM has no checkout.
-  Next action: revisit when Jenkins arrives in phase 2.
+- **Deploys copy files by hand** (README, The VM) until Jenkins CD is installed (see
+  Jenkins CD above). `vm-deploy.sh` then fetches them at the exact commit.
 - **Backups still to be seen working (see `deploy/compose/RESTORE.md`):** the resolve
   mail arrived after Dan verified the receiver; a firing mail has not been seen since.
   Next action: on the next real firing, confirm its mail arrives. On 2026-11-06 check `backup.sh list` shows the 19:00 UTC dump; on or after
@@ -60,7 +70,8 @@ see Current state. The meter is running. Left:
 - **Copy of `.env` in a password manager:** it lives only on the data disk. Next
   action: Dan keeps one (RESTORE.md).
 - **k3s and the firewall (phase 2):** `ufw` and `DOCKER-USER` were written for
-  Docker. Next action: revisit them when k3s replaces compose.
+  Docker; Jenkins' k3s added two `ufw` rules for its pods. Next action: revisit them when
+  k3s replaces compose.
 - **Install Terraform 1.17.1 properly:** this session ran a checksum-checked copy
   from an old temp folder, and winget stops at 1.16.6. Next action: Dan installs
   it from the releases page (README).

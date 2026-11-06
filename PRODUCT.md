@@ -825,7 +825,7 @@ deploy/
       aws/                later: backend "s3", aws-* modules with the same outputs
   compose/                phase 1: compose.prod.yml, Traefik config
   k8s/                    phase 2: Helm values and manifests, cloud-neutral
-    jenkins/              Jenkins as code, runbook and recreate drill
+    jenkins/              Jenkins as code, CD pipeline, runbook and drill
     overlays/azure/       seal config, Blob backup target, storage class
     overlays/aws/         later
 ```
@@ -886,43 +886,75 @@ Prometheus replaces Mimir 3.2.3 to fit 8 GiB.
 ### Jenkins
 
 **Jenkins LTS 2.580.1 (`jenkins/jenkins:2.580.1-lts-jdk25`), Helm chart
-5.10.0, in namespace `ci` on the same k3s node, configured as code (JCasC).**
-Phase 2. Jenkins does CD only (J1, J3): it deploys images that GitHub
-Actions built and published (see CI and CD below). It builds nothing. Everything
-is in `deploy/k8s/jenkins` (runbook in its README); each start rebuilds config and
-plugins from there, so a change made in the UI is gone at the next restart.
+5.10.0, in namespace `ci` on k3s on the VM, configured as code (JCasC).** Dan chose the
+VM on 2026-11-06, at the 4 GiB size, ahead of phase 2's move from compose: k3s runs beside
+compose with no Traefik or ServiceLB, so compose keeps 80 and 443. In use today is 1.7 GB;
+with k3s (about 0.5, an estimate) and Jenkins, about 3.25 GB at worst. Revisit: resize, a
+Stop, if memory runs out. Pods reach SSH and the API through two `ufw` rules for
+`10.42.0.0/16`, and Keycloak by its public name. Jenkins does CD only (J1, J3): it
+deploys images that GitHub Actions built and published (see CI and CD below). It
+builds nothing. Everything is in `deploy/k8s/jenkins` (runbook in its README); each
+start rebuilds config and plugins from there, so a change made in the UI is gone at the
+next restart.
 
-- **Deploy-only agent (changed 2026-11-05, Dan):** the controller has 0 executors.
-  Each deploy runs on one short-lived pod (inbound agent plus `alpine/helm:3.22.1`),
-  which has no cluster rights of its own. Before this, steps ran on the controller.
-- **Deploy credential (changed 2026-11-05, Dan):** the token of ServiceAccount
-  `jenkins-deploy`, whose Role is in namespace `playground` only (`helm upgrade`, no
-  RBAC writes), lives in the Jenkins credential store as `playground-deploy-token`,
-  loaded by JCasC from a Kubernetes Secret, and reaches the agent only inside
-  `withCredentials`. No kubeconfig leaves the cluster, and 6443 stays closed to the
-  internet. None for GHCR or GitHub: the images and repo are public.
+- **Deploys over SSH to compose (changed 2026-11-06, Dan):** replaces `helm upgrade`
+  in the cluster, so CD works while the VM runs compose. Phase 2 moves the target to
+  Helm again; the earlier version is in git. For each new commit on `main`: wait for
+  the `ci` run to succeed, check the `sha-<git sha>` images for both platforms and
+  their provenance, ask for approval, deploy by digest with `vm-deploy.sh`, run
+  `smoke.mjs`, and on any failure roll back to the last good release.
+- **Provenance (2026-11-06):** `ci.yml` has no GitHub artifact attestation, so
+  `cd-gate.mjs` reads BuildKit provenance through `imagetools inspect`. Each platform
+  must name this repo and commit, and be built by the same CI run that passed.
+  Tradeoff: it is not signed. It shows what the build recorded, and relies on only
+  Actions writing to these packages. Revisit with `actions/attest-build-provenance`,
+  if anyone else gets write access.
+- **Releases and rollback (2026-11-06):** the VM holds the history in
+  `/srv/playground/releases` on the data disk, so it outlives the controller: digests
+  and compose files per release, a list of good ones, and a log. `rollback-playground`
+  is one click with no approval, and the release it leaves stops counting as good.
+  Rollback restores images and compose files, not data: a release that changed the
+  Keycloak schema needs `RESTORE.md`.
+- **Deploy-only agent (changed 2026-11-05, Dan; tools 2026-11-06):** the controller has
+  0 executors. Each stage runs on one short-lived pod, which has no cluster rights, and
+  none is held while waiting for approval. The stock inbound agent has ssh and curl;
+  init containers copy node and buildx in from pinned images, so there is no custom
+  image to build.
+- **Deploy credentials (changed 2026-11-06, Dan):** in the Jenkins credential store,
+  loaded by JCasC from one Kubernetes Secret, reaching the agent only inside
+  `withCredentials`. Vault waits for phase 2. `vm-deploy-key` is an SSH key that the VM
+  limits with a forced command to `vm-ssh-gate.sh`: the deploy commands, the smoke calls
+  and a tunnel to Keycloak's loopback port. No shell, so it cannot read `.env`. The VM
+  fetches compose files from GitHub at the exact commit rather than taking them from the
+  caller, so the key can only run what is in the repo and on GHCR. The VM's host key is
+  pinned. None for GHCR or GitHub: the images and repo are public.
+- **Notification (2026-11-06):** mail through Resend SMTP with its own credential
+  `notify-smtp`: approval wanted, deployed, stopped, rolled back, or the VM unreachable.
+  A mail failure never fails a deploy.
 - **Sign-in (added 2026-11-05, Dan): OIDC through our Keycloak** with `oic-auth`,
   client `jenkins`, PKCE S256, no local users. The realm has public registration, so
   only the realm role `jenkins-admin` (not a default role, granted by hand) gets any
-  permission; anyone else who signs in gets 403. Discovery uses Keycloak's private
-  name and the browser the public host, as for the gateway. Tradeoff: with Keycloak
-  down nobody signs in, while polling and deploys go on; no escape hatch, so a bad
-  Keycloak deploy is fixed with `helm upgrade` on the VM.
+  permission; anyone else who signs in gets 403. Discovery and the browser both use
+  the public host, since Keycloak is outside the cluster. Tradeoff: with Keycloak
+  down nobody signs in or approves, while polling goes on; no escape hatch, so a bad
+  Keycloak deploy is rolled back by `vm-deploy.sh` on the VM.
 - **Not public:** ClusterIP only, no Ingress, inbound agent port off, a NetworkPolicy
-  letting only namespace `ci` reach it. Reached by SSH and `kubectl port-forward` at
-  `localhost:8090`.
+  letting only namespace `ci` reach it. Reached by an SSH tunnel to `kubectl
+  port-forward`, at `localhost:8090`.
 - **Triggers:** Jenkins polls GitHub every 5 minutes instead of taking
   webhooks, so it stays private. Tradeoff: up to 5 minutes of delay. The job then
-  waits up to 45 minutes for `sha-<git sha>` on GHCR, so a commit whose CI failed
-  deploys nothing.
-- **Plugins (added 2026-11-05):** all 63 pinned with dependencies in `plugins.yaml`,
+  waits up to 60 minutes for that commit's CI run, so a commit whose CI failed
+  deploys nothing. Tradeoff: GitHub's anonymous API limit is 60 calls an hour, so it
+  checks every 2 minutes; hitting the limit only means waiting.
+- **Plugins (added 2026-11-05):** all 64 pinned with dependencies in `plugins.yaml`,
   and `check.sh` fails if the list differs from what they resolve to. Downloaded at
   each start from the update center, using the stock image. Tradeoff: an update center
   outage stops a restart. Not a custom image, which would need its own CI job and
   registry path for a single controller. Revisit if that outage bites.
-- **Memory: 1.0 GB in total, as budgeted:** controller 640 Mi, agent 256 Mi plus 128 Mi,
+- **Memory: 1.0 GB in total, as budgeted:** controller 640 Mi, agent 384 Mi,
   one agent at most. PriorityClass `ci` is negative, so Jenkins goes first under
-  pressure. The plugin init step takes 640 Mi, before the controller starts.
+  pressure. The plugin init step takes 640 Mi, before the controller starts. The
+  controller's own memory reached 627 of 640 Mi in the worst run, so this is close.
 - **JENKINS_HOME backup (added 2026-11-05, Dan):** daily to `jenkins/` in the backup
   container, 14 day lifecycle rule. It holds build history only. Config comes from the
   repo, and the master key, credentials and users are left out on purpose, so a copy
@@ -932,8 +964,8 @@ plugins from there, so a change made in the UI is gone at the next restart.
 
 **CI runs in GitHub Actions; CD stays in Jenkins (J1, J3).** Dan decided
 this on 2026-10-31. Actions tests, scans, builds and publishes images; it
-never deploys. Jenkins arrives in phase 2 and deploys a published
-`sha-<git sha>` tag. Until then phase 1 deploys by hand on the VM
+never deploys. Jenkins deploys a published `sha-<git sha>` by digest (see
+Jenkins). Until it runs for real, phase 1 deploys by hand on the VM
 (`docker compose pull` and `up -d` with the tag in `.env`).
 
 - **Workflow:** `.github/workflows/ci.yml`. Every pull request to `main`
@@ -1037,9 +1069,6 @@ backups, upgrades and restore drills. Revisit at the AWS step (RDS).
   decide then.
 
 ### Open questions for Dan
-
-- None open. Region and quota were answered on 2026-11-05 (see VM size, region
-  and cost).
 
 ### Sources (checked 2026-10-30)
 
@@ -1239,14 +1268,17 @@ Facts worth knowing:
   outside its container. Results and what is unverified:
   `deploy/compose/RESTORE.md`.
 
-- **Jenkins as code, proven locally, not deployed (2026-11-05).** `deploy/k8s/jenkins`
-  on a local k3s v1.36.5 (amd64) with the local prod stack's Keycloak: all 67 drill checks
-  pass (`.shipit/records/jenkins-recreate-2026-11-05.md`). Deleting the namespace and
-  JENKINS_HOME and recreating from the repo took 98 s and gave the same JCasC export, job
-  config, plugins and credential ids, and the new controller deployed with a new token.
-  Own memory about 530 of 640 Mi, agent peak 185 Mi of 384. It waits on phase 2: k3s, the
-  8 GiB resize (a Stop) and the app chart. Not run: arm64, real Blob upload (wiring checked
-  with a stub `azcopy`), the instance metadata block, or GitHub itself as the polled repo.
+- **Jenkins CD, proven on a stand-in VM, not deployed (2026-11-06).** `deploy/k8s/jenkins`
+  on a local k3s (amd64), against Docker-in-Docker with sshd, the real `compose.prod.yml`, a
+  TLS registry and a fake GitHub: all 138 drill checks pass from empty
+  (`.shipit/records/cd-pipeline-2026-11-06.md`). A good version ships by digest; one that
+  fails smoke and one that never gets healthy each roll back by themselves; one click rolls
+  back by hand. Bad CI, a wrong commit or repo in the provenance, and a refused approval
+  change nothing. Delete and recreate took 132 s and gave the same config, and the VM's
+  history outlived the controller. `cd-gate.mjs` also passes against real GHCR and GitHub for
+  `sha-13163e5`. Controller memory reached 627 of 640 Mi at worst, agent 253 of 384: tight
+  (see `.shipit/open.md`). Not run: the real VM, Resend mail, arm64, real Blob upload, the
+  instance metadata block. The VM has the two `ufw` rules for k3s, but not k3s or Jenkins yet.
 
 Next: every feature except Google and GitHub login is done. Feature 3 is
 blocked on real OAuth credentials (a Stop). See `.shipit/open.md`.

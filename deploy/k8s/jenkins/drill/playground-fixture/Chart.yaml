@@ -1,5 +1,0 @@
-# Stands in for the app chart (deploy/k8s/playground), which is not written yet, in
-# the drill's scratch repo only. Proves the agent, the token and helm, not the app.
-apiVersion: v2
-name: playground
-version: 0.0.0

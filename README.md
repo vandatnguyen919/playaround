@@ -127,8 +127,8 @@ compile once in `FROM --platform=$BUILDPLATFORM` stages; the final stages only
 copy onto `eclipse-temurin:26-jre` (or the Keycloak image).
 
 **CI publishes them** (`.github/workflows/ci.yml`, GitHub Actions). CI never
-deploys; that is Jenkins' job in phase 2 (`deploy/k8s/jenkins/README.md`), and by
-hand before then.
+deploys; that is Jenkins' job (`deploy/k8s/jenkins/README.md`), and by hand until
+it is installed.
 
 - Every pull request to `main`, nothing pushed: `./gradlew build`, web and
   theme `npm run lint` and `npm test`, `./verify` (dev Keycloak and Mailpit
@@ -243,7 +243,8 @@ with a hidden prompt:
 ssh -t playground@<vm> sudo sh /srv/playground/deploy/compose/vm-env.sh set-smtp-password
 ```
 
-To deploy, copy the files that changed, set the image tags in `.env` to one
+Jenkins deploys here over SSH once it is installed (`deploy/k8s/jenkins/README.md`).
+Until then, copy the files that changed, set the image tags in `.env` to one
 `sha-<git sha>` that CI published on `main`, then start:
 
 ```

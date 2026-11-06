@@ -1,6 +1,6 @@
 # Jenkins for CD only, chart jenkins/jenkins 5.10.0. CI is GitHub Actions; this
 # deploys images it published and builds nothing. Everything Jenkins knows comes
-# from this file, plugins.yaml, base.yaml and two Secrets (see README.md):
+# from this file, plugins.yaml, base.yaml and one Secret (see README.md):
 # overwriteConfiguration and overwritePlugins make each start rebuild the config
 # and plugins from here, so a change made in the UI lasts until the next restart.
 fullnameOverride: jenkins
@@ -42,12 +42,33 @@ controller:
   containerEnv:
     - name: PLAYGROUND_REPO_URL
       value: https://github.com/vandatnguyen919/playaround.git
+    # Keycloak runs in compose on this VM, so a pod reaches it by its public name.
     - name: KEYCLOAK_WELL_KNOWN_URL
-      value: http://keycloak.playground.svc.cluster.local:8080/realms/playground/.well-known/openid-configuration
-    # Empty: each deploy uses the image tag of its own commit. Set to sha-<git sha>
-    # to hold every deploy on one published version.
-    - name: DEPLOY_TAG_PIN
+      value: https://auth.tickin.me/realms/playground/.well-known/openid-configuration
+    # Where deploys go: the VM's private address, since Azure allows SSH on the public
+    # one from Dan's IP alone. The host key is public, and pinned so a machine answering
+    # in the VM's place gets no deploy. After a VM rebuild it changes: update it here.
+    - name: VM_TARGET
+      value: playground@10.20.1.4
+    - name: VM_KNOWN_HOSTS
+      value: 10.20.1.4 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEsJQiJwD4RGhZnA/Fr0jgoHKgZ/fi5gWsL2Hpu82XTe
+    - name: IMAGE_PREFIX
+      value: ghcr.io/vandatnguyen919/playground-
+    - name: GITHUB_API
+      value: https://api.github.com
+    - name: NOTIFY_SMTP_URL
+      value: smtp://smtp.resend.com:587
+    - name: NOTIFY_FROM
+      value: no-reply@tickin.me
+    # Empty on the real install. The drill sets these for its own registry and certs.
+    - name: NOTIFY_PLAIN_SMTP
       value: ""
+    - name: SSL_CERT_FILE
+      value: ""
+    - name: NODE_TLS_REJECT_UNAUTHORIZED
+      value: ""
+    - name: POLL_SECONDS
+      value: "120"
 
   # No public exposure: ClusterIP only, no Ingress, reached through a tunnel.
   # Agents connect by WebSocket on 8080, so the inbound agent port stays closed.
@@ -72,8 +93,14 @@ controller:
   additionalExistingSecrets:
     - name: jenkins-secrets
       keyName: oidc-client-secret
-    - name: jenkins-deploy-token
-      keyName: token
+    - name: jenkins-secrets
+      keyName: vm-deploy-key
+    - name: jenkins-secrets
+      keyName: notify-smtp-user
+    - name: jenkins-secrets
+      keyName: notify-smtp-password
+    - name: jenkins-secrets
+      keyName: notify-recipient
 
   sidecars:
     # Config changes go through install.sh and a restart. Saves about 100 MB.
@@ -130,8 +157,26 @@ controller:
           globalNodeProperties:
             - envVars:
                 env:
-                  - key: DEPLOY_TAG_PIN
-                    value: "${DEPLOY_TAG_PIN:-}"
+                  - key: VM_TARGET
+                    value: "${VM_TARGET}"
+                  - key: VM_KNOWN_HOSTS
+                    value: "${VM_KNOWN_HOSTS}"
+                  - key: IMAGE_PREFIX
+                    value: "${IMAGE_PREFIX}"
+                  - key: GITHUB_API
+                    value: "${GITHUB_API}"
+                  - key: NOTIFY_SMTP_URL
+                    value: "${NOTIFY_SMTP_URL}"
+                  - key: NOTIFY_FROM
+                    value: "${NOTIFY_FROM}"
+                  - key: NOTIFY_PLAIN_SMTP
+                    value: "${NOTIFY_PLAIN_SMTP:-}"
+                  - key: SSL_CERT_FILE
+                    value: "${SSL_CERT_FILE:-}"
+                  - key: NODE_TLS_REJECT_UNAUTHORIZED
+                    value: "${NODE_TLS_REJECT_UNAUTHORIZED:-}"
+                  - key: POLL_SECONDS
+                    value: "${POLL_SECONDS}"
           clouds:
             - kubernetes:
                 name: kubernetes
@@ -159,8 +204,8 @@ controller:
                           app.kubernetes.io/component: jenkins-agent
                       spec:
                         priorityClassName: ci
-                        # No cluster rights from the pod itself. The deploy step gets
-                        # them only inside withCredentials, from the credential store.
+                        # No cluster rights at all. It deploys over SSH, with a key it
+                        # gets only inside withCredentials, from the credential store.
                         automountServiceAccountToken: false
                         enableServiceLinks: false
                         securityContext:
@@ -170,57 +215,84 @@ controller:
                           fsGroup: 1000
                           seccompProfile:
                             type: RuntimeDefault
+                        # The agent image has ssh, curl and git. These add node (smoke,
+                        # cd-gate) and buildx (provenance) from pinned images, so there
+                        # is no custom image to build and keep up to date.
+                        initContainers:
+                          - name: tool-node
+                            image: node:22.20.0-slim
+                            command: [cp, /usr/local/bin/node, /tools/node]
+                            resources:
+                              requests: { cpu: 50m, memory: 64Mi }
+                              limits: { cpu: 500m, memory: 64Mi }
+                            securityContext:
+                              allowPrivilegeEscalation: false
+                              capabilities: { drop: [ALL] }
+                            volumeMounts:
+                              - { name: tools, mountPath: /tools }
+                          - name: tool-buildx
+                            image: docker:29.1.5-cli
+                            command: [cp, /usr/local/libexec/docker/cli-plugins/docker-buildx, /tools/docker-buildx]
+                            resources:
+                              requests: { cpu: 50m, memory: 64Mi }
+                              limits: { cpu: 500m, memory: 64Mi }
+                            securityContext:
+                              allowPrivilegeEscalation: false
+                              capabilities: { drop: [ALL] }
+                            volumeMounts:
+                              - { name: tools, mountPath: /tools }
                         containers:
                           - name: jnlp
                             image: jenkins/inbound-agent:3395.v6e5377b_0fb_3c-3-jdk25
                             env:
                               - name: JAVA_OPTS
                                 value: -Xmx96m -XX:+UseSerialGC -Xss512k
+                              - name: NODE_OPTIONS
+                                value: --max-old-space-size=96
                             resources:
-                              requests: { cpu: 50m, memory: 256Mi }
-                              limits: { cpu: 500m, memory: 256Mi }
-                            securityContext:
-                              allowPrivilegeEscalation: false
-                              capabilities: { drop: [ALL] }
-                          - name: helm
-                            image: alpine/helm:3.22.1
-                            command: [sleep]
-                            args: [infinity]
-                            env:
-                              - name: HOME
-                                value: /home/jenkins/agent
-                            resources:
-                              requests: { cpu: 50m, memory: 128Mi }
-                              limits: { cpu: 500m, memory: 128Mi }
+                              requests: { cpu: 50m, memory: 384Mi }
+                              limits: { cpu: 500m, memory: 384Mi }
                             securityContext:
                               allowPrivilegeEscalation: false
                               capabilities: { drop: [ALL] }
                             volumeMounts:
-                              - name: kube-ca
-                                mountPath: /run/kube-ca
-                                readOnly: true
+                              - { name: tools, mountPath: /tools, readOnly: true }
                         volumes:
-                          - name: kube-ca
-                            configMap:
-                              name: kube-root-ca.crt
+                          - name: tools
+                            emptyDir: {}
       credentials: |
         credentials:
           system:
             domainCredentials:
               - credentials:
-                  # Token of ServiceAccount jenkins-deploy (base.yaml), whose Role is
-                  # in namespace playground only. It never leaves the cluster.
+                  # Limited on the VM to vm-ssh-gate.sh: deploy commands and the smoke
+                  # calls, no shell. See vm-deploy.sh add-deploy-key.
+                  - basicSSHUserPrivateKey:
+                      scope: GLOBAL
+                      id: vm-deploy-key
+                      username: playground
+                      description: Deploys to the VM through vm-ssh-gate.sh
+                      privateKeySource:
+                        directEntry:
+                          privateKey: "${jenkins-secrets-vm-deploy-key}"
+                  - usernamePassword:
+                      scope: GLOBAL
+                      id: notify-smtp
+                      description: SMTP login for deploy notifications
+                      username: "${jenkins-secrets-notify-smtp-user}"
+                      password: "${jenkins-secrets-notify-smtp-password}"
                   - string:
                       scope: GLOBAL
-                      id: playground-deploy-token
-                      description: Deploys to namespace playground
-                      secret: "${jenkins-deploy-token-token}"
+                      id: notify-recipient
+                      description: Who gets deploy notifications
+                      secret: "${jenkins-secrets-notify-recipient}"
       jobs: |
         jobs:
           - script: |
               pipelineJob('deploy-playground') {
-                description('Deploys the images GitHub Actions published for each commit on main.')
-                logRotator { numToKeep(30) }
+                description('For each new commit on main: waits for CI and its images, checks provenance, asks for approval, deploys by digest over SSH, runs smoke, rolls back on failure.')
+                // Part of the deploy history, with deploys.log on the VM.
+                logRotator { numToKeep(100) }
                 properties {
                   disableConcurrentBuilds()
                   pipelineTriggers {
@@ -243,8 +315,27 @@ controller:
                   }
                 }
               }
+              pipelineJob('rollback-playground') {
+                description('One click: back to the newest good release that is not running now, then smoke. Click again to go one further back.')
+                logRotator { numToKeep(100) }
+                properties {
+                  disableConcurrentBuilds()
+                }
+                definition {
+                  cpsScm {
+                    lightweight(true)
+                    scriptPath('deploy/k8s/jenkins/rollback.Jenkinsfile')
+                    scm {
+                      git {
+                        remote { url(System.getenv('PLAYGROUND_REPO_URL')) }
+                        branch('*/main')
+                      }
+                    }
+                  }
+                }
+              }
 
-# JENKINS_HOME: build history. Sizes well under this with 30 builds kept.
+# JENKINS_HOME: build history. Sizes well under this with 100 builds per job kept.
 persistence:
   enabled: true
   size: 4Gi

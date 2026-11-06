@@ -2,7 +2,7 @@
 # configuration-as-code, job-dsl, kubernetes, oic-auth, matrix-auth, git,
 # workflow-job, workflow-cps, workflow-basic-steps, workflow-durable-task-step,
 # pipeline-stage-step, workflow-multibranch (provides `scm` in the pipeline),
-# credentials-binding. The rest is what they need. To change a version: README.md.
+# pipeline-input-step (approval), credentials-binding. The rest is what they need. To change a version: README.md.
 controller:
   installPlugins:
     - antisamy-markup-formatter:173.v680e3a_b_69ff3
@@ -48,6 +48,7 @@ controller:
     - nimbus-jose-jwt-api:10.10-12.vd4e6d651b_7f7
     - oic-auth:4.731.v4932b_506e767
     - okhttp-api:5.5.0-242.v1482d48d3ea_3
+    - pipeline-input-step:560.v56198a_642157
     - pipeline-stage-step:345.va_96187909426
     - plain-credentials:199.v9f8e1f741799
     - plugin-util-api:7.1403.vd380b_c42e90c
