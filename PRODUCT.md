@@ -888,8 +888,8 @@ Prometheus replaces Mimir 3.2.3 to fit 8 GiB.
 **Jenkins LTS 2.580.1 (`jenkins/jenkins:2.580.1-lts-jdk25`), Helm chart
 5.10.0, in namespace `ci` on k3s on the VM, configured as code (JCasC).** Dan chose the
 VM on 2026-11-06, at the 4 GiB size, ahead of phase 2's move from compose: k3s runs beside
-compose with no Traefik or ServiceLB, so compose keeps 80 and 443. In use today is 1.7 GB;
-with k3s (about 0.5, an estimate) and Jenkins, about 3.25 GB at worst. Revisit: resize, a
+compose with no Traefik or ServiceLB, so compose keeps 80 and 443. Measured with the
+controller idle: 2.6 GB in use and 1.3 GB available, before a deploy's agent and JVM restarts. Revisit: resize, a
 Stop, if memory runs out. Pods reach SSH and the API through two `ufw` rules for
 `10.42.0.0/16`, and Keycloak by its public name. Jenkins does CD only (J1, J3): it
 deploys images that GitHub Actions built and published (see CI and CD below). It
@@ -965,8 +965,7 @@ next restart.
 **CI runs in GitHub Actions; CD stays in Jenkins (J1, J3).** Dan decided
 this on 2026-10-31. Actions tests, scans, builds and publishes images; it
 never deploys. Jenkins deploys a published `sha-<git sha>` by digest (see
-Jenkins). Until it runs for real, phase 1 deploys by hand on the VM
-(`docker compose pull` and `up -d` with the tag in `.env`).
+Jenkins). A commit reaches the VM only after someone approves it there.
 
 - **Workflow:** `.github/workflows/ci.yml`. Every pull request to `main`
   runs, with nothing pushed: `./gradlew build` (with tests), web and theme
@@ -1277,8 +1276,17 @@ Facts worth knowing:
   change nothing. Delete and recreate took 132 s and gave the same config, and the VM's
   history outlived the controller. `cd-gate.mjs` also passes against real GHCR and GitHub for
   `sha-13163e5`. Controller memory reached 627 of 640 Mi at worst, agent 253 of 384: tight
-  (see `.shipit/open.md`). Not run: the real VM, Resend mail, arm64, real Blob upload, the
-  instance metadata block. The VM has the two `ufw` rules for k3s, but not k3s or Jenkins yet.
+  (see `.shipit/open.md`). Not run: a real deploy, Resend mail, real Blob upload, the instance
+  metadata block.
+- **Jenkins CD is live on the VM (2026-11-06), phase 1 of Jenkins closed.** k3s and the
+  controller run on arm64 at the 4 GiB size, beside compose. The VM's own history shows: the
+  first real poll passing CI and the provenance gate on real GitHub and GHCR, `13163e5` to
+  `c1edefd` by digest, a one-click rollback to `13163e5` with smoke, and `c1edefd` again with
+  smoke 45 of 45. Each deploy took about a minute to healthy. Memory on 4 GiB: k3s 477 MiB, the
+  lowest available seen during a deploy 1,160 MiB, swap up to 352 MiB, no OOM kills. Resend
+  accepted the mail. 6443 does not answer from outside. Not run on the VM: a smoke failure,
+  so automatic rollback is proven on the stand-in only; a real Blob upload of Jenkins history;
+  the instance metadata block.
 
 Next: every feature except Google and GitHub login is done. Feature 3 is
 blocked on real OAuth credentials (a Stop). See `.shipit/open.md`.

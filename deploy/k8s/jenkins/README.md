@@ -116,8 +116,10 @@ Run these from the repo root, on a commit that has this pipeline.
 The deploy key can run only `vm-ssh-gate.sh` and open a tunnel to Keycloak's loopback port.
 **`compose.prod.yml` refuses to start without `JENKINS_CLIENT_SECRET`**, which step 3 makes.
 
-After a change here, copy the files and run step 3 again. To change the Secret, run
-`install.sh` on the VM with all its variables set. Plugins download at each start, about a
+After a change here, copy the files and run step 3 again. To change mail, patch the Secret on
+the VM, then restart the controller when no build runs. `vm-install.sh` deletes its copy of the
+deploy key, so `install.sh` cannot remake the whole Secret; for a new key, delete the Secret and
+rerun step 3. Plugins download at each start, about a
 minute. If a controller is crash looping, the StatefulSet will not replace it after an
 upgrade: `sudo k3s kubectl -n ci delete pod jenkins-0`.
 
