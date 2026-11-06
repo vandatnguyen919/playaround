@@ -39,10 +39,25 @@ check "config is rebuilt from the repo at start" "$(count 'echo "deleting all XM
 check "plugins are rebuilt from the repo at start" "$(count 'echo "remove all plugins from shared volume"')" 1
 
 controller="$(mi 's/^    limits: \{ cpu: "1", memory: ([0-9]+)Mi \}$/\1/p')"
-jnlp="$(sed -nE 's/^ +limits: \{ cpu: 500m, memory: ([0-9]+)Mi \}$/\1/p' "$dir/values.yaml" | sed -n 1p)"
-helm_mi="$(sed -nE 's/^ +limits: \{ cpu: 500m, memory: ([0-9]+)Mi \}$/\1/p' "$dir/values.yaml" | sed -n 2p)"
-check "controller and agent limits equal the $BUDGET_MI Mi budget" "$((controller + jnlp + helm_mi))" "$BUDGET_MI"
+# The init containers run one after the other and before the agent, so only the agent counts.
+agent="$(sed -nE '/- name: jnlp/,/volumeMounts/s/^ +limits: \{ cpu: 500m, memory: ([0-9]+)Mi \}$/\1/p' "$dir/values.yaml")"
+check "controller and agent limits equal the $BUDGET_MI Mi budget" "$((controller + agent))" "$BUDGET_MI"
 check "one agent pod at most" "$(grep -c 'containerCapStr: "1"' "$dir/values.yaml")" 1
+check "the deploy job polls and has no webhook" "$(count "pollSCM \{ scmpoll_spec\('H/5")" 1
+check "the rollback job exists" "$(count "pipelineJob\('rollback-playground'\)")" 1
+check "the real install has no drill settings" "$(sed -nE '/name: (NOTIFY_PLAIN_SMTP|SSL_CERT_FILE|NODE_TLS_REJECT_UNAUTHORIZED)$/{n;p}' "$dir/values.yaml" | grep -vc 'value: ""' || true)" 0
+check "the host key is pinned" "$(grep -cF 'value: 10.20.1.4 ssh-ed25519 ' "$dir/values.yaml")" 1
+check "the pipeline asks before deploying" "$(grep -c "input id: 'Deploy'" "$dir/deploy.Jenkinsfile")" 1
+
+# Provenance rules and the SSH gate, with stand-ins for the registry, GitHub and sudo.
+tests="$(cd "$dir/../../.." && (pwd -W 2>/dev/null || pwd))"
+if docker run --rm -v "$tests:/repo:ro" -w /repo node:22.20.0-slim sh -c \
+  'node deploy/k8s/jenkins/cd-gate.test.mjs && sh deploy/compose/vm-ssh-gate.test.sh'; then
+  echo "PASS  provenance rules and SSH gate"
+else
+  echo "FAIL  provenance rules or SSH gate"
+  fail=1
+fi
 
 # The list must be exactly what these plugins resolve to, or a dependency floats.
 pinned="$(sed -nE 's/^ +- ([a-z0-9-]+):(.+)$/\1 \2/p' "$dir/plugins.yaml" | sort)"

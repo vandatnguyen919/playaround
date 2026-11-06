@@ -1,11 +1,31 @@
-# Drill only, on top of values.yaml. The only differences from the real install:
-# where the repo is, and which published image tag to check.
+# Drill only, on top of values.yaml. drill.mjs fills in __KNOWN_HOSTS__ with the stand-in
+# VM's host key. The only differences from the real install: where the repo, VM, registry,
+# GitHub and mail are, and two settings for the drill's own certificates.
 controller:
   containerEnv:
     - name: PLAYGROUND_REPO_URL
       value: git://git.drill.svc.cluster.local/playground.git
     - name: KEYCLOAK_WELL_KNOWN_URL
       value: http://keycloak.playground.svc.cluster.local:8080/realms/playground/.well-known/openid-configuration
-    # The scratch commits are not on GHCR. This one is, so the image wait is real.
-    - name: DEPLOY_TAG_PIN
-      value: sha-8721ca747da7fcc9a42bfa9630ae041742612a31
+    - name: VM_TARGET
+      value: playground@vm.drill.test
+    - name: VM_KNOWN_HOSTS
+      value: __KNOWN_HOSTS__
+    - name: IMAGE_PREFIX
+      value: registry.drill.test:5000/playground-
+    - name: GITHUB_API
+      value: http://fake-github.drill.test:8080/api
+    - name: NOTIFY_SMTP_URL
+      value: smtp://mailpit.drill.test:1025
+    - name: NOTIFY_FROM
+      value: no-reply@drill.test
+    - name: NOTIFY_PLAIN_SMTP
+      value: "1"
+    # The registry's CA. Relative to the workspace; the scratch repo carries the file.
+    - name: SSL_CERT_FILE
+      value: deploy/k8s/jenkins/drill-ca.pem
+    # Traefik's self-signed certificate on the stand-in VM.
+    - name: NODE_TLS_REJECT_UNAUTHORIZED
+      value: "0"
+    - name: POLL_SECONDS
+      value: "5"
