@@ -13,7 +13,7 @@ RUN --mount=type=cache,target=/root/.npm npm ci --fetch-retries=5
 COPY . .
 RUN npm run build-keycloak-theme
 
-FROM quay.io/keycloak/keycloak:26.8.1 AS builder
+FROM quay.io/keycloak/keycloak:26.8.2 AS builder
 # Build-time options. Changing any of these needs a rebuild.
 ENV KC_DB=postgres \
     KC_HEALTH_ENABLED=true \
@@ -21,7 +21,7 @@ ENV KC_DB=postgres \
 COPY --from=theme /src/dist_keycloak/keycloak-theme-for-kc-all-other-versions.jar /opt/keycloak/providers/keycloak-theme.jar
 RUN /opt/keycloak/bin/kc.sh build
 
-FROM quay.io/keycloak/keycloak:26.8.1
+FROM quay.io/keycloak/keycloak:26.8.2
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
 CMD ["start", "--optimized"]
