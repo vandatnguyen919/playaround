@@ -1,0 +1,40 @@
+# Telemetry settings for local runs, loaded by every bootRun (root build.gradle).
+# Not in any jar or image. Sends to the lgtm service in infra/docker-compose.yml.
+management:
+  tracing:
+    sampling:
+      # Boot's default is 10%; locally every request should be findable.
+      probability: 1.0
+  opentelemetry:
+    resource-attributes:
+      "[service.name]": ${spring.application.name}
+      "[deployment.environment]": dev
+    tracing:
+      export:
+        otlp:
+          endpoint: http://localhost:4318/v1/traces
+  otlp:
+    metrics:
+      export:
+        url: http://localhost:4318/v1/metrics
+        # Boot's default is 1 minute, slow to watch while developing.
+        step: 10s
+
+spring:
+  reactor:
+    # Carries the trace id onto Reactor's threads, so gateway log lines have it.
+    context-propagation: auto
+
+# The console stays readable. This JSON copy is what the collector tails into
+# Loki (otelcol-dev-logs.yaml). bootRun's working directory is the module, so
+# this is build/dev-logs/ at the repo root.
+logging:
+  file:
+    name: ../build/dev-logs/${spring.application.name}.log
+  structured:
+    format:
+      file: logstash
+    json:
+      add:
+        service_name: ${spring.application.name}
+        deployment_environment: dev

@@ -54,7 +54,8 @@ are shown; on macOS/Linux use `./gradlew` and `cp`.
    cd ..
    ```
 
-2. Start Keycloak, Redis and Mailpit. The first start can take a few minutes:
+2. Start Keycloak, Redis, Mailpit and the dev-only LGTM container. The first
+   start can take a few minutes:
 
    ```
    docker compose -f infra/docker-compose.yml up -d --wait
@@ -81,7 +82,9 @@ are shown; on macOS/Linux use `./gradlew` and `cp`.
 5. Open http://localhost:5174 and sign in as `alice@example.com` / `alice1234`
    (user) or `admin@example.com` / `admin1234` (user and admin). Mail lands in
    Mailpit at http://localhost:8025. Keycloak admin console:
-   http://localhost:8080 (`admin` / `admin` in dev).
+   http://localhost:8080 (`admin` / `admin` in dev). Traces, metrics and logs:
+   Grafana at http://localhost:3300, under Explore. To check them, run
+   `node infra/otel/check.mjs`.
 
 Secrets and provider credentials go in `infra/.env` (copy
 `infra/.env.example`).
@@ -486,7 +489,7 @@ All commands are run from the repo root unless stated otherwise.
 6. Open **http://localhost:5174/** and click **Sign in**.
 
 Ports in use: Keycloak 8080, Mailpit 8025/1025, Redis 6379, gateway 8181, API
-8182, SPA dev server 5174. (8081/8082 were already taken on the dev machine,
+8182, SPA dev server 5174, Grafana 3300, OTLP 4318. (8081/8082 were already taken on the dev machine,
 which is why the two apps use 8181/8182.)
 
 ### Keycloakify login theme
@@ -830,7 +833,7 @@ you straight back in (verified) — the SSO session is dead too.
 | `api/src/main/resources/application.yml` | JWT issuer the API validates against | `spring.security.oauth2.resourceserver.jwt.issuer-uri` |
 | `web/src/App.tsx` | The SPA: session state, sign in / sign out | the `axios.create` block (`withCredentials`, `xsrfCookieName`, `xsrfHeaderName`) and `loadUser` |
 | `web/vite.config.ts` | Dev proxy so the browser sees one origin | `proxy` map: `/api`, `/bff`, `/oauth2`, `/login`, `/logout` → `:8181` |
-| `infra/docker-compose.yml` | Keycloak + Redis + Mailpit | the `keycloak` service (`start-dev`, healthcheck) and `keycloak-config` (applies the realm) |
+| `infra/docker-compose.yml` | Keycloak + Redis + Mailpit + dev-only LGTM | the `keycloak` service (`start-dev`, healthcheck) and `keycloak-config` (applies the realm) |
 | `infra/playground-realm.json` | Realm `playground`: `gateway` client, PKCE S256, redirect URIs (test users are in `playground-users-dev.json`) | the `clients[0]` block and `post.logout.redirect.uris: "+"` |
 | `infra/.env.example` | Placeholder names for secrets | copy to `infra/.env`; never commit real values |
 
