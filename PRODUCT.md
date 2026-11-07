@@ -415,8 +415,9 @@ bootstrap admins as temporary; replacing it with a permanent one is open.
 - `/api`: resource server. Gradle subproject.
 - `/web`: Vite React TypeScript SPA with Axios. npm.
 - `/keycloak-theme`: Keycloakify theme, builds a theme jar. npm.
-- `/infra`: docker-compose (Keycloak, Redis, Mailpit, dev-only LGTM), realm
-  import JSON, env example, `otel` (dev telemetry config and check).
+- `/infra`: docker-compose (Keycloak, Redis, Mailpit, dev-only LGTM and Vault),
+  realm import JSON, env example, `otel` (dev telemetry config and check), `vault`
+  (policies, secret inventory, scripts).
 
 Gradle multi-project at the root for the Java modules (`settings.gradle`
 includes `gateway` and `api`), with one Spring Boot and Spring Cloud BOM version
@@ -426,7 +427,7 @@ at the root. npm keeps `/web` and `/keycloak-theme`; Gradle does not drive npm.
 
 - **Local ports.** Keycloak 8080, Mailpit 8025 (UI) and 1025 (SMTP), Redis 6379,
   gateway 8181 (management 9181), api 8182, web dev server 5174, Grafana 3300,
-  OTLP 4318. Ports 8081 and 8082 were already taken by another local stack on
+  OTLP 4318, Vault 8200. Ports 8081 and 8082 were already taken by another local stack on
   the dev machine.
 - **React + TypeScript SPA (Vite) with Axios.** Uses a session cookie only and
   never handles tokens, which is the point of the demo.
@@ -862,6 +863,32 @@ both.
 - **Delivery:** External Secrets Operator (chart 2.14.0) syncs Vault KV into
   Kubernetes Secrets, and apps read them as env. Phase 1 uses the `.env` file.
 
+**Local dev (2026-11-07, Dan): the same Vault in `infra/docker-compose.yml`.** Config,
+policies, inventory and runbook are in `infra/vault` (`README.md` there). The VM and
+`compose.prod.yml` are unchanged: the VM keeps its root-owned `.env`.
+
+- **Apps read env, never Vault.** No Spring Cloud Vault, no AppRole (Dan). Locally
+  `vault.mjs render` writes `infra/.env`; in phase 2 External Secrets writes a
+  Kubernetes Secret. So the app and its image do not change between the two.
+- **One KV v2 path per secret** (`secret/playground/<name>`), not one per service, so a
+  rotation writes one place when two services share a secret. A policy per service
+  lists exactly the paths it reads. Phase 2 gives each service its own `SecretStore`
+  and Kubernetes auth role, since a single `ClusterSecretStore` would need one policy
+  that reads everything.
+- **Scripts in Node over the HTTP API** (`vault.mjs`), so the host needs no `vault` CLI
+  or `jq`, on Windows too.
+- **Shamir with one share, key and root token in a git-ignored file**
+  (`infra/vault/.local/init.json`). Every share would sit in that one file, so more
+  would add no safety. Fits only this throwaway Vault holding dev values, and is
+  replaced by the seal above. Tradeoff: a root token stays on disk. It only mints 5
+  minute tokens for `compose-render` and `secrets-writer`.
+- **Vault stays optional in dev.** Nothing depends on it, and compose's defaults still
+  apply without `infra/.env`, which is how CI runs. `bootRun` reads only its two
+  secrets from that file (`gateway/build.gradle`).
+- **Rotation has a short outage.** Keycloak holds one secret per client, so from its
+  update until the gateway restarts, logins and token refreshes fail. Accepted for one
+  instance; the demo's 102 s includes a deliberate failed login and a slow dev machine.
+
 ### Observability: Grafana LGTM with OpenTelemetry
 
 **Grafana v13.2.4, Prometheus v3.15.1, Loki 3.7.9 and Tempo 3.1.1 (each
@@ -1028,7 +1055,8 @@ Jenkins). A commit reaches the VM only after someone approves it there.
   no app install. Pinned versions in this file still change only when Dan
   accepts the PR.
 - **Allowlists:** `.gitleaks.toml` (verify evidence, the throwaway test
-  password) and `.trivyignore.yaml` (the Spring Boot BOM findings, each
+  password), `.gitleaksignore` (the fake key planted for the gate test in closed
+  PR #13, one fingerprint) and `.trivyignore.yaml` (the Spring Boot BOM findings, each
   pinned to its version and expiring 2026-11-30, so CI fails again unless
   Dan decides first).
 - **Tags:** only `sha-<git sha>`, no `latest`. Deploys pin all three
@@ -1334,6 +1362,20 @@ Facts worth knowing:
   scan Tempo. A request-time log line carries its trace id into Loki, seen once
   with Redis stopped. Smoke passes 45 of 45 with telemetry on. `bootJar` holds no
   telemetry jars; the images were not rebuilt.
+- **Local Vault, dev only.** `node infra/vault/vault.mjs up` starts Vault 2.2.1 on Raft
+  from empty, unseals it, applies KV v2 and policies, stores the inventory and renders
+  `infra/.env`. `node infra/vault/check.mjs --restart` passes: each service's real token
+  reads its own paths and gets 403 elsewhere and on write, list, metadata and destroy;
+  every generated `remoteRef` resolves with that service's policy; while sealed, render
+  fails and leaves `.env` alone. The External Secrets manifests have not been applied
+  to a cluster.
+- **Gateway client secret rotated without a rebuild.** `node infra/vault/rotate-demo.mjs`
+  on image `sha256:12cd7f44b587`, unchanged throughout: smoke 45 of 45 before, Keycloak
+  refuses the old secret, the unrestarted gateway fails to log in, the recreated
+  container passes smoke 45 of 45. `bootRun` also logs in with a rotated value from
+  `.env`. Results: `.shipit/records/vault-rotation-2026-11-07.md`.
+- **Gitleaks is clean over history** on all refs (73 commits) and in CI's form. The one
+  finding was the fake key from the closed gate test.
 
 Next: every feature except Google and GitHub login is done. Feature 3 is
 blocked on real OAuth credentials (a Stop). See `.shipit/open.md`.

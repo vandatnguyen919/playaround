@@ -20,3 +20,5 @@ dist/
 .vscode/
 .playwright-mcp/
 .trivy-cache/
+# Vault's unseal key and root token (infra/vault/vault.mjs)
+infra/vault/.local/

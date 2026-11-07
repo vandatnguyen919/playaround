@@ -54,8 +54,8 @@ are shown; on macOS/Linux use `./gradlew` and `cp`.
    cd ..
    ```
 
-2. Start Keycloak, Redis, Mailpit and the dev-only LGTM container. The first
-   start can take a few minutes:
+2. Start Keycloak, Redis, Mailpit, and the dev-only LGTM and Vault containers. The
+   first start can take a few minutes:
 
    ```
    docker compose -f infra/docker-compose.yml up -d --wait
@@ -86,8 +86,15 @@ are shown; on macOS/Linux use `./gradlew` and `cp`.
    Grafana at http://localhost:3300, under Explore. To check them, run
    `node infra/otel/check.mjs`.
 
-Secrets and provider credentials go in `infra/.env` (copy
-`infra/.env.example`).
+Secrets and provider credentials go in local Vault, and `infra/.env` is rendered
+from it. Compose's dev defaults work without either; to use Vault, run this before
+step 2:
+
+```
+node infra/vault/vault.mjs up
+```
+
+Inventory, policies, rotation and the phase 2 shape: `infra/vault/README.md`.
 
 ### Realm config as code
 

@@ -1,5 +1,18 @@
 # Open
 
+## Local Vault (2026-11-07)
+
+See Secrets: Vault and Current state in PRODUCT.md, runbook in `infra/vault/README.md`. Left:
+
+- **Phase 2:** the Kubernetes auth method, one role per service, the `azurekeyvault` seal,
+  Raft snapshots, and applying the External Secrets manifests. Next action: part of phase 2.
+- **Secrets on this disk that Gitleaks flags, all ignored by git:** `deploy/compose/.env`
+  (local prod stack) and `deploy/terraform/bootstrap/terraform.tfstate`. Next action: Dan
+  decides whether the state file is worth moving. Nothing is in git history.
+- **Stale dev Keycloak container:** `a931a2a25821_authn-authz-playground-keycloak-1`, stopped,
+  left by an earlier recreate. Not touched, since its H2 may hold dev data. The next
+  `docker compose up` may replace it. Next action: Dan removes it if the data is not wanted.
+
 ## Jenkins CD (live on the VM, phase 1 of Jenkins closed 2026-11-06)
 
 See Jenkins and Current state in PRODUCT.md, runbook in `deploy/k8s/jenkins/README.md`. Left:

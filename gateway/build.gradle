@@ -12,6 +12,21 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers'
 }
 
+// bootRun takes its two secrets from the .env that infra/vault/vault.mjs renders, so
+// a rotated value reaches dev with a restart. Without the file, application.yml's
+// dev defaults apply. A variable set in the shell wins. Images never see this.
+tasks.named('bootRun') {
+    def envFile = rootProject.file('infra/.env')
+    if (envFile.exists()) {
+        envFile.readLines().each { line ->
+            def match = line =~ /^(GATEWAY_CLIENT_SECRET|REDIS_PASSWORD)=(.*)$/
+            if (match && !System.getenv(match[0][1])) {
+                environment match[0][1], match[0][2].replaceFirst(/^'(.*)'$/, '$1')
+            }
+        }
+    }
+}
+
 // Build info for /actuator/info.
 springBoot {
     buildInfo()
