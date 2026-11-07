@@ -1,0 +1,44 @@
+# Overlay on the collector config inside grafana/otel-lgtm (OTELCOL_EXTRA_ARGS).
+# Tails the JSON log files that bootRun writes (application-dev.yml) into the
+# image's existing logs pipeline, which ends in Loki. Why a file and not OTLP:
+# see Observability in PRODUCT.md.
+receivers:
+  file_log/services:
+    include: [/var/log/playground/*.log]
+    # Loki starts empty with the container, so nothing is sent twice.
+    start_at: beginning
+    operators:
+      - type: json_parser
+        timestamp:
+          parse_from: attributes["@timestamp"]
+          layout_type: gotime
+          layout: "2006-01-02T15:04:05.999999999Z07:00"
+        severity:
+          parse_from: attributes.level
+      - type: trace_parser
+        if: attributes.traceId != nil
+        trace_id:
+          parse_from: attributes.traceId
+        span_id:
+          parse_from: attributes.spanId
+      - type: move
+        from: attributes.message
+        to: body
+      - type: move
+        from: attributes.service_name
+        to: resource["service.name"]
+      - type: move
+        from: attributes.deployment_environment
+        to: resource["deployment.environment"]
+      # Already in the record's timestamp and severity.
+      - type: remove
+        field: attributes["@timestamp"]
+      - type: remove
+        field: attributes["@version"]
+      - type: remove
+        field: attributes.level_value
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp, file_log/services]

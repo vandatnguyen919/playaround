@@ -27,9 +27,20 @@ subprojects {
 
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+        // Local observability only: on the bootRun classpath, left out of bootJar
+        // and so of the images. Phase 2 moves it to implementation (PRODUCT.md).
+        // Needs its own platform line: bootJar resolves this configuration alone.
+        developmentOnly platform('org.springframework.boot:spring-boot-dependencies:4.1.1')
+        developmentOnly 'org.springframework.boot:spring-boot-starter-opentelemetry'
     }
 
     tasks.named('test') {
         useJUnitPlatform()
+    }
+
+    // Traces, metrics and logs for infra/docker-compose.yml's lgtm service.
+    tasks.named('bootRun') {
+        systemProperty 'spring.config.additional-location', "file:${rootDir}/infra/otel/application-dev.yml"
     }
 }

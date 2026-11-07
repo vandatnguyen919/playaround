@@ -415,8 +415,8 @@ bootstrap admins as temporary; replacing it with a permanent one is open.
 - `/api`: resource server. Gradle subproject.
 - `/web`: Vite React TypeScript SPA with Axios. npm.
 - `/keycloak-theme`: Keycloakify theme, builds a theme jar. npm.
-- `/infra`: docker-compose (Keycloak, Redis, Mailpit), realm import JSON, env
-  example.
+- `/infra`: docker-compose (Keycloak, Redis, Mailpit, dev-only LGTM), realm
+  import JSON, env example, `otel` (dev telemetry config and check).
 
 Gradle multi-project at the root for the Java modules (`settings.gradle`
 includes `gateway` and `api`), with one Spring Boot and Spring Cloud BOM version
@@ -425,8 +425,9 @@ at the root. npm keeps `/web` and `/keycloak-theme`; Gradle does not drive npm.
 ### Also decided
 
 - **Local ports.** Keycloak 8080, Mailpit 8025 (UI) and 1025 (SMTP), Redis 6379,
-  gateway 8181 (management 9181), api 8182, web dev server 5174. Ports 8081 and 8082 were already
-  taken by another local stack on the dev machine.
+  gateway 8181 (management 9181), api 8182, web dev server 5174, Grafana 3300,
+  OTLP 4318. Ports 8081 and 8082 were already taken by another local stack on
+  the dev machine.
 - **React + TypeScript SPA (Vite) with Axios.** Uses a session cookie only and
   never handles tokens, which is the point of the demo.
 - **Keycloak as the identity provider** with a Keycloakify theme. Login,
@@ -883,6 +884,44 @@ Prometheus replaces Mimir 3.2.3 to fit 8 GiB.
 - **Outside check:** the Azure Monitor metric alerts in Budget and runway
   still fire when the cluster is down.
 
+**Local dev (2026-11-07, Dan): `grafana/otel-lgtm:0.39.0`, a dev-only
+dependency.** Service `lgtm` in `infra/docker-compose.yml`, never in
+`compose.prod.yml`. The phase 2 stack above stays as decided. Config is in
+`infra/otel`; `node infra/otel/check.mjs` checks all of it.
+
+- **Starter in `developmentOnly`.** `bootRun` gets
+  `spring-boot-starter-opentelemetry` and `infra/otel/application-dev.yml` (OTLP
+  endpoints, `service.name`, `deployment.environment=dev`, 100% sampling). The
+  jars and images hold neither, so production has no new jars, memory use or
+  failed exports on the 4 GiB VM. Tests do not load it either. Phase 2 moves
+  the starter to `implementation` and these settings to its own config.
+- **Dev logs reach Loki from a file, not OTLP.** `bootRun` also writes JSON to
+  `build/dev-logs/<service>.log`, and the collector inside the image tails it
+  (`otelcol-dev-logs.yaml`, added with the image's `OTELCOL_EXTRA_ARGS`). Why:
+  OTLP logs need the alpha `opentelemetry-logback-appender`, a dependency
+  outside the stack, plus install code in both services; that code would have to
+  sit in the production jars or need its own dev-only source set. Files need no
+  code and no new dependency, and match phase 2's model, where a collector reads
+  output the app already writes. Docker logs cannot do it, because the services
+  run on the host in dev. Tradeoff: a small overlay to recheck when the image
+  version changes. The console stays plain text.
+- **Secrets.** Nothing logs per request at INFO. `check.mjs` signs in and scans
+  Tempo, Loki and the raw files for JWTs, bearer headers, cookies, OAuth
+  fields and values, Redis session keys, dev passwords, and that session's actual
+  cookie, id and CSRF token. Redis spans hold the operation name only, and
+  `http.url` holds the path only. Do not turn on Reactor Netty's access log: it
+  writes query strings, so it would log the authorization code from
+  `/login/oauth2/code`. Debug logs of Spring Security can also hold tokens.
+- **Loopback only.** Grafana lets anyone in as admin, so `127.0.0.1:3300` (3000
+  is often taken here) and `127.0.0.1:4318` are the only published ports.
+- **Data is throwaway:** no volume, gone when the container is recreated.
+  Grafana's database is on tmpfs, since its first-start migrations took 7 minutes
+  on the container disk and about a minute in memory. About 650 MiB of RAM.
+- **With `lgtm` stopped** the services keep working, and log an
+  `OtlpMeterRegistry` warning every 10 s.
+- **Metric names:** Micrometer's, such as `http_server_requests_milliseconds_count`.
+  The image's bundled RED dashboards were not checked against them.
+
 ### Jenkins
 
 **Jenkins LTS 2.580.1 (`jenkins/jenkins:2.580.1-lts-jdk25`), Helm chart
@@ -1287,6 +1326,14 @@ Facts worth knowing:
   accepted the mail. 6443 does not answer from outside. Not run on the VM: a smoke failure,
   so automatic rollback is proven on the stand-in only; a real Blob upload of Jenkins history;
   the instance metadata block.
+- **Local observability, dev only.** With `lgtm` up and both `bootRun`s,
+  `node infra/otel/check.mjs` passes: a `/bff/me` call is one trace with the
+  API span a child of the gateway's (seen in Grafana: 2 services, 18 spans), JVM
+  and HTTP metrics and logs arrive for both services, and no secrets are stored.
+  A planted token fails the scan of Loki and the raw files; the same patterns
+  scan Tempo. A request-time log line carries its trace id into Loki, seen once
+  with Redis stopped. Smoke passes 45 of 45 with telemetry on. `bootJar` holds no
+  telemetry jars; the images were not rebuilt.
 
 Next: every feature except Google and GitHub login is done. Feature 3 is
 blocked on real OAuth credentials (a Stop). See `.shipit/open.md`.
