@@ -2,7 +2,7 @@ name: authn-authz-playground
 
 services:
   keycloak:
-    image: quay.io/keycloak/keycloak:26.8.1
+    image: quay.io/keycloak/keycloak:26.8.2
     command: start-dev
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:-admin}
@@ -86,7 +86,7 @@ services:
       retries: 10
 
   mailpit:
-    image: axllent/mailpit:v1.31.6
+    image: axllent/mailpit:v1.33.0
     ports:
       - "8025:8025" # Web UI + API
       - "1025:1025" # SMTP
