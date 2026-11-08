@@ -183,7 +183,8 @@ class GatewayKeycloakIntegrationTest {
             Thread.sleep(200);
         }
         assertThat(sessionInRedis(session))
-            .as(() -> "session deleted by back-channel logout. Keycloak log tail:\n" + tail(keycloak.logs()))
+            .as(() -> "session deleted by back-channel logout. Keycloak to host.docker.internal:" + PORT + ": "
+                + keycloak.canReach("host.docker.internal", PORT) + "\nKeycloak log tail:\n" + tail(keycloak.logs()))
             .isFalse();
         assertThat(browser.xhr("GET", APP + "/bff/me").statusCode()).isEqualTo(401);
     }

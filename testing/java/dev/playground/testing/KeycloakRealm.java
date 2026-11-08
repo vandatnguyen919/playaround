@@ -131,6 +131,21 @@ public final class KeycloakRealm implements AutoCloseable {
         return this.keycloak.getLogs();
     }
 
+    /**
+     * Whether Keycloak's container can open a TCP connection to host:port, for
+     * assertion messages about back-channel calls (bash /dev/tcp; the image has no curl).
+     */
+    public String canReach(String host, int port) {
+        try {
+            var result = this.keycloak.execInContainer("bash", "-c",
+                "getent hosts " + host + "; timeout 5 bash -c '</dev/tcp/" + host + "/" + port
+                    + "' && echo open || echo 'not reachable'");
+            return result.getStdout().trim() + result.getStderr().trim();
+        } catch (Exception e) {
+            return "probe failed: " + e;
+        }
+    }
+
     /** Keycloak as the host sees it, for example http://localhost:49153. */
     public String baseUrl() {
         return "http://" + this.keycloak.getHost() + ":" + this.keycloak.getMappedPort(8080);
