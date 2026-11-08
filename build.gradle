@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '4.1.1' apply false
+    id 'org.springframework.boot' version '4.1.2' apply false
 }
 
 allprojects {
@@ -22,8 +22,8 @@ subprojects {
     }
 
     dependencies {
-        implementation platform('org.springframework.boot:spring-boot-dependencies:4.1.1')
-        testImplementation platform('org.springframework.boot:spring-boot-dependencies:4.1.1')
+        implementation platform('org.springframework.boot:spring-boot-dependencies:4.1.2')
+        testImplementation platform('org.springframework.boot:spring-boot-dependencies:4.1.2')
 
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -31,7 +31,7 @@ subprojects {
         // Local observability only: on the bootRun classpath, left out of bootJar
         // and so of the images. Phase 2 moves it to implementation (PRODUCT.md).
         // Needs its own platform line: bootJar resolves this configuration alone.
-        developmentOnly platform('org.springframework.boot:spring-boot-dependencies:4.1.1')
+        developmentOnly platform('org.springframework.boot:spring-boot-dependencies:4.1.2')
         developmentOnly 'org.springframework.boot:spring-boot-starter-opentelemetry'
     }
 
