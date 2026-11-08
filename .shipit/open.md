@@ -4,8 +4,12 @@
 
 See Verification in PRODUCT.md and Verify in README.md. Left:
 
-- **CI has not run the new jobs.** Next action: push the branch and open a PR; the `verify`
-  job now starts the whole stack (`verify-stack.mjs up --build`) and installs Chromium.
+- **CI on PR #38:** the first two runs failed only on back-channel logout (the gateway
+  Keycloak test and smoke), on Linux. The cause was in the gateway, not the tests: Spring
+  Security 7.1 replays the logout to the host Keycloak called (`host.docker.internal`),
+  which a Linux host does not resolve. The gateway now replays to localhost (SecurityConfig),
+  and the test calls the gateway by a name only Keycloak's container knows, so it fails on
+  every OS if this comes back. Next action: confirm the next CI run is green.
 - **`./verify compose` fails locally on setup:** `deploy/compose/.env` has no
   `JENKINS_CLIENT_SECRET`, so `docker compose` refuses the file (see Jenkins CD below).
   Next action: Dan adds it to the local env file.

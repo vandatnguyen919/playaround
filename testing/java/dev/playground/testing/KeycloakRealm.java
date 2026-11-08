@@ -49,6 +49,9 @@ public final class KeycloakRealm implements AutoCloseable {
     private static final Path ROOT = Path.of("..").toAbsolutePath().normalize();
 
     private final Network network = Network.newNetwork();
+    /** The test host as Keycloak's container sees it; unknown to the host itself. */
+    public static final String HOST_ALIAS = "gateway-host.test";
+
     private final GenericContainer<?> keycloak;
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 
@@ -60,6 +63,9 @@ public final class KeycloakRealm implements AutoCloseable {
             // name, as in infra/docker-compose.yml. host-gateway makes it work
             // on Linux (CI) as well as Docker Desktop.
             .withExtraHost("host.docker.internal", "host-gateway")
+            // The same host under a name only the container knows, so a test can
+            // check the gateway never needs to resolve the name Keycloak called.
+            .withExtraHost(HOST_ALIAS, "host-gateway")
             .withCommand("start-dev")
             .withEnv("KC_BOOTSTRAP_ADMIN_USERNAME", "admin")
             .withEnv("KC_BOOTSTRAP_ADMIN_PASSWORD", "admin")

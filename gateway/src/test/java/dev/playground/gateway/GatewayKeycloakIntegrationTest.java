@@ -63,9 +63,11 @@ class GatewayKeycloakIntegrationTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        // Keycloak posts back-channel logout tokens to the gateway on the host.
+        // Keycloak posts back-channel logout tokens to the gateway on the host, by a
+        // name the host cannot resolve (as host.docker.internal on Linux), so the
+        // gateway's replay of the logout must not depend on that name.
         keycloak = KeycloakRealm.start(APP,
-                "http://host.docker.internal:" + PORT + "/logout/connect/back-channel/gateway");
+                "http://" + KeycloakRealm.HOST_ALIAS + ":" + PORT + "/logout/connect/back-channel/gateway");
         GatewayTestSupport.redis(registry);
         registry.add("server.port", () -> PORT);
         registry.add("management.server.port", () -> "0");
@@ -183,8 +185,8 @@ class GatewayKeycloakIntegrationTest {
             Thread.sleep(200);
         }
         assertThat(sessionInRedis(session))
-            .as(() -> "session deleted by back-channel logout. Keycloak to host.docker.internal:" + PORT + ": "
-                + keycloak.canReach("host.docker.internal", PORT) + "\nKeycloak log tail:\n" + tail(keycloak.logs()))
+            .as(() -> "session deleted by back-channel logout. Keycloak to " + KeycloakRealm.HOST_ALIAS + ":" + PORT + ": "
+                + keycloak.canReach(KeycloakRealm.HOST_ALIAS, PORT) + "\nKeycloak log tail:\n" + tail(keycloak.logs()))
             .isFalse();
         assertThat(browser.xhr("GET", APP + "/bff/me").statusCode()).isEqualTo(401);
     }
