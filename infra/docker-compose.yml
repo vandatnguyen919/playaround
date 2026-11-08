@@ -120,5 +120,25 @@ services:
       timeout: 5s
       retries: 60
 
+  # Local secrets. Starts sealed: node infra/vault/vault.mjs up does the rest and
+  # writes infra/.env, which this file reads. Nothing here depends on it, and the
+  # apps never talk to it. Loopback only, like the rest of the admin surface.
+  vault:
+    image: hashicorp/vault:2.2.1
+    command: server
+    volumes:
+      - ./vault/vault.hcl:/vault/config/vault.hcl:ro
+      - vault-data:/vault/file
+    ports:
+      - "127.0.0.1:8200:8200"
+    mem_limit: 256m
+    healthcheck:
+      # Is the server up. Sealed still counts: status says whether it is unsealed.
+      test: ["CMD-SHELL", "wget -q -O /dev/null 'http://127.0.0.1:8200/v1/sys/health?sealedcode=200&uninitcode=200&standbycode=200'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
 volumes:
   redis-data:
+  vault-data:

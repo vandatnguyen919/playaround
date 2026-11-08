@@ -1,0 +1,66 @@
+# rotate-demo.mjs only: the gateway and API from their published images, beside a
+# dev Keycloak, in a scratch project with its own containers. No build section on
+# purpose: this stack cannot rebuild an image. It reads the same infra/.env.
+#
+#   docker compose -p playground-vault-demo -f infra/docker-compose.yml \
+#     -f infra/vault/compose.image-demo.yml up -d --wait gateway
+services:
+  keycloak:
+    environment:
+      # The gateway reads discovery over the private network and needs the public
+      # issuer there, as in compose.prod.yml (KeycloakBackChannelConfig).
+      KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+
+  keycloak-config:
+    environment:
+      APP_URL: http://localhost:8181
+      GATEWAY_BACKCHANNEL_LOGOUT_URL: http://gateway:8181/logout/connect/back-channel/gateway
+
+  redis:
+    ports: !override
+      - "127.0.0.1:16380:6379" # dev Redis already holds 6379
+
+  mailpit:
+    ports: !reset []
+
+  lgtm:
+    profiles: [never]
+
+  vault:
+    profiles: [never]
+
+  api:
+    image: ${API_IMAGE:-ghcr.io/vandatnguyen919/playground-api:latest}
+    pull_policy: never
+    environment:
+      KEYCLOAK_ISSUER_URI: http://localhost:8080/realms/playground
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/playground/protocol/openid-connect/certs
+    ports:
+      - "127.0.0.1:8182:8182"
+    depends_on:
+      keycloak-config:
+        condition: service_completed_successfully
+
+  gateway:
+    image: ${GATEWAY_IMAGE:-ghcr.io/vandatnguyen919/playground-gateway:latest}
+    pull_policy: never
+    environment:
+      APP_URL: http://localhost:8181
+      KEYCLOAK_ISSUER_URI: http://localhost:8080/realms/playground
+      KEYCLOAK_DISCOVERY_URI: http://keycloak:8080/realms/playground/.well-known/openid-configuration
+      # From infra/.env: the values under test.
+      GATEWAY_CLIENT_SECRET: ${GATEWAY_CLIENT_SECRET:?render infra/.env first}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?render infra/.env first}
+      API_URL: http://api:8182
+      REDIS_HOST: redis
+      MANAGEMENT_ADDRESS: 0.0.0.0
+    ports:
+      - "127.0.0.1:8181:8181"
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+      keycloak-config:
+        condition: service_completed_successfully

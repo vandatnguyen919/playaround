@@ -1,0 +1,3 @@
+# Fake key planted on purpose on 2026-10-31 to prove the CI gate fails (closed PR #13,
+# branch ci-test/fake-secret, never on main). A random value that opens nothing.
+c70e0a52c2eb95a9cb6c8a9a4121b6320d203c90:web/src/settings.ts:generic-api-key:3
