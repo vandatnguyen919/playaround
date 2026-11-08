@@ -407,6 +407,63 @@ In production config-cli signs in with the bootstrap admin service account
 client (`KC_BOOTSTRAP_ADMIN_CLIENT_*`), created on first boot. Keycloak flags
 bootstrap admins as temporary; replacing it with a permanent one is open.
 
+### Verification
+
+Decided 2026-11-08 (Dan asked for each item; the layout is ours).
+
+- **One entry point: `./verify`** (`verify.mjs`; Windows `node verify.mjs`). It
+  runs named suites (`gateway`, `api`, `web`, `attacks`, `smoke`, `headers`,
+  `e2e`, and `compose` when named), headless and without prompts, and CI
+  calls the same command. A suite whose services do not answer is BLOCKED and
+  fails the run; it is never skipped quietly. Each run clears and refills
+  `.shipit/verify/evidence/latest/` (logs, `summary.json`, the Playwright
+  report), so no file there is from an older run. The attack checks moved from
+  `verify.mjs` to `attacks.mjs`. `verify-stack.mjs up` starts the dev stack
+  headless for the stack suites (api and gateway jars, the gateway serving the
+  built SPA, Vite on :5174 as in dev). README, Verify, has the table.
+- **Keycloak in Testcontainers with a plain `GenericContainer`**, no new
+  library: Keycloak 26.8.1 and keycloak-config-cli 6.5.1, the same images and
+  realm files as `infra/docker-compose.yml`, so the realm under test is the one
+  dev and prod apply. Shared helpers in `testing/java` (compiled into each
+  module's tests). The theme jar is not mounted, so these tests see Keycloak's
+  stock pages; Playwright covers the theme.
+- **Token tests in two layers.** A stub JWKS lets the API test tokens Keycloak
+  never issues (expired past the 60 s skew, not yet valid, tampered payload,
+  broken signature, another key with the same `kid`, `alg: none`, another
+  issuer). Real Keycloak tokens prove the issuer and JWKS wiring (valid,
+  tampered). A real expired Keycloak token would need a wait of its lifespan
+  plus 60 s, so it is not used.
+- **Playwright 1.64.1 (`@playwright/test`, exact pin), new dependency approved
+  by Dan 2026-11-08.** Its own npm package in `/e2e`, Chromium only, one worker,
+  against the running dev stack. Mail is read from the Mailpit API, never the
+  UI. Revisit the pin with the other npm updates (Dependabot covers `/e2e`).
+
+**Flaky-test policy:**
+
+1. **No automatic retries.** `retries: 0` in Playwright, no Gradle retry
+   plugin, no rerun loop in `./verify` or CI. A retry that passes hides the
+   failure that matters.
+2. **A red run stays red.** Rerunning once to collect a trace or logs is fine;
+   the rerun's result does not replace the first one, and a PR does not merge
+   on a "rerun until green".
+3. **A failure that does not reproduce is recorded** in `.shipit/open.md`
+   (under Verification) with the test name, date, run or log, the failure
+   text, and the suspected cause, the same day.
+4. **Quarantine is explicit and short.** A test that fails twice without a
+   code cause may be disabled (`test.fixme` in Playwright, `@Disabled` in
+   JUnit, a named exclusion in the node scripts) with a reason pointing to its
+   open.md entry. At most 14 days: then it is fixed or deleted, with Dan's yes
+   for a deletion. A quarantined test is reported as quarantined, never as passed.
+5. **Fix the cause, not the timing.** Wait on a condition with a deadline
+   (Playwright `expect`, polling Mailpit or Redis), never on a fixed sleep;
+   every test makes its own users with random emails and deletes them; no test
+   depends on another's state or order; time checks keep a margin over the
+   clock skew they test.
+6. **Known timing-sensitive checks**, first suspects when something flickers:
+   smoke `refresh` (75 s tokens), attacks `lockout` and `expiredlink` (wait for
+   a lock or a link to expire), back-channel logout (polls 10 s), and the edge
+   rate limits (smoke at most once a minute against the public stack).
+
 ### Repo layout
 
 **Monorepo: `/gateway`, `/api`, `/web`, `/keycloak-theme`, `/infra`.**
@@ -418,6 +475,9 @@ bootstrap admins as temporary; replacing it with a permanent one is open.
 - `/infra`: docker-compose (Keycloak, Redis, Mailpit, dev-only LGTM and Vault),
   realm import JSON, env example, `otel` (dev telemetry config and check), `vault`
   (policies, secret inventory, scripts).
+- `/e2e`: Playwright browser tests. npm.
+- `/testing/java`: test helpers shared by the Gradle modules (Keycloak in
+  Testcontainers, a cookie jar HTTP browser).
 
 Gradle multi-project at the root for the Java modules (`settings.gradle`
 includes `gateway` and `api`), with one Spring Boot and Spring Cloud BOM version
@@ -1034,9 +1094,9 @@ never deploys. Jenkins deploys a published `sha-<git sha>` by digest (see
 Jenkins). A commit reaches the VM only after someone approves it there.
 
 - **Workflow:** `.github/workflows/ci.yml`. Every pull request to `main`
-  runs, with nothing pushed: `./gradlew build` (with tests), web and theme
-  lint (oxlint) and tests (`node --test`), `./verify` against dev Keycloak
-  and Mailpit, Gitleaks over the whole history, Trivy (High and Critical in
+  runs, with nothing pushed: `./verify` (Gradle tests with Testcontainers,
+  web and theme lint and tests, then the attack, smoke, header and Playwright
+  suites against the dev stack started by `verify-stack.mjs`), Gitleaks over the whole history, Trivy (High and Critical in
   npm lockfiles and in the built jars), and dependency review (fails on a
   new High or Critical advisory). A push to `main` runs the same checks
   except dependency review, then builds gateway, api and keycloak natively
@@ -1374,6 +1434,11 @@ Facts worth knowing:
   refuses the old secret, the unrestarted gateway fails to log in, the recreated
   container passes smoke 45 of 45. `bootRun` also logs in with a rotated value from
   `.env`. Results: `.shipit/records/vault-rotation-2026-11-07.md`.
+- **One `./verify` for every check** (see Verification). Locally on 2026-11-08,
+  against a throwaway Keycloak: `gateway` and `api` pass with Keycloak in
+  Testcontainers, `web`, `attacks` 43 of 43, `smoke` 45 of 45, `headers`, and
+  `e2e` 8 of 8 in Chromium. In the one full run `attacks` was BLOCKED by a missed Keycloak
+  probe and passed alone afterwards (`.shipit/open.md`). Not yet run in CI.
 - **Gitleaks is clean over history** on all refs (73 commits) and in CI's form. The one
   finding was the fake key from the closed gate test.
 

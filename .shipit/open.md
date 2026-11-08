@@ -1,5 +1,28 @@
 # Open
 
+## Verification (2026-11-08)
+
+See Verification in PRODUCT.md and Verify in README.md. Left:
+
+- **CI has not run the new jobs.** Next action: push the branch and open a PR; the `verify`
+  job now starts the whole stack (`verify-stack.mjs up --build`) and installs Chromium.
+- **`./verify compose` fails locally on setup:** `deploy/compose/.env` has no
+  `JENKINS_CLIENT_SECRET`, so `docker compose` refuses the file (see Jenkins CD below).
+  Next action: Dan adds it to the local env file.
+- **Stale dev Keycloak container** (see Local Vault): `verify-stack.mjs up` runs
+  `docker compose up keycloak` when nothing answers on :8080, which may replace it. The
+  2026-11-08 run used a separate compose project, `playground-verify`, instead. Next action:
+  Dan decides on the stale container before running `verify-stack.mjs up` locally.
+- **Keycloak in Testcontainers is slow here:** about 6 minutes per module on Docker Desktop
+  (gateway and api each start one). Next action, if it hurts: share one container across both
+  modules or enable Testcontainers reuse.
+- **Flaky-policy entry, 2026-11-08, `./verify` (all defaults):** `attacks` was BLOCKED. The
+  single 5 s probe of Keycloak on :8080 failed right after the `gateway` and `api` suites,
+  and `smoke` passed against the same Keycloak a minute later. Suspected cause: the host
+  was loaded by the Testcontainers Keycloaks. Change: a need now gets 30 s to answer. The
+  run stays red. Next action: watch for a repeat.
+- **Quarantined tests:** none.
+
 ## Local Vault (2026-11-07)
 
 See Secrets: Vault and Current state in PRODUCT.md, runbook in `infra/vault/README.md`. Left:

@@ -1,0 +1,9 @@
+# Added by verify-stack.mjs on Linux (CI) only, on top of docker-compose.yml.
+# Back-channel logout posts to the gateway on the host as host.docker.internal
+# (the realm's backchannel.logout.url). Docker Desktop defines that name; plain
+# Docker on Linux needs host-gateway. Kept out of docker-compose.yml so a
+# change here never recreates a dev Keycloak container.
+services:
+  keycloak:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

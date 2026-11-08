@@ -22,3 +22,6 @@ dist/
 .trivy-cache/
 # Vault's unseal key and root token (infra/vault/vault.mjs)
 infra/vault/.local/
+
+# ./verify writes each run here (cleared at the start of every run); CI uploads it.
+.shipit/verify/evidence/latest/

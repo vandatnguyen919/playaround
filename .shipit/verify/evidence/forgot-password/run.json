@@ -1,5 +1,5 @@
 {
-  "runId": "2026-10-31T03:01:39.318Z",
+  "runId": "2026-11-08T12:28:26.362Z",
   "checks": [
     "enumeration",
     "enumdiff",
@@ -200,7 +200,7 @@
     {
       "name": "the lock lifts by itself",
       "ok": true,
-      "detail": "after 61s"
+      "detail": "after 62s"
     },
     {
       "name": "the right password signs in after the lock",
@@ -278,7 +278,7 @@
     "mail": {
       "subject": "Reset password",
       "from": "keycloak@playground.local",
-      "to": "verify-b9224bb5@example.com"
+      "to": "verify-fa0eebc5@example.com"
     },
     "expiredLink": {
       "pageId": "error.ftl",
@@ -293,8 +293,8 @@
     },
     "layout": {
       "assets": [
-        "/resources/jkdxg/login/keycloak-theme/dist/assets/index-C00B7buW.js",
-        "/resources/jkdxg/login/keycloak-theme/dist/assets/index-CEv2bCfk.css"
+        "/resources/rpjyu/login/keycloak-theme/dist/assets/index-C00B7buW.js",
+        "/resources/rpjyu/login/keycloak-theme/dist/assets/index-CEv2bCfk.css"
       ]
     }
   }

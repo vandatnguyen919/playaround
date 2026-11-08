@@ -4,4 +4,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    // Keycloak in Testcontainers for the token tests (testing/java).
+    testImplementation 'org.testcontainers:testcontainers'
 }
