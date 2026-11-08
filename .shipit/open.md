@@ -26,6 +26,12 @@ See Verification in PRODUCT.md and Verify in README.md. Left:
   was loaded by the Testcontainers Keycloaks. Change: a need now gets 30 s to answer. The
   run stays red. Next action: watch for a repeat.
 - **Quarantined tests:** none.
+- **Local stack on this machine (2026-11-09):** `JAVA_HOME` is JDK 21 and
+  `playground-prod-gateway-1` holds 9181, so the stack started only with
+  `COMPOSE_PROJECT_NAME=playground-verify MANAGEMENT_PORT=9191
+  VERIFY_JAVA=".../jdk-27/bin/java.exe" node verify-stack.mjs up`, then
+  `MANAGEMENT_URL=http://localhost:9191 node verify.mjs`. Next action: Dan
+  decides whether the local prod stack keeps running.
 
 ## Local Vault (2026-11-07)
 
@@ -68,17 +74,15 @@ See Jenkins and Current state in PRODUCT.md, runbook in `deploy/k8s/jenkins/READ
 Built and checked locally: see Current state in PRODUCT.md and
 `.shipit/records/images-2026-10-31.md`. Left:
 
-- **Trivy ignores expire 2026-11-30** (`.trivyignore.yaml`). After that
-  every CI run fails until the Spring Boot BOM item below is decided.
-- **Trivy Critical/High in Spring Boot BOM jars:** Tomcat 11.0.24 (4
-  Critical, api) and Jackson 3.1.5 / 2.21.5 (High, both). Versions are
-  pinned in PRODUCT.md, so Dan decides: a Spring Boot patch release that
-  carries Tomcat 11.0.25 and Jackson 3.1.7 / 2.21.7, or BOM property
-  overrides (`tomcat.version`, `jackson-bom.version`). Rerun gateway tests,
-  smoke and Trivy after.
-- **Keycloak base findings** (ca-certificates Critical, OpenJDK 21 High with
-  no fix, guava High) come from `quay.io/keycloak/keycloak:26.8.1`. Next
-  action: check for a 26.8.x patch image before deploy.
+- **Keycloak base findings left in 26.8.2** (2026-11-09; 26.8.2 fixed the
+  ca-certificates Critical and OpenJDK CVE-2026-91415): OpenJDK 21
+  CVE-2026-91403 and sqlite-libs CVE-2026-119373 / CVE-2026-119586 (no fix
+  yet), guava 33.6.0 CVE-2026-102554 (fixed in 33.7.2, bundled by Keycloak).
+  CI does not scan images, so nothing fails on them. Next action: take the
+  next 26.8.x image when Dependabot offers it.
+- **Dependabot #20 and #32** overlap the 2026-11-09 bump. #32 (Keycloak
+  26.8.2) is fully covered and can be closed. #20 also moves Spring Cloud to
+  2025.1.4 and the Gradle wrapper, which stay Dan's call.
 
 ## Azure for Students replaces Oracle Cloud (2026-10-30)
 
