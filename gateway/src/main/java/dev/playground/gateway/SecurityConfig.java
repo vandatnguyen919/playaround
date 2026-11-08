@@ -227,6 +227,12 @@ public class SecurityConfig {
         OidcBackChannelServerLogoutHandler logoutHandler = new OidcBackChannelServerLogoutHandler(sessionRegistry);
         // Spring Session names the session cookie SESSION, not JSESSIONID.
         logoutHandler.setSessionCookieName("SESSION");
+        // The handler replays the logout to this gateway. By default it uses the
+        // host Keycloak called (host.docker.internal in dev, gateway in compose),
+        // which this process may not resolve: Linux hosts have no
+        // host.docker.internal. Loopback on the port the call came in on always
+        // reaches this instance. Plain http: TLS ends at Traefik.
+        logoutHandler.setLogoutUri("http://localhost{basePort}/logout/connect/back-channel/{registrationId}");
         return logoutHandler;
     }
 

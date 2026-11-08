@@ -35,8 +35,17 @@ subprojects {
         developmentOnly 'org.springframework.boot:spring-boot-starter-opentelemetry'
     }
 
+    // Shared test helpers (Keycloak in Testcontainers with the realm applied by
+    // keycloak-config-cli, a cookie jar browser), compiled into each module's tests.
+    sourceSets.test.java.srcDir rootProject.file('testing/java')
+
     tasks.named('test') {
         useJUnitPlatform()
+        // Test names and results in the console, so ./verify and CI logs show what ran.
+        testLogging {
+            events 'passed', 'skipped', 'failed'
+            exceptionFormat 'full'
+        }
     }
 
     // Traces, metrics and logs for infra/docker-compose.yml's lgtm service.

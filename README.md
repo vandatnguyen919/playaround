@@ -139,9 +139,9 @@ copy onto `eclipse-temurin:26-jre` (or the Keycloak image).
 **CI publishes them** (`.github/workflows/ci.yml`, GitHub Actions). CI never
 deploys; that is Jenkins' job (`deploy/k8s/jenkins/README.md`).
 
-- Every pull request to `main`, nothing pushed: `./gradlew build`, web and
-  theme `npm run lint` and `npm test`, `./verify` (dev Keycloak and Mailpit
-  from `infra/docker-compose.yml`), Gitleaks over the whole history
+- Every pull request to `main`, nothing pushed: `./verify` (every suite, see
+  "Verify" below; the stack ones against the dev stack started headless with
+  `verify-stack.mjs`), `./gradlew assemble`, Gitleaks over the whole history
   (`.gitleaks.toml`), Trivy on the npm lockfiles and the built jars (High
   and Critical; known findings in `.trivyignore.yaml`, which expire), and
   dependency review.
@@ -289,6 +289,65 @@ Node:
 ssh playground@<vm> "sudo docker run --rm --network host -v /var/run/docker.sock:/var/run/docker.sock -v /srv/playground:/srv/playground:ro docker:29.1-cli sh -c 'apk add -q nodejs; node /srv/playground/deploy/compose/check.mjs'"
 ```
 
+## Verify
+
+One entry point for every automated check, headless, the same in CI:
+
+```bash
+node verify-stack.mjs up
+```
+
+```bash
+./verify
+```
+
+On Windows run `node verify.mjs` instead of `./verify`. `./verify --list` shows
+the suites and what each needs. Name suites to run only those, and pass a
+suite its own check names after a colon:
+
+```
+./verify gateway api                (Testcontainers only, no stack needed)
+./verify smoke:login,logout         (named smoke checks)
+./verify gateway:GatewayKeycloakIntegrationTest
+./verify compose:--insecure         (named only: the compose.prod.yml stack)
+```
+
+| Suite | What it checks | Needs |
+| --- | --- | --- |
+| `gateway` | Redis hardening and Redis down; with Keycloak (realm applied by keycloak-config-cli): login starts a Redis session, the browser holds only the cookie, the gateway relays a Keycloak-signed token, logout with and without CSRF, end-session URL, back-channel logout | Docker |
+| `api` | Role rules; real JWT checks with a stub JWKS (valid, expired, not yet valid, tampered payload, broken signature, other key, `alg: none`, other issuer) and with real Keycloak tokens (valid, tampered) | Docker |
+| `web` | SPA and theme lint and unit tests | npm installs |
+| `attacks` | `attacks.mjs`: enumeration, stuffing, lockout, policy, reset links (table below) | Keycloak, Mailpit |
+| `smoke` | `smoke.mjs` (table below) | Keycloak, Redis, gateway, app on :5174 |
+| `headers` | `check-headers.mjs`: CSP and headers, CORS, actuator only on the management port | gateway serving the built SPA |
+| `e2e` | Playwright in Chromium: login, wrong password, logout, register with the verification mail read from the Mailpit API, forgot password through the mailed link, 401 and 403 | Keycloak, Mailpit, app on :5174, `npm --prefix e2e ci` and `npm --prefix e2e exec playwright install chromium` |
+| `compose` | `deploy/compose/check.mjs` against the compose.prod.yml stack; only when named | `deploy/compose/.env` (or `COMPOSE_ENV_FILE`) |
+
+A suite whose needs do not answer is BLOCKED, with what to start, and the run
+exits 1: nothing is skipped quietly. Exit codes: 0 all passed, 1 failed or
+blocked, 2 unknown suite. Each run clears and refills
+`.shipit/verify/evidence/latest/`: one log per suite, `summary.json` (run id,
+commit, results), and for `e2e` the HTML report (`e2e-report/`) with
+screenshots and, on failure, traces (`e2e-results/`). Not in git; CI uploads it.
+
+`verify-stack.mjs up` builds what is missing (`--build` rebuilds all), starts
+Keycloak, Mailpit and Redis from `infra/docker-compose.yml` when they do not
+answer, applies the realm, then runs the api and gateway jars and Vite on :5174
+in the background (logs in `build/verify-stack/`). It reuses anything already
+answering, so a running dev session is fine. `down` stops what `up` started;
+compose services stay. Both scripts read the dev secrets from `infra/.env`
+(rendered from Vault) when it exists, like `bootRun`. Variables:
+
+- `VERIFY_JAVA`: the java binary, when `JAVA_HOME` is older than 26.
+- `MANAGEMENT_PORT` (stack) and `MANAGEMENT_URL` (verify): when 9181 is taken,
+  for example by the local compose.prod.yml gateway.
+- `KC_URL`, `MAILPIT_URL`, `APP_URL`, `GATEWAY_URL`: other addresses.
+
+Timings on the dev machine: `gateway` and `api` about 6 to 7 minutes each
+(mostly Keycloak's first start in Docker Desktop), `attacks` about 2.5
+minutes, `smoke` 1, `e2e` 2. Flaky tests: see the policy in PRODUCT.md,
+Verification.
+
 ## Smoke test
 
 With the whole stack running (steps 2 to 4):
@@ -313,7 +372,7 @@ failure. Checks:
 | `backchannel` | An admin logout at Keycloak deletes the gateway session and its registry entry from Redis; the browser cookie then gets 401 |
 | `refresh` | With a 75 s access token (set for the run, then restored), 8 parallel calls at expiry all get 200, twice, on the same session id (about 35 s) |
 
-`node verify.mjs` separately covers forgot password and the theme layout (see
+`./verify attacks` separately covers forgot password and the theme layout (see
 "Forgot password and verify" below). `.\gradlew.bat test` runs the unit tests.
 
 ## Session hardening
@@ -551,8 +610,8 @@ the `SMTP_*` variables of the `keycloak-config` service (`mailpit:1025` in dev).
 With Keycloak and Mailpit up and the theme jar built, run:
 
 ```
-node verify.mjs              (macOS/Linux: ./verify)
-node verify.mjs enumeration  (one named check)
+./verify attacks                    (Windows: node verify.mjs attacks)
+./verify attacks:enumeration,reset  (named checks only)
 ```
 
 It creates throwaway users, runs the flows over HTTP, deletes the users, and exits
@@ -575,7 +634,7 @@ PRODUCT.md, Auth abuse protection):
 | `olderlink` | Older reset link after a newer one was used | Realm keeps reset links at 15 min; the older link stops working at expiry (accepted gap: it works until then) |
 
 `flood` needs the compose.prod.yml stack running; locally:
-`EDGE_HOST=auth.localhost EDGE_INSECURE=1 node verify.mjs flood`. The default
+`EDGE_HOST=auth.localhost EDGE_INSECURE=1 node attacks.mjs flood`. The default
 run takes about 2.5 minutes (the lockout and olderlink checks wait for a lock
 or a link to expire).
 

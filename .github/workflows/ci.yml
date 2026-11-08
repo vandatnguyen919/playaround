@@ -1,7 +1,8 @@
 # CI for the whole repo. CD (deploying an image) is Jenkins' job, not this one.
-# Pull requests: Gradle build and tests, web and theme lint and tests,
-# ./verify, Gitleaks, Trivy, Terraform checks and dependency review. Nothing is
-# pushed.
+# Pull requests: ./verify (Gradle tests with Testcontainers, web and theme lint
+# and tests, then attack, smoke, header and Playwright checks against the dev
+# stack started headless), Gitleaks, Trivy, Terraform checks and dependency
+# review. Nothing is pushed.
 # main: the same checks, then gateway, api and keycloak built natively on
 # amd64 and arm64 runners, pushed by digest, merged into one tag
 # sha-<git sha>, and checked for both platforms and their provenance.
@@ -22,6 +23,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Every check runs through ./verify (verify.mjs), the same entry point as on a
+  # dev machine. The Java suites need only Docker (Testcontainers: Redis and
+  # Keycloak with the realm applied by keycloak-config-cli).
   gradle:
     runs-on: ubuntu-24.04
     steps:
@@ -30,10 +34,13 @@ jobs:
         with:
           distribution: temurin
           java-version: "26"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.20.0
       # Caches the Gradle home (dependencies, wrapper) between runs.
       - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
-      # build runs the tests. Gateway tests start Redis with Testcontainers.
-      - run: bash ./gradlew build
+      - run: ./verify gateway api
+      - run: bash ./gradlew assemble
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: boot-jars
@@ -41,6 +48,15 @@ jobs:
             gateway/build/libs/*.jar
             api/build/libs/*.jar
           retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: gradle-test-reports
+          path: |
+            .shipit/verify/evidence/latest/
+            gateway/build/reports/tests/
+            api/build/reports/tests/
+          if-no-files-found: ignore
 
   web:
     runs-on: ubuntu-24.04
@@ -53,34 +69,40 @@ jobs:
           cache-dependency-path: |
             web/package-lock.json
             keycloak-theme/package-lock.json
-      - name: web
-        working-directory: web
-        run: npm ci && npm run lint && npm test && npm run build
-      - name: keycloak-theme
-        working-directory: keycloak-theme
-        run: npm ci && npm run lint && npm test
+      - run: npm --prefix web ci && npm --prefix keycloak-theme ci
+      - run: ./verify web
+      - run: npm --prefix web run build
 
-  # Needs dev Keycloak with the theme jar, and Mailpit (infra/docker-compose.yml).
+  # The whole dev stack, headless: compose (Keycloak with the theme jar and the
+  # realm, Redis, Mailpit), the api and gateway jars, and Vite on :5174
+  # (verify-stack.mjs). Then the HTTP checks and the Playwright browser tests.
   verify:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "26"
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.20.0
           cache: npm
-          cache-dependency-path: keycloak-theme/package-lock.json
-      - name: Build the theme jar
-        working-directory: keycloak-theme
-        run: npm ci && npm run build-keycloak-theme
-      - name: Start Keycloak and Mailpit
-        run: docker compose -f infra/docker-compose.yml up -d --wait --wait-timeout 600 keycloak mailpit
-      - name: Apply the realm
-        run: docker compose -f infra/docker-compose.yml run --rm keycloak-config
-      - run: ./verify
-      - name: Compose logs
+          cache-dependency-path: |
+            keycloak-theme/package-lock.json
+            web/package-lock.json
+            e2e/package-lock.json
+      - name: Install Playwright and Chromium
+        run: npm --prefix e2e ci && npm --prefix e2e exec -- playwright install --with-deps chromium
+      - name: Start the stack
+        run: node verify-stack.mjs up --build
+      - run: ./verify attacks smoke headers e2e
+      - name: Stack logs
         if: failure()
-        run: docker compose -f infra/docker-compose.yml logs --no-color
+        run: |
+          docker compose -f infra/docker-compose.yml logs --no-color
+          tail -n 200 build/verify-stack/*.log
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

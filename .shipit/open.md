@@ -1,5 +1,32 @@
 # Open
 
+## Verification (2026-11-08)
+
+See Verification in PRODUCT.md and Verify in README.md. Left:
+
+- **CI on PR #38:** the first two runs failed only on back-channel logout (the gateway
+  Keycloak test and smoke), on Linux. The cause was in the gateway, not the tests: Spring
+  Security 7.1 replays the logout to the host Keycloak called (`host.docker.internal`),
+  which a Linux host does not resolve. The gateway now replays to localhost (SecurityConfig),
+  and the test calls the gateway by a name only Keycloak's container knows, so it fails on
+  every OS if this comes back. Next action: confirm the next CI run is green.
+- **`./verify compose` fails locally on setup:** `deploy/compose/.env` has no
+  `JENKINS_CLIENT_SECRET`, so `docker compose` refuses the file (see Jenkins CD below).
+  Next action: Dan adds it to the local env file.
+- **Stale dev Keycloak container** (see Local Vault): `verify-stack.mjs up` runs
+  `docker compose up keycloak` when nothing answers on :8080, which may replace it. The
+  2026-11-08 run used a separate compose project, `playground-verify`, instead. Next action:
+  Dan decides on the stale container before running `verify-stack.mjs up` locally.
+- **Keycloak in Testcontainers is slow here:** about 6 minutes per module on Docker Desktop
+  (gateway and api each start one). Next action, if it hurts: share one container across both
+  modules or enable Testcontainers reuse.
+- **Flaky-policy entry, 2026-11-08, `./verify` (all defaults):** `attacks` was BLOCKED. The
+  single 5 s probe of Keycloak on :8080 failed right after the `gateway` and `api` suites,
+  and `smoke` passed against the same Keycloak a minute later. Suspected cause: the host
+  was loaded by the Testcontainers Keycloaks. Change: a need now gets 30 s to answer. The
+  run stays red. Next action: watch for a repeat.
+- **Quarantined tests:** none.
+
 ## Local Vault (2026-11-07)
 
 See Secrets: Vault and Current state in PRODUCT.md, runbook in `infra/vault/README.md`. Left:
