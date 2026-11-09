@@ -22,7 +22,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.MountableFile;
 
 /**
- * Keycloak 26.8.1 in Testcontainers with the playground realm applied the same
+ * Keycloak 26.8.2 in Testcontainers with the playground realm applied the same
  * way dev does it: keycloak-config-cli runs infra/playground-realm.json and
  * infra/playground-users-dev.json through the admin API, then exits. The
  * images and environment mirror infra/docker-compose.yml.
@@ -37,7 +37,7 @@ import org.testcontainers.utility.MountableFile;
 public final class KeycloakRealm implements AutoCloseable {
 
     public static final String REALM = "playground";
-    public static final String KEYCLOAK_IMAGE = "quay.io/keycloak/keycloak:26.8.1";
+    public static final String KEYCLOAK_IMAGE = "quay.io/keycloak/keycloak:26.8.2";
     public static final String CONFIG_CLI_IMAGE = "adorsys/keycloak-config-cli:6.5.1-26.5.5";
     public static final String GATEWAY_CLIENT_SECRET = "test-gateway-secret";
 

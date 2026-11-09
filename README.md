@@ -499,7 +499,7 @@ Verified on Windows (PowerShell 5.1) on 2026-10-19. On macOS/Linux use the
 
 All commands are run from the repo root unless stated otherwise.
 
-1. **Start infra** (Keycloak 26.8.1, Redis 8.10, Mailpit v1.31.6):
+1. **Start infra** (Keycloak 26.8.2, Redis 8.10, Mailpit v1.31.6):
 
    ```
    docker compose -f infra/docker-compose.yml up -d --wait

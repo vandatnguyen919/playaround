@@ -66,9 +66,9 @@ Choices made, with reasons. Versions were checked against official docs on
 
 ### Version stack
 
-- **Java 26, Gradle (Groovy DSL) 9.8.1.** Spring Boot 4.1.1 supports Java 17
+- **Java 26, Gradle (Groovy DSL) 9.8.1.** Spring Boot 4.1.2 supports Java 17
   through 26, and supports Gradle 8.14+ and 9.x, so 9.8.1 is fine.
-- **Spring Boot 4.1.x (current 4.1.1) with Spring Security 7.** Current line,
+- **Spring Boot 4.1.x (current 4.1.2, from 4.1.1 on 2026-11-09 for the Tomcat and Jackson fixes) with Spring Security 7.** Current line,
   required by the Java 26 target.
 - **Spring Cloud 2025.1.x (Oakwood).** This is the release train for Spring Boot
   4.0.x and 4.1.x (2025.1.2+ for Boot 4.1). Use the latest service release
@@ -93,7 +93,7 @@ Choices made, with reasons. Versions were checked against official docs on
   tokens in the session). Before 2026-10-29 it sat on the manager: every
   refresh rotated the id and the new tokens were never saved, so a burst of
   parallel calls at token expiry got 500s. `node smoke.mjs refresh` covers it.
-- **Keycloak 26.8.1 with Keycloakify 11.x (current 11.16.3).** Latest stable of
+- **Keycloak 26.8.2 (from 26.8.1 on 2026-11-09) with Keycloakify 11.x (current 11.16.3).** Latest stable of
   each. Keycloakify themes target the latest Keycloak and run on older ones.
   Keycloakify ships a shadcn/ui + Tailwind starter theme, which is our starting
   point for the theme. Revisit the pairing when either major version changes.
@@ -400,7 +400,7 @@ as HCL, a state file that holds client secrets, and a `terraform apply` per
 realm change, which is a Stop. config-cli reuses the JSON as is, runs inside
 compose (later a Kubernetes Job) next to Keycloak, and needs no state store.
 Tradeoff: no plan/diff preview before applying, and config-cli builds lag
-Keycloak (6.5.1 targets 26.5.5 and is run against 26.8.1). Revisit if a plan
+Keycloak (6.5.1 targets 26.5.5 and is run against 26.8.2). Revisit if a plan
 step becomes worth it, or config-cli stops keeping up with Keycloak.
 
 In production config-cli signs in with the bootstrap admin service account
@@ -422,7 +422,7 @@ Decided 2026-11-08 (Dan asked for each item; the layout is ours).
   headless for the stack suites (api and gateway jars, the gateway serving the
   built SPA, Vite on :5174 as in dev). README, Verify, has the table.
 - **Keycloak in Testcontainers with a plain `GenericContainer`**, no new
-  library: Keycloak 26.8.1 and keycloak-config-cli 6.5.1, the same images and
+  library: Keycloak 26.8.2 and keycloak-config-cli 6.5.1, the same images and
   realm files as `infra/docker-compose.yml`, so the realm under test is the one
   dev and prod apply. Shared helpers in `testing/java` (compiled into each
   module's tests). The theme jar is not mounted, so these tests see Keycloak's
@@ -754,7 +754,7 @@ cores, so Keycloak starts slowly.
 - **arm64 everywhere, multi-arch images required.** Every image we build is
   published for `linux/arm64` and `linux/amd64` (AWS may be Graviton or x86,
   and dev is x86 Windows). Base images checked multi-arch:
-  `eclipse-temurin:26-jre`, `quay.io/keycloak/keycloak:26.8.1`,
+  `eclipse-temurin:26-jre`, `quay.io/keycloak/keycloak:26.8.2`,
   `postgres:18.6-alpine`, `redis:8.10-alpine`, `traefik:v3.7.16`,
   `jenkins/jenkins:2.580.1-lts-jdk25`. Build rule: compile JARs and the SPA
   once in `FROM --platform=$BUILDPLATFORM` stages, and make final stages only
@@ -1116,9 +1116,9 @@ Jenkins). A commit reaches the VM only after someone approves it there.
   accepts the PR.
 - **Allowlists:** `.gitleaks.toml` (verify evidence, the throwaway test
   password), `.gitleaksignore` (the fake key planted for the gate test in closed
-  PR #13, one fingerprint) and `.trivyignore.yaml` (the Spring Boot BOM findings, each
-  pinned to its version and expiring 2026-11-30, so CI fails again unless
-  Dan decides first).
+  PR #13, one fingerprint) and `.trivyignore.yaml` (empty since Spring Boot
+  4.1.2 fixed the BOM findings; any new entry is pinned to its package version
+  and expires).
 - **Tags:** only `sha-<git sha>`, no `latest`. Deploys pin all three
   images to the same commit.
 - **Why:** native arm64 runners are free for public repos, so no QEMU, no
@@ -1373,8 +1373,10 @@ Facts worth knowing:
   gateway and api; the full stack from these images passes `check.mjs`
   (43), `check-headers.mjs` (20) and `smoke.mjs` (45) locally with
   `compose.local-test.yml`. Sizes and Trivy results:
-  `.shipit/records/images-2026-10-31.md` (Critical/High only in Spring Boot
-  BOM jars and the upstream Keycloak base). Building Keycloak for arm64 on
+  `.shipit/records/images-2026-10-31.md`. Since 2026-11-09 (Spring Boot
+  4.1.2, Keycloak 26.8.2) the jars have no High or Critical; four High with
+  no fix inside the image remain in the upstream Keycloak base (OpenJDK 21,
+  sqlite-libs, guava). Building Keycloak for arm64 on
   the dev machine needs QEMU registered (`tonistiigi/binfmt --install
   arm64`), which Docker Desktop loses on restart.
   `.github/workflows/ci.yml`: every pull request check passes on GitHub
