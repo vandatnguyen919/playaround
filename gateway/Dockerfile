@@ -12,7 +12,7 @@ RUN --mount=type=cache,target=/root/.npm npm ci --fetch-retries=5
 COPY web/ ./
 RUN npm run build
 
-FROM --platform=$BUILDPLATFORM eclipse-temurin:26-jdk AS jar
+FROM --platform=$BUILDPLATFORM eclipse-temurin:27-jdk AS jar
 WORKDIR /src
 # Build scripts first, so dependency downloads stay cached across code edits.
 COPY gradlew settings.gradle build.gradle gradle.properties ./
@@ -26,7 +26,7 @@ RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew --no-daemon -q :gateway:bootJar \
     && java -Djarmode=tools -jar gateway/build/libs/gateway-*.jar extract --layers --launcher --destination /layers
 
-FROM eclipse-temurin:26-jre
+FROM eclipse-temurin:27-jre
 WORKDIR /app
 # Least to most often changed, one image layer each.
 COPY --from=jar /layers/dependencies/ ./
