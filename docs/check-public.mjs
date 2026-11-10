@@ -34,7 +34,7 @@ const rules = [
 // Version numbers such as 26.8.2.1 look like IPv4. Only these exact ones are allowed.
 const allowedIps = new Set(["26.0.2.1"])
 
-const textFiles = new Set([".html", ".js", ".json", ".xml", ".txt", ".css", ".md", ".mdx", ".map", ".svg"])
+const textFiles = new Set([".html", ".js", ".json", ".xml", ".txt", ".css", ".md", ".mdx", ".map", ".svg", ".excalidraw"])
 
 function* walk(dir) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {

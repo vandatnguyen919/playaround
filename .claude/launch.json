@@ -30,6 +30,21 @@
         "--no-open"
       ],
       "port": 3210
+    },
+    {
+      "name": "docs-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "docs",
+        "run",
+        "start",
+        "--",
+        "--port",
+        "3211",
+        "--no-open"
+      ],
+      "port": 3211
     }
   ]
 }

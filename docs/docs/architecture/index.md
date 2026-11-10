@@ -5,6 +5,29 @@ description: The components of the playground and how requests move between them
 
 # Architecture
 
+## The big picture
+
+One login and one API call, in eight steps.
+
+[![BFF architecture: the browser SPA talks only to the gateway with a session cookie; the gateway runs the authorization code flow with PKCE against Keycloak, keeps the tokens in a Redis session, and relays the access token to the API, which verifies it against Keycloak's keys](/img/bff-architecture.svg)](pathname:///playaround/img/bff-architecture.svg)
+
+Select the drawing to open it full size.
+
+1. The SPA starts login with a full page navigation to the gateway.
+2. The gateway runs the authorization code flow with PKCE against Keycloak.
+3. Keycloak hands the tokens to the gateway, server to server.
+4. The gateway sets the `SESSION` cookie. It is `HttpOnly` and is not a token.
+5. The SPA calls the API through the gateway with the cookie only.
+6. The gateway finds the session and its tokens in Redis.
+7. The `TokenRelay` filter adds the access token as a bearer header.
+8. The API verifies the token's signature against Keycloak's keys.
+
+The drawing is an [Excalidraw](https://excalidraw.com) file. Its source is
+[`bff-architecture.excalidraw`](pathname:///playaround/img/bff-architecture.excalidraw),
+which you can open and edit there.
+
+## Components in local development
+
 Five parts run in local development. The diagram is the one from the
 repository README.
 

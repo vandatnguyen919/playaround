@@ -24,5 +24,9 @@ From the repo root, `./verify docs` runs the build and the scan.
   kind of private value appears.
 - Deployment (Azure, the VM, Jenkins, Vault) is out of scope for the site (Dan,
   2026-11-10).
+- Hand-drawn diagrams are Excalidraw files in `static/img/`: the `.excalidraw` file is
+  the source and the `.svg` beside it is what the page shows. To change one, open the
+  `.excalidraw` file at excalidraw.com, edit, save it back, and export an SVG with a
+  white background over the old one. Sequence diagrams stay in Mermaid.
 - Pages live in `docs/`, the sidebar in `sidebars.js`. A new page must be added
   to the sidebar.

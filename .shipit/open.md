@@ -1,24 +1,17 @@
 # Open
 
-## Docs site (2026-11-10)
+## Docs site (live since 2026-11-10)
 
-See Docs site and Current state in PRODUCT.md, and `docs/README.md`. Built and checked
-locally only. Left:
+See Docs site and Current state in PRODUCT.md, and `docs/README.md`. Left:
 
-- **Pages is enabled** (source: GitHub Actions) and the custom domain is off the user site
-  (PRODUCT.md, Docs site). `vandatnguyen919.github.io/playaround/` answers 404 until
-  `docs.yml` first runs on `main`.
-- **Dan's four other Pages projects moved address** with the domain removal, from the custom
-  domain back to `vandatnguyen919.github.io/<repo>/`. Next action: Dan updates any link
+- **Dan's four other Pages projects moved address** when the custom domain came off the
+  user site, back to `vandatnguyen919.github.io/<repo>/`. Next action: Dan updates any link
   that used the old addresses.
-- **Not on `main` yet.** The work is on branch `feature/docs-site`, in a pull request.
-  `docs.yml` publishes only from `main`. Next action: Dan reviews and merges.
-- **Done criterion still open: the site loading at vandatnguyen919.github.io/playaround/.**
-  Next action: after the merge, check the `docs` workflow run and open the URL.
-- **CI job `docs` and `docs.yml` have not run on GitHub.** Dependency review may flag
-  something Trivy did not. Next action: read the first PR run.
 - **Content was written from PRODUCT.md, README and the code, and not reviewed by Dan.**
-  Next action: Dan reads the pages (`npm --prefix docs run serve` after a build).
+  Next action: Dan reads the live pages.
+- **`bff-architecture.excalidraw` was written by a script, not saved from Excalidraw,** and
+  has not been opened there. Next action: Dan opens it at excalidraw.com once; if it loads
+  wrong, redraw from the SVG.
 
 ## Verification (2026-11-08)
 
@@ -45,6 +38,14 @@ See Verification in PRODUCT.md and Verify in README.md. Left:
   and `smoke` passed against the same Keycloak a minute later. Suspected cause: the host
   was loaded by the Testcontainers Keycloaks. Change: a need now gets 30 s to answer. The
   run stays red. Next action: watch for a repeat.
+- **Flaky-policy entry, 2026-11-10, CI job `verify` on PR #46 (head f810dcb, run
+  42762088039):** failed in "Start the stack", before any suite ran. `docker compose up`
+  got `keycloak Error received unexpected HTTP status: 504 Gateway Time-out` from the
+  registry while pulling the Keycloak image. Suspected cause: a registry outage; the PR
+  changes only docs files, and `gradle`, which pulls the same image through Testcontainers,
+  passed in the same run. That run stays red. The commit that adds this entry starts a new
+  run. Next action: if image pulls fail again, consider a pull retry in
+  `verify-stack.mjs`, which is setup, not a test retry (Dan decides).
 - **Quarantined tests:** none.
 - **Local stack on this machine (2026-11-09):** `JAVA_HOME` is JDK 21 and
   `playground-prod-gateway-1` holds 9181, so the stack started only with
