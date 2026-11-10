@@ -1,24 +1,17 @@
 # Open
 
-## Docs site (2026-11-10)
+## Docs site (live since 2026-11-10)
 
-See Docs site and Current state in PRODUCT.md, and `docs/README.md`. Built and checked
-locally only. Left:
+See Docs site and Current state in PRODUCT.md, and `docs/README.md`. Left:
 
-- **Pages is enabled** (source: GitHub Actions) and the custom domain is off the user site
-  (PRODUCT.md, Docs site). `vandatnguyen919.github.io/playaround/` answers 404 until
-  `docs.yml` first runs on `main`.
-- **Dan's four other Pages projects moved address** with the domain removal, from the custom
-  domain back to `vandatnguyen919.github.io/<repo>/`. Next action: Dan updates any link
+- **Dan's four other Pages projects moved address** when the custom domain came off the
+  user site, back to `vandatnguyen919.github.io/<repo>/`. Next action: Dan updates any link
   that used the old addresses.
-- **Not on `main` yet.** The work is on branch `feature/docs-site`, in a pull request.
-  `docs.yml` publishes only from `main`. Next action: Dan reviews and merges.
-- **Done criterion still open: the site loading at vandatnguyen919.github.io/playaround/.**
-  Next action: after the merge, check the `docs` workflow run and open the URL.
-- **CI job `docs` and `docs.yml` have not run on GitHub.** Dependency review may flag
-  something Trivy did not. Next action: read the first PR run.
 - **Content was written from PRODUCT.md, README and the code, and not reviewed by Dan.**
-  Next action: Dan reads the pages (`npm --prefix docs run serve` after a build).
+  Next action: Dan reads the live pages.
+- **`bff-architecture.excalidraw` was written by a script, not saved from Excalidraw,** and
+  has not been opened there. Next action: Dan opens it at excalidraw.com once; if it loads
+  wrong, redraw from the SVG.
 
 ## Verification (2026-11-08)
 
