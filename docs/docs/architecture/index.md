@@ -9,9 +9,9 @@ description: The components of the playground and how requests move between them
 
 One login and one API call, in eight steps.
 
-[![BFF architecture: the browser SPA talks only to the gateway with a session cookie; the gateway runs the authorization code flow with PKCE against Keycloak, keeps the tokens in a Redis session, and relays the access token to the API, which verifies it against Keycloak's keys](/img/bff-architecture.svg)](pathname:///playaround/img/bff-architecture.svg)
+![BFF architecture: the browser SPA talks only to the gateway with a session cookie; the gateway runs the authorization code flow with PKCE against Keycloak, keeps the tokens in a Redis session, and relays the access token to the API, which verifies it against Keycloak's keys](/img/bff-architecture.svg)
 
-Select the drawing to open it full size.
+Select the drawing, or any diagram on this site, to open it in a zoom view.
 
 1. The SPA starts login with a full page navigation to the gateway.
 2. The gateway runs the authorization code flow with PKCE against Keycloak.

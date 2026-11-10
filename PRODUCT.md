@@ -520,6 +520,11 @@ layout and the scan are ours).
   right of the header. Tradeoff: readers download the whole index on first
   search, which is fine at this size. Algolia DocSearch was not used: it needs
   an account and an application.
+- **Images and diagrams open in a zoom view (Dan, 2026-11-10).** A click opens
+  a full-screen view with wheel, pinch, button and key zoom and drag to move.
+  It is `docs/src/zoom.js`, a client module with no dependency, because the
+  image-zoom plugins only enlarge to fit and do not zoom further or cover
+  Mermaid diagrams.
 - **npm `overrides` in `docs/package.json`:** `serialize-javascript` to 7.x and
   `tinypool` to 2.x. Docusaurus 3.10.2 pulls 6.0.2 and 1.1.1, which Trivy
   reports as one High and two Critical, and CI fails on those. The site builds
@@ -1515,7 +1520,9 @@ Facts worth knowing:
   for each kind it covers. Mermaid diagrams and the Excalidraw overview were
   checked in a browser on a local build, in light and dark mode, not on the
   live site. Search was checked the same way: results come from every page
-  and the term is highlighted on the page opened.
+  and the term is highlighted on the page opened. The zoom view was checked
+  with mouse and keys on the Excalidraw drawing and a sequence diagram; pinch
+  on a real touch screen is not checked.
 - **Gitleaks is clean over history** on all refs (73 commits) and in CI's form. The one
   finding was the fake key from the closed gate test.
 

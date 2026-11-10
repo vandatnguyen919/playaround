@@ -34,6 +34,100 @@
   }
 }
 
+/* Zoom view for images and diagrams (src/zoom.js). */
+.markdown img:not(a img),
+.docusaurus-mermaid-container svg {
+  cursor: zoom-in;
+}
+
+.zoom-open {
+  overflow: hidden;
+}
+
+.zoom-dialog {
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+}
+
+.zoom-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.zoom-dialog::backdrop {
+  background: rgb(0 0 0 / 60%);
+}
+
+.zoom-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.zoom-toolbar button {
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0.6rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 0.4rem;
+  background: var(--ifm-background-surface-color);
+  color: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.zoom-toolbar button:hover {
+  background: var(--ifm-color-emphasis-200);
+}
+
+.zoom-toolbar .zoom-level {
+  min-width: 4.5rem;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.zoom-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.zoom-stage:active {
+  cursor: grabbing;
+}
+
+.zoom-content {
+  transform-origin: center;
+  will-change: transform;
+}
+
+.zoom-content > * {
+  display: block;
+  pointer-events: none;
+}
+
+.zoom-hint {
+  margin: 0;
+  padding: 0.4rem 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
 /* Wide sequence diagrams scroll inside their box instead of the page. */
 .docusaurus-mermaid-container {
   overflow-x: auto;
