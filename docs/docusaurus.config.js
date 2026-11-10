@@ -28,7 +28,22 @@ const config = {
       onBrokenMarkdownImages: 'throw',
     },
   },
-  themes: ['@docusaurus/theme-mermaid'],
+  themes: [
+    '@docusaurus/theme-mermaid',
+    // Search over every page. The index is built with the site and searched in
+    // the browser: no outside service, no key, nothing sent anywhere.
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        hashed: true,
+        indexBlog: false,
+        docsRouteBasePath: '/',
+        language: ['en'],
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+      },
+    ],
+  ],
 
   plugins: [
     // The Mermaid theme imports the optional ELK layout package behind a flag
@@ -72,6 +87,7 @@ const config = {
         items: [
           { type: 'docSidebar', sidebarId: 'docs', position: 'left', label: 'Docs' },
           { href: repo, label: 'GitHub', position: 'right' },
+          { type: 'search', position: 'right' },
         ],
       },
       footer: {

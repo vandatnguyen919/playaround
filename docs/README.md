@@ -28,5 +28,7 @@ From the repo root, `./verify docs` runs the build and the scan.
   the source and the `.svg` beside it is what the page shows. To change one, open the
   `.excalidraw` file at excalidraw.com, edit, save it back, and export an SVG with a
   white background over the old one. Sequence diagrams stay in Mermaid.
+- Search is `@easyops-cn/docusaurus-search-local`: the index is made by
+  `npm run build`, so the search box works in `npm run serve`, not in `npm start`.
 - Pages live in `docs/`, the sidebar in `sidebars.js`. A new page must be added
   to the sidebar.
