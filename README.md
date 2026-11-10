@@ -5,6 +5,10 @@ fit together. The core point: the browser never sees tokens. It holds only a
 session cookie; tokens live server side. See `PRODUCT.md` for the full plan and
 decisions.
 
+Docs site for the BFF pattern, the flows and the endpoints:
+https://vandatnguyen919.github.io/playaround/ (source in `docs/`, see
+`docs/README.md`).
+
 ## Architecture
 
 ```mermaid
@@ -142,7 +146,7 @@ deploys; that is Jenkins' job (`deploy/k8s/jenkins/README.md`).
 - Every pull request to `main`, nothing pushed: `./verify` (every suite, see
   "Verify" below; the stack ones against the dev stack started headless with
   `verify-stack.mjs`), `./gradlew assemble`, Gitleaks over the whole history
-  (`.gitleaks.toml`), Trivy on the npm lockfiles and the built jars (High
+  (`.gitleaks.toml`), the docs site build (`./verify docs`), Trivy on the npm lockfiles and the built jars (High
   and Critical; known findings in `.trivyignore.yaml`, which expire), and
   dependency review.
 - Push to `main`: the same checks (no dependency review), then each image
@@ -321,6 +325,7 @@ suite its own check names after a colon:
 | `smoke` | `smoke.mjs` (table below) | Keycloak, Redis, gateway, app on :5174 |
 | `headers` | `check-headers.mjs`: CSP and headers, CORS, actuator only on the management port | gateway serving the built SPA |
 | `e2e` | Playwright in Chromium: login, wrong password, logout, register with the verification mail read from the Mailpit API, forgot password through the mailed link, 401 and 403 | Keycloak, Mailpit, app on :5174, `npm --prefix e2e ci` and `npm --prefix e2e exec playwright install chromium` |
+| `docs` | The docs site (`docs/`): Docusaurus build, which fails on a broken link, anchor or image, then `docs/check-public.mjs` scans the sources and the built pages for content that must not be public | `npm --prefix docs ci` |
 | `compose` | `deploy/compose/check.mjs` against the compose.prod.yml stack; only when named | `deploy/compose/.env` (or `COMPOSE_ENV_FILE`) |
 
 A suite whose needs do not answer is BLOCKED, with what to start, and the run

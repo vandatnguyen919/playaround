@@ -1,0 +1,25 @@
+:root {
+  --ifm-color-primary: #1f4e8c;
+  --ifm-color-primary-dark: #1c467e;
+  --ifm-color-primary-darker: #1a4277;
+  --ifm-color-primary-darkest: #163662;
+  --ifm-color-primary-light: #22569a;
+  --ifm-color-primary-lighter: #245aa1;
+  --ifm-color-primary-lightest: #2b6ab9;
+  --ifm-code-font-size: 92%;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #8ab4f8;
+  --ifm-color-primary-dark: #6aa0f6;
+  --ifm-color-primary-darker: #5a96f5;
+  --ifm-color-primary-darkest: #2a78f1;
+  --ifm-color-primary-light: #aac8fa;
+  --ifm-color-primary-lighter: #bad2fb;
+  --ifm-color-primary-lightest: #eaf1fe;
+}
+
+/* Wide sequence diagrams scroll inside their box instead of the page. */
+.docusaurus-mermaid-container {
+  overflow-x: auto;
+}
