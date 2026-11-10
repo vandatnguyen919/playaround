@@ -19,6 +19,21 @@
   --ifm-color-primary-lightest: #eaf1fe;
 }
 
+/* Search box below the desktop breakpoint, where the navbar collapses. */
+@media (max-width: 996px) {
+  /* The Ctrl+K hint covers the placeholder here, and touch screens have no Ctrl. */
+  .navbar__search [class*='searchHintContainer'] {
+    display: none;
+  }
+  .navbar__search .navbar__search-input {
+    padding-right: 0.75rem;
+  }
+  /* The open menu covers the page; the search box must not sit on its close button. */
+  .navbar-sidebar--show .navbar__search {
+    visibility: hidden;
+  }
+}
+
 /* Wide sequence diagrams scroll inside their box instead of the page. */
 .docusaurus-mermaid-container {
   overflow-x: auto;
