@@ -38,6 +38,14 @@ See Verification in PRODUCT.md and Verify in README.md. Left:
   and `smoke` passed against the same Keycloak a minute later. Suspected cause: the host
   was loaded by the Testcontainers Keycloaks. Change: a need now gets 30 s to answer. The
   run stays red. Next action: watch for a repeat.
+- **Flaky-policy entry, 2026-11-10, CI job `verify` on PR #46 (head f810dcb, run
+  42762088039):** failed in "Start the stack", before any suite ran. `docker compose up`
+  got `keycloak Error received unexpected HTTP status: 504 Gateway Time-out` from the
+  registry while pulling the Keycloak image. Suspected cause: a registry outage; the PR
+  changes only docs files, and `gradle`, which pulls the same image through Testcontainers,
+  passed in the same run. That run stays red. The commit that adds this entry starts a new
+  run. Next action: if image pulls fail again, consider a pull retry in
+  `verify-stack.mjs`, which is setup, not a test retry (Dan decides).
 - **Quarantined tests:** none.
 - **Local stack on this machine (2026-11-09):** `JAVA_HOME` is JDK 21 and
   `playground-prod-gateway-1` holds 9181, so the stack started only with
