@@ -12,6 +12,7 @@ build/
 # Node
 node_modules/
 dist/
+.docusaurus/
 
 # Local env and IDE
 .env

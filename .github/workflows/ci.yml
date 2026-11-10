@@ -1,8 +1,8 @@
 # CI for the whole repo. CD (deploying an image) is Jenkins' job, not this one.
 # Pull requests: ./verify (Gradle tests with Testcontainers, web and theme lint
-# and tests, then attack, smoke, header and Playwright checks against the dev
-# stack started headless), Gitleaks, Trivy, Terraform checks and dependency
-# review. Nothing is pushed.
+# and tests, the docs site build, then attack, smoke, header and Playwright
+# checks against the dev stack started headless), Gitleaks, Trivy, Terraform
+# checks and dependency review. Nothing is pushed.
 # main: the same checks, then gateway, api and keycloak built natively on
 # amd64 and arm64 runners, pushed by digest, merged into one tag
 # sha-<git sha>, and checked for both platforms and their provenance.
@@ -72,6 +72,20 @@ jobs:
       - run: npm --prefix web ci && npm --prefix keycloak-theme ci
       - run: ./verify web
       - run: npm --prefix web run build
+
+  # The docs site (Docusaurus, docs/): builds with broken links as errors and
+  # is scanned for content that must not be public. Publishing is docs.yml.
+  docs:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.20.0
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+      - run: npm --prefix docs ci
+      - run: ./verify docs
 
   # The whole dev stack, headless: compose (Keycloak with the theme jar and the
   # realm, Redis, Mailpit), the api and gateway jars, and Vite on :5174

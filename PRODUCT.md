@@ -413,7 +413,7 @@ Decided 2026-11-08 (Dan asked for each item; the layout is ours).
 
 - **One entry point: `./verify`** (`verify.mjs`; Windows `node verify.mjs`). It
   runs named suites (`gateway`, `api`, `web`, `attacks`, `smoke`, `headers`,
-  `e2e`, and `compose` when named), headless and without prompts, and CI
+  `e2e`, `docs`, and `compose` when named), headless and without prompts, and CI
   calls the same command. A suite whose services do not answer is BLOCKED and
   fails the run; it is never skipped quietly. Each run clears and refills
   `.shipit/verify/evidence/latest/` (logs, `summary.json`, the Playwright
@@ -464,6 +464,56 @@ Decided 2026-11-08 (Dan asked for each item; the layout is ours).
    a lock or a link to expire), back-channel logout (polls 10 s), and the edge
    rate limits (smoke at most once a minute against the public stack).
 
+### Docs site
+
+Decided 2026-11-10 (Dan asked for the site, its content and its deploy; the
+layout and the scan are ours).
+
+- **Docusaurus 3.10.2 with `@docusaurus/theme-mermaid`, its own npm package in
+  `/docs`**, separate from `/web`. A new dependency outside the stack, asked
+  for by Dan. Docs-only mode (no blog, no landing page), plain JS config.
+  Dependabot covers `/docs`.
+- **For developers learning the BFF pattern.** Pages: overview, architecture
+  (the README diagram and sequence diagrams for login, token relay and
+  back-channel logout), use cases, technology stack, API, running locally, and
+  short decision pages.
+- **PRODUCT.md and README stay the source of truth.** Pages summarise and link
+  to the matching section on GitHub. A decision is never written only there.
+- **What is public (Dan, 2026-11-10):** nothing about deployment (this file's
+  Deployment platform: Azure, the VM, costs, Jenkins, Vault), no mention of the
+  public demo or its domain, deep links to PRODUCT.md and README are fine, and
+  search engines may index it. Never on the site: secrets or their dev
+  defaults, dev user passwords, the domain or VM address, container-only
+  hostnames, Vault paths, budget or cloud account details. The site names the
+  dev users file instead of printing its logins.
+- **Enforced by `./verify docs`:** `npm run build` with `onBrokenLinks`,
+  `onBrokenAnchors` and broken Markdown links and images set to `throw`, then
+  `docs/check-public.mjs` scans the Markdown, config and built HTML for those
+  kinds of content. A new kind of private value means a new pattern there.
+  Tradeoff: patterns catch known shapes, not every leak, so a page still gets
+  read before it merges.
+- **Deploy: GitHub Pages through `.github/workflows/docs.yml`**, on a push to
+  `main` that touches `docs/**`, at `/playaround/`. The build job runs
+  `./verify docs` before uploading; only the deploy job has `pages: write` and
+  `id-token: write`. Pull requests build the site in `ci.yml` (job `docs`) and
+  publish nothing. The repo's Pages source is "GitHub Actions" (set 2026-11-10).
+- **Served from github.io, not the project domain (Dan, 2026-11-10).** Dan's user
+  site repo (`vandatnguyen919.github.io`) had the project domain as its Pages
+  custom domain, and GitHub applies that to every project site, so the docs would
+  have been served from the domain they must not mention, over http. GitHub has no
+  per-project opt-out, so the custom domain was removed from the user site. Do not
+  set a custom domain on the user site again without moving the docs first.
+  Tradeoff: Dan's other Pages projects moved back to github.io addresses too. No
+  DNS record changed.
+- **npm `overrides` in `docs/package.json`:** `serialize-javascript` to 7.x and
+  `tinypool` to 2.x. Docusaurus 3.10.2 pulls 6.0.2 and 1.1.1, which Trivy
+  reports as one High and two Critical, and CI fails on those. The site builds
+  with the overrides. Drop each when Docusaurus ships the fixed version.
+- **`@mermaid-js/layout-elk` is aliased to an empty module** in
+  `docusaurus.config.js`: the theme's optional import of it failed the build
+  under webpack 5.112 although the package is not used. Remove the alias when a
+  build passes without it.
+
 ### Repo layout
 
 **Monorepo: `/gateway`, `/api`, `/web`, `/keycloak-theme`, `/infra`.**
@@ -476,6 +526,7 @@ Decided 2026-11-08 (Dan asked for each item; the layout is ours).
   realm import JSON, env example, `otel` (dev telemetry config and check), `vault`
   (policies, secret inventory, scripts).
 - `/e2e`: Playwright browser tests. npm.
+- `/docs`: Docusaurus docs site, published to GitHub Pages. npm. See Docs site.
 - `/testing/java`: test helpers shared by the Gradle modules (Keycloak in
   Testcontainers, a cookie jar HTTP browser).
 
@@ -1441,6 +1492,17 @@ Facts worth knowing:
   Testcontainers, `web`, `attacks` 43 of 43, `smoke` 45 of 45, `headers`, and
   `e2e` 8 of 8 in Chromium. In the one full run `attacks` was BLOCKED by a missed Keycloak
   probe and passed alone afterwards (`.shipit/open.md`). Not yet run in CI.
+- **Docs site, built locally, not yet published (2026-11-10).** `docs/` builds
+  with broken links, anchors and images as errors (25 pages), and
+  `./verify docs` passes: the build plus `check-public.mjs`, clean over 58
+  files. The scan fails a planted page for each kind it covers (dev password,
+  domain, address, container hostname, Vault path, budget). All ten Mermaid
+  diagrams render in a browser with no console errors, the 29 links into this
+  repo point at files and headings that exist, and Trivy finds no High or
+  Critical in `docs/package-lock.json`. Pages is enabled and
+  `vandatnguyen919.github.io` no longer redirects to the project domain. Not
+  done: nothing is on `main`, so the address answers 404, and neither workflow
+  has run on GitHub (`.shipit/open.md`).
 - **Gitleaks is clean over history** on all refs (73 commits) and in CI's form. The one
   finding was the fake key from the closed gate test.
 

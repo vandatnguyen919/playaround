@@ -12,6 +12,7 @@
 .playwright-mcp
 artifacts
 deploy
+docs
 infra
 keycloak-theme
 smoke

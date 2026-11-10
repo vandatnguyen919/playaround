@@ -18,7 +18,7 @@ updates:
       gradle: { update-types: [minor, patch] }
 
   - package-ecosystem: npm
-    directories: [/web, /keycloak-theme, /e2e]
+    directories: [/web, /keycloak-theme, /e2e, /docs]
     schedule: { interval: weekly }
     groups:
       npm: { update-types: [minor, patch] }

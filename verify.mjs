@@ -108,6 +108,11 @@ const needs = {
     probe: async () => existsSync(join(ROOT, "e2e/node_modules/@playwright/test")),
     fix: "npm --prefix e2e ci && npm --prefix e2e exec playwright install chromium",
   },
+  docsDeps: {
+    what: "the docs site's npm packages (docs/node_modules)",
+    probe: async () => existsSync(join(ROOT, "docs/node_modules/@docusaurus/core")),
+    fix: "npm --prefix docs ci",
+  },
   composeEnv: {
     what: `the compose.prod.yml stack and its env file (${COMPOSE_ENV})`,
     probe: async () => existsSync(COMPOSE_ENV),
@@ -178,6 +183,14 @@ const suites = {
     what: "Browser flows in Playwright: login, logout, register with email, forgot password, 401 and 403",
     needs: ["playwright", "keycloak", "mailpit", "app"],
     run: (args) => [[npm, ["--prefix", "e2e", "exec", "--", "playwright", "test", "--config", "e2e/playwright.config.ts", ...args]]],
+  },
+  docs: {
+    what: "Docs site: Docusaurus build with broken links as errors, then a scan for content that must not be public",
+    needs: ["docsDeps"],
+    run: () => [
+      [npm, ["--prefix", "docs", "run", "build"]],
+      [process.execPath, ["docs/check-public.mjs"]],
+    ],
   },
   compose: {
     what: "The local or VM compose.prod.yml stack (deploy/compose/check.mjs); only when named",
