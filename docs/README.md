@@ -30,5 +30,7 @@ From the repo root, `./verify docs` runs the build and the scan.
   white background over the old one. Sequence diagrams stay in Mermaid.
 - Search is `@easyops-cn/docusaurus-search-local`: the index is made by
   `npm run build`, so the search box works in `npm run serve`, not in `npm start`.
+- Every image and Mermaid diagram opens in a zoom view on click
+  (`src/zoom.js`, no dependency). An image inside a link keeps the link instead.
 - Pages live in `docs/`, the sidebar in `sidebars.js`. A new page must be added
   to the sidebar.

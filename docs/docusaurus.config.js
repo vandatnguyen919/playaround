@@ -60,6 +60,9 @@ const config = {
     },
   ],
 
+  // Click an image or diagram to open it in a zoom view.
+  clientModules: ['./src/zoom.js'],
+
   i18n: { defaultLocale: 'en', locales: ['en'] },
 
   presets: [
