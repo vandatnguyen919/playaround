@@ -86,7 +86,7 @@ services:
       retries: 10
 
   mailpit:
-    image: axllent/mailpit:v1.31.6
+    image: axllent/mailpit:v1.33.1
     ports:
       - "8025:8025" # Web UI + API
       - "1025:1025" # SMTP
@@ -100,7 +100,7 @@ services:
   # with it. Grafana signs anyone in as admin, so both ports stay on loopback.
   # compose.prod.yml has no equivalent; phase 2 has its own stack (PRODUCT.md).
   lgtm:
-    image: grafana/otel-lgtm:0.39.0
+    image: grafana/otel-lgtm:0.40.0
     environment:
       OTELCOL_EXTRA_ARGS: --config=file:/otel-lgtm/otelcol-dev-logs.yaml
     # Grafana's first-start database migrations took 7 minutes on the container
