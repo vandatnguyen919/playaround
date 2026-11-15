@@ -24,7 +24,7 @@ As an editor, I want to add or edit a switch with its specs and force curve, so 
 
 **Done when**
 
-- [ ] Create, edit and delete a draft switch: name, brand, type, stem colour, force, actuation, travel, spring, photo
+- [ ] Create, edit and delete a draft switch: name, brand, type, stem colour, force, actuation, travel, spring (the photo moved to US-38, which builds the uploads it needs)
 - [ ] Force curve points editable and drawn live; invalid specs return 422 with field errors
 - [ ] Drafts never appear in the public library
 
@@ -41,6 +41,7 @@ As an editor, I want to upload press and release recordings per variant and see 
 - [ ] Presigned WAV upload (48 kHz, 24-bit) for stock, lubed and foam × press and release
 - [ ] Processing answers 202 and moves to ready or failed with peaks, duration and loudness
 - [ ] Sound library lists recordings per switch and shows the no-sound state
+- [ ] A switch photo (PNG or JPG, square, at least 800 px) uploads the same way and attaches as `photoUploadId` on ADM-02 (moved from US-37)
 
 ### US-39 · Publish a switch to the public library
 

@@ -3,10 +3,32 @@ import './styles/tokens.css'
 import './styles/base.css'
 import AppShell from './layout/AppShell.tsx'
 import { BuildPage, Placeholder } from './pages/Pages.tsx'
+import AdminShell, { AdminPlaceholder } from './admin/AdminShell.tsx'
+import SwitchEditPage from './admin/switches/SwitchEditPage.tsx'
 
 // The KeyLab app, under /keylab. The gateway serves index.html for /keylab/**
 // (SpaConfig), and main.tsx loads this chunk for those paths only.
 const router = createBrowserRouter([
+  {
+    // The admin dashboard: its own frame, no app sidebar. keylab-api checks
+    // the team role on every call; the pages only explain a missing one.
+    path: '/keylab/admin',
+    element: <AdminShell />,
+    children: [
+      { index: true, element: <AdminPlaceholder title="Overview" /> },
+      { path: 'switches', element: <AdminPlaceholder title="Switches" /> },
+      // "new" and an id share one route, so saving a new switch keeps the page.
+      { path: 'switches/:id', element: <SwitchEditPage /> },
+      { path: 'sounds', element: <AdminPlaceholder title="Sound library" /> },
+      { path: 'keycap-sets', element: <AdminPlaceholder title="Keycap sets" /> },
+      { path: 'mods', element: <AdminPlaceholder title="Mods" /> },
+      { path: 'users', element: <AdminPlaceholder title="Users" /> },
+      { path: 'community', element: <AdminPlaceholder title="Community builds" /> },
+      { path: 'reports', element: <AdminPlaceholder title="Reports" /> },
+      { path: 'settings', element: <AdminPlaceholder title="Settings" /> },
+      { path: '*', element: <AdminPlaceholder title="Nothing here" /> },
+    ],
+  },
   {
     path: '/keylab',
     element: <AppShell />,

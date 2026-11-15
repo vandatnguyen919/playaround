@@ -169,14 +169,41 @@ Done and checked locally: see Current state in PRODUCT.md. Left:
 - **Multi-arch image to GHCR:** CI publishes it on `main` (see Images
   above).
 
-## KL0 KeyLab foundation (branch feature/kl0-keylab-foundation, not committed)
+## US-37 Add or edit a switch (branch feature/kl0-keylab-foundation, PR open)
+
+Verified 2026-11-15: `keylab-api` tests all green (new `AdminSwitchApiTest`,
+`AdminSwitchesTest`), web unit tests, `tsc -b`, lint, `vite build`, `check:api`,
+and the KeyLab e2e (6 incl. the new `keylab-switch-edit.spec.ts`) against the local
+stack. keylab-api on :8183 was restarted from the new jar. Left:
+
+- **Photo moved to US-38** (Dan, 2026-11-15): it needs ADM-04 uploads. Until then the
+  API refuses `photoUploadId` (`422 photo_upload_unavailable`) and the picker is drawn
+  disabled. Next action: US-38 lifts the refusal and wires the picker. Notion tickets
+  US-37 and US-38 updated to match.
+- **"Drafts never appear in the public library"** holds because no public switch route
+  exists yet (tested: guests get 401). Next action: CAT-01 (US-02, US-39) must read
+  `status = 'published'` only; add the check to its tests.
+- **Audit events:** api-design says every admin write records one (ADM-13); nothing
+  records them yet. Next action: part of US-44.
+- **Copy not in the design:** "Edit switch" title and slug crumb when editing, the
+  "Delete draft" button and its confirm ("Delete [name]? It goes for good, with its
+  specs and force curve."), "Add at least two points to draw the curve.", the sign-in
+  and editor-role messages, error toast bodies ("Check the fields marked in red.",
+  "Someone else saved it first. Reload to see their version."), "Draft deleted".
+  Next action: Dan reviews.
+- **Drawn but inactive until their stories:** sound drop zones (US-38), Publish and
+  "Mark as New" (US-39), the admin topbar search, range, bell and account, sidebar
+  counts and "Last publish". Release force points can be sent through the API and are
+  drawn, but the table edits press points only.
+- **PR:** open for review against main.
+
+## KL0 KeyLab foundation (merged in PR #49)
 
 Verified 2026-11-15: full `node verify.mjs` green (gateway, api, keylab, web, attacks,
 smoke 45, headers, e2e 12 incl. 4 KeyLab, docs), run with
 `COMPOSE_PROJECT_NAME=playground-verify MANAGEMENT_PORT=9191` because the local prod
 gateway holds 9181. Left:
 
-- **Commit and PR:** waiting for Dan. Ticket says commit before starting US-37.
 - **Deployment ticket:** keylab-api has no Dockerfile, GHCR image, compose.prod.yml service or
   Postgres on the VM yet (out of KL0 scope by decision). Next action: open a ticket.
 - **Vault:** `KEYLAB_DB_PASSWORD` uses the compose dev default. Add it to infra/vault with the

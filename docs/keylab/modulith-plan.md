@@ -58,9 +58,9 @@ keylab-api/
         KeycapSetController.java, ModController.java, CaseOptionController.java
         admin/AdminSwitchController.java   ADM-02, ADM-03, ADM-06
         admin/AdminCatalogController.java  ADM-07
-      application/CatalogService.java, PublishSwitch.java
-      domain/Switch.java, ForceCurve.java, KeycapSet.java, Mod.java, SoundStatus.java
-      persistence/                     Spring Data repositories, schema "catalog"
+      application/AdminSwitches.java   ADM-02 (US-37); CatalogService, PublishSwitch to come
+      domain/Switch.java, SwitchSpecs.java, SwitchSpecsValidator.java, ForceCurvePoint.java, …
+      persistence/SwitchRepository.java  JdbcClient, schema "catalog"
       events/SoundStatusListener.java  @ApplicationModuleListener on SoundProcessed
     sound/
       SoundApi.java, SoundProcessed.java

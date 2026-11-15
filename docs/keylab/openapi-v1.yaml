@@ -2441,7 +2441,9 @@ paths:
       tags:
       - Admin
       summary: Create a draft switch
-      description: '**ADM-02** · access: Editor · stories: US-37 · module: `catalog`'
+      description: '**ADM-02** · access: Editor · stories: US-37 · module: `catalog`.
+        `photoUploadId` is refused with `422 photo_upload_unavailable` until
+        ADM-04 uploads exist.'
       x-endpoint-id: ADM-02
       x-module: catalog
       x-stories:
@@ -2518,7 +2520,9 @@ paths:
       tags:
       - Admin
       summary: Edit a switch
-      description: '**ADM-02** · access: Editor · stories: US-37 · module: `catalog`'
+      description: '**ADM-02** · access: Editor · stories: US-37 · module: `catalog`.
+        The merged result is checked as a whole, like a create (422 lists every
+        field). A draft''s slug follows its name.'
       x-endpoint-id: ADM-02
       x-module: catalog
       x-stories:
@@ -2543,12 +2547,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AdminSwitch'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '410':
           $ref: '#/components/responses/Gone'
         '412':
@@ -2561,8 +2569,10 @@ paths:
       operationId: adminDeleteSwitch
       tags:
       - Admin
-      summary: Delete a switch
-      description: '**ADM-02** · access: Editor · stories: US-37 · module: `catalog`'
+      summary: Delete a draft switch
+      description: '**ADM-02** · access: Editor · stories: US-37 · module: `catalog`.
+        Drafts only: anything else is `409 switch_not_draft` (pull it from the
+        library with ADM-03 instead).'
       x-endpoint-id: ADM-02
       x-module: catalog
       x-stories:
@@ -2574,12 +2584,16 @@ paths:
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '410':
           $ref: '#/components/responses/Gone'
         '412':
@@ -3867,6 +3881,10 @@ components:
           - invalid_idempotency_key
           - idempotency_key_reused
           - idempotency_in_progress
+          - switch_not_found
+          - switch_not_draft
+          - slug_taken
+          - photo_upload_unavailable
         detail:
           type: string
         instance:
