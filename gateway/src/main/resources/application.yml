@@ -48,8 +48,9 @@ spring:
           httpclient:
             connect-timeout: 1000
             response-timeout: 5s
-          # Every route goes to the API: rate limit per user, then a circuit
-          # breaker with a time limit (resilience4j below).
+          # Every route: rate limit per user. Each route then adds the circuit
+          # breaker of the service it calls (resilience4j below), so one
+          # service failing does not open the other's circuit.
           default-filters:
             - name: RequestRateLimiter
               args:
@@ -57,16 +58,6 @@ spring:
                 redis-rate-limiter.replenishRate: ${RATE_LIMIT_PER_SECOND:10}
                 redis-rate-limiter.burstCapacity: ${RATE_LIMIT_BURST:20}
                 redis-rate-limiter.requestedTokens: 1
-            - name: CircuitBreaker
-              args:
-                name: api
-                fallbackUri: forward:/fallback/api
-                # 5xx answers count as failures too, not only exceptions.
-                statusCodes:
-                  - 500
-                  - 502
-                  - 503
-                  - 504
           routes:
             # Profile of the logged-in user: the browser calls the gateway
             # with no token, the gateway relays the access token to the API.
@@ -77,6 +68,16 @@ spring:
               filters:
                 - SetPath=/api/me
                 - TokenRelay
+                - name: CircuitBreaker
+                  args:
+                    name: api
+                    fallbackUri: forward:/fallback/api
+                    # 5xx answers count as failures too, not only exceptions.
+                    statusCodes:
+                      - 500
+                      - 502
+                      - 503
+                      - 504
             - id: bff-admin
               uri: ${API_URL:http://localhost:8182}
               predicates:
@@ -84,6 +85,16 @@ spring:
               filters:
                 - SetPath=/api/admin
                 - TokenRelay
+                - name: CircuitBreaker
+                  args:
+                    name: api
+                    fallbackUri: forward:/fallback/api
+                    # 5xx answers count as failures too, not only exceptions.
+                    statusCodes:
+                      - 500
+                      - 502
+                      - 503
+                      - 504
             - id: bff-user-compatibility
               uri: ${API_URL:http://localhost:8182}
               predicates:
@@ -91,22 +102,63 @@ spring:
               filters:
                 - SetPath=/api/me
                 - TokenRelay
+                - name: CircuitBreaker
+                  args:
+                    name: api
+                    fallbackUri: forward:/fallback/api
+                    # 5xx answers count as failures too, not only exceptions.
+                    statusCodes:
+                      - 500
+                      - 502
+                      - 503
+                      - 504
             - id: api
               uri: ${API_URL:http://localhost:8182}
               predicates:
                 - Path=/api/**
               filters:
                 - TokenRelay
+                - name: CircuitBreaker
+                  args:
+                    name: api
+                    fallbackUri: forward:/fallback/api
+                    # 5xx answers count as failures too, not only exceptions.
+                    statusCodes:
+                      - 500
+                      - 502
+                      - 503
+                      - 504
+            # KeyLab: /bff/keylab/v1/** goes to keylab-api /v1/**. Open at the
+            # gateway (SecurityConfig): keylab-api decides who may call what. A
+            # guest has no session, so no token is relayed.
+            - id: bff-keylab
+              uri: ${KEYLAB_API_URL:http://localhost:8183}
+              predicates:
+                - Path=/bff/keylab/v1/**
+              filters:
+                - StripPrefix=2
+                - TokenRelay
+                - name: CircuitBreaker
+                  args:
+                    name: keylab-api
+                    fallbackUri: forward:/fallback/keylab
+                    # 5xx answers count as failures too, not only exceptions.
+                    statusCodes:
+                      - 500
+                      - 502
+                      - 503
+                      - 504
 
 resilience4j:
   timelimiter:
     instances:
-      api:
+      api: &time-limit
         # Covers the API call and a token refresh at Keycloak, if one runs.
         timeout-duration: 3s
+      keylab-api: *time-limit
   circuitbreaker:
     instances:
-      api:
+      api: &breaker
         sliding-window-type: COUNT_BASED
         sliding-window-size: 20
         minimum-number-of-calls: 10
@@ -116,6 +168,7 @@ resilience4j:
         wait-duration-in-open-state: 15s
         permitted-number-of-calls-in-half-open-state: 3
         automatic-transition-from-open-to-half-open-enabled: true
+      keylab-api: *breaker
 
 playground:
   oidc:

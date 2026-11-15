@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab admin · Sound library</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+.ad{--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--ink:#2C2A5A;--sun:#FFF1C7;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:#000;background:#EFE8D6;font-size:13px;-webkit-font-smoothing:antialiased}
+.ad *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:13px;font-weight:800;color:#000;background:#FFFDF5;border:2px solid #000;border-radius:0;min-height:34px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;box-shadow:2px 2px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(2px,2px);box-shadow:0 0 0 #000}
+.kc[aria-pressed="true"],.kc[aria-selected="true"],.kc[aria-checked="true"]{background:var(--acc)}
+.kc.go{background:var(--lime);min-height:38px;font-weight:900;border-width:2.5px;box-shadow:3px 3px 0 #000}
+.kc.coral{background:var(--coral)}
+.kc.ghost{box-shadow:none;background:transparent}
+.kc:focus-visible,.tg:focus-visible,.chk:focus-visible,.field:focus,.rlink:focus-visible,.pick:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.card{background:#FFFDF5;border:2.5px solid #000;box-shadow:4px 4px 0 #000;min-width:0}
+.pad{padding:16px;display:flex;flex-direction:column;gap:12px}
+.h2{margin:0;font-size:16px;line-height:20px;font-weight:900;letter-spacing:-.02em}
+.lbl{margin:0;font-size:10.5px;line-height:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:900}
+.sub{margin:0;font-size:12.5px;line-height:17px;font-weight:500}
+.field{height:36px;border:2px solid #000;border-radius:0;background:#FFFFFF;font:inherit;font-size:13px;font-weight:600;padding:0 10px;color:#000}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;padding:8px 10px;border-bottom:2.5px solid #000;background:#FFF1C7;white-space:nowrap}
+.tbl td{padding:6px 10px;border-bottom:1.5px solid #000;vertical-align:middle;font-size:13px;height:50px}
+.tbl tbody tr:hover{background:#FFF1C7}
+.tbl tbody tr.sel{background:#FFD24D}
+.chk{width:18px;height:18px;margin:0;accent-color:#000;cursor:pointer}
+.tg{appearance:none;margin:0;cursor:pointer;position:relative;width:46px;height:26px;border:2px solid #000;border-radius:0;background:#FFFFFF;padding:0;box-shadow:2px 2px 0 #000;flex:none}
+.tg[aria-checked="true"]{background:#000}
+.tg span{position:absolute;top:3px;left:3px;width:16px;height:16px;border:2px solid #000;background:#000;transition:left 100ms ease}
+.tg[aria-checked="true"] span{left:23px;background:var(--acc)}
+.rlink{font-weight:800;text-decoration:underline;text-underline-offset:3px}
+.pick{appearance:none;margin:0;cursor:pointer;font:inherit;text-align:left;width:100%;background:#FFFDF5;border:0;border-bottom:1.5px solid #000;padding:10px 12px;display:flex;align-items:center;gap:10px;color:#000}
+.pick:hover{background:#FFF1C7}
+.pick[aria-current="true"]{background:var(--acc)}
+.tabs{display:flex;gap:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skel{background:#E2DAC6;animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.vt{display:grid;grid-template-columns:96px minmax(0,1fr) 84px 92px 112px;align-items:center;gap:12px;padding:10px 12px;border-bottom:1.5px solid #000}
+.vt:last-child{border-bottom:0}
+</style>
+</helmet>
+<div class="ad" style="min-height: 100vh; display: flex; flex-wrap: wrap">
+  <div style="flex: 0 0 232px; background: #2C2A5A; border-right: 3px solid #000"><dc-import name="AdminSidebar" active="sounds" min-height="1400" hint-size="100%,1400px"></dc-import></div>
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="AdminTopbar" title="Sound library" crumb="Catalog · press and release recordings" hint-size="100%,66px"></dc-import>
+    <main style="padding: 18px 20px 32px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+        <nav aria-label="Switches with recordings" class="card" style="flex: 0 1 280px; min-width: 240px; padding: 0; overflow: hidden">
+          <div style="padding: 12px; border-bottom: 2.5px solid #000; display: flex; flex-direction: column; gap: 6px; background: #FFF1C7">
+            <label for="sl-q" class="lbl">Find a switch</label>
+            <input id="sl-q" class="field" type="search" placeholder="Name" style="width: 100%">
+          </div>
+          <sc-for list="{{switches}}" as="s" hint-placeholder-count="8">
+            <button type="button" class="pick" aria-current="{{s.on}}" onClick="{{s.pick}}">
+              <span aria-hidden="true" style="flex: none; width: 22px; height: 22px; border: 2px solid #000; background: {{s.stem}}"></span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-weight: 900; font-size: 14px">{{s.name}}</span><span class="mono" style="font-size: 10.5px; font-weight: 700">{{s.files}}</span></span>
+              <dc-import name="StatusBadge" status="{{s.status}}" hint-size="96px,22px"></dc-import>
+            </button>
+          </sc-for>
+        </nav>
+
+        <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+          <section class="card pad" aria-labelledby="sd-h">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px">
+              <div style="display: flex; align-items: center; gap: 12px">
+                <span aria-hidden="true" style="width: 40px; height: 40px; border: 2.5px solid #000; background: {{cur.stem}}; box-shadow: 2px 2px 0 #000"></span>
+                <div><h2 id="sd-h" class="h2" style="font-size: 22px; line-height: 26px">{{cur.name}}</h2><p class="sub">{{cur.meta}}</p></div>
+              </div>
+              <div role="tablist" aria-label="Mod variant" class="tabs"><sc-for list="{{variants}}" as="v" hint-placeholder-count="3"><button type="button" role="tab" class="kc" aria-selected="{{v.on}}" onClick="{{v.pick}}">{{v.label}}</button></sc-for></div>
+            </div>
+
+            <sc-if value="{{hasSound}}" hint-placeholder-val="{{ true }}">
+              <div role="tabpanel" aria-label="{{variantLabel}}" style="border: 2.5px solid #000; background: #FFFFFF">
+                <div class="vt" style="background: #FFF1C7; border-bottom: 2.5px solid #000"><span class="lbl">Stroke</span><span class="lbl">Waveform</span><span class="lbl">Length</span><span class="lbl">Loudness</span><span class="lbl">Status</span></div>
+                <sc-for list="{{rows}}" as="r" hint-placeholder-count="2">
+                  <div class="vt">
+                    <div style="display: flex; align-items: center; gap: 8px"><button type="button" class="kc coral" aria-label="{{r.playLabel}}" onClick="{{r.play}}" style="width: 34px; padding: 0"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z" fill="#000"></path></svg></button><span style="font-weight: 900">{{r.stroke}}</span></div>
+                    <div style="min-width: 0"><dc-import name="Waveform" profile="{{r.profile}}" seed="{{r.seed}}" color="#2C2A5A" height="48" labels="{{ false }}" hint-size="100%,52px"></dc-import></div>
+                    <span class="mono" style="font-weight: 700">{{r.len}}</span>
+                    <span class="mono" style="font-weight: 700">{{r.lufs}}</span>
+                    <dc-import name="StatusBadge" status="{{r.status}}" hint-size="100px,22px"></dc-import>
+                  </div>
+                </sc-for>
+              </div>
+              <p class="mono" style="margin: 0; font-size: 11px; font-weight: 700">{{fileNote}}</p>
+            </sc-if>
+
+            <sc-if value="{{noSound}}" hint-placeholder-val="{{ false }}">
+              <div role="status" style="border: 2.5px dashed #000; background: #FFF5F2; padding: 22px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"></path><path d="M17 9l4 6M21 9l-4 6"></path></svg>
+                <div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 4px"><strong style="font-size: 16px; font-weight: 900">No sound available yet</strong><span class="sub">The public page shows this switch with a “Sound coming soon” label and it can’t be picked in the builder’s sound compare. Upload a stock press and release to fix that.</span></div>
+                <a href="AdminSwitchEdit.dc.html" class="kc go">Open switch</a>
+              </div>
+            </sc-if>
+          </section>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: stretch">
+            <section class="card pad" aria-labelledby="up-h" style="flex: 1.4 1 340px">
+              <h2 id="up-h" class="h2">Add a recording</h2>
+              <div style="display: flex; flex-wrap: wrap; gap: 10px">
+                <div style="display: flex; flex-direction: column; gap: 4px"><label for="up-v" class="lbl">Variant</label><select id="up-v" class="field"><option>Stock</option><option>Lubed</option><option>Foam mod</option></select></div>
+                <div style="display: flex; flex-direction: column; gap: 4px"><label for="up-s" class="lbl">Stroke</label><select id="up-s" class="field"><option>Press</option><option>Release</option></select></div>
+              </div>
+              <dc-import name="UploadDropZone" label="{{upLabel}}" state="{{uploadState}}" profile="{{cur.profile}}" seed="31" file-name="{{upFile}}" on-done="{{uploaded}}" hint-size="100%,140px"></dc-import>
+            </section>
+            <section class="card pad" aria-labelledby="qc-h" style="flex: 1 1 260px; background: #99D6FF">
+              <h2 id="qc-h" class="h2">Recording checklist</h2>
+              <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px">
+                <sc-for list="{{checklist}}" as="c" hint-placeholder-count="6">
+                  <li style="display: flex; gap: 8px; align-items: flex-start; font-weight: 700; line-height: 18px"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; margin-top: 1px; border: 2px solid #000; background: #FFFDF5"></span><span>{{c}}</span></li>
+                </sc-for>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
+        <div style="position: fixed; right: 24px; bottom: 24px; width: 440px; max-width: calc(100% - 48px); z-index: 5"><dc-import name="Toast" kind="{{toastKind}}" title="{{toastTitle}}" body="{{toastBody}}" action="{{toastAction}}" href="{{toastHref}}" on-dismiss="{{dismiss}}" hint-size="100%,72px"></dc-import></div>
+      </sc-if>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"selected": {"editor": "enum", "options": ["coralpop", "milkyellow", "inkblack", "protoorange"], "default": "coralpop"}, "uploadState": {"editor": "enum", "options": ["idle", "dragover", "uploading", "done", "error"], "default": "idle"}, "$preview": {"width": 1440, "height": 1400}}'>
+const TOASTLESS = { toast: false, toastKind: 'success', toastTitle: '', toastBody: '', toastAction: '', toastHref: '' };
+function toastVals(self, t) {
+  if (!t) return Object.assign({}, TOASTLESS, { dismiss: () => self.setState({ toast: null }) });
+  return { toast: true, toastKind: t.kind || 'success', toastTitle: t.title, toastBody: t.body || '', toastAction: t.action || '', toastHref: t.href || '', dismiss: () => self.setState({ toast: null }) };
+}
+const SW = {
+  coralpop: { name: 'Coral Pop', stem: '#F16B53', meta: 'Tactile · Clack Works · 62 g', profile: 'Poppy', status: 'processing', vars: { stock: 'recorded', lubed: 'processing', foam: 'missing' } },
+  milkyellow: { name: 'Milk Yellow', stem: '#E9C46A', meta: 'Linear · Thock Co. · 50 g', profile: 'Deep', status: 'recorded', vars: { stock: 'recorded', lubed: 'recorded', foam: 'recorded' } },
+  inkblack: { name: 'Ink Black', stem: '#2A2E38', meta: 'Linear · Quiet Labs · 60 g', profile: 'Muted', status: 'recorded', vars: { stock: 'recorded', lubed: 'recorded', foam: 'missing' } },
+  sapphire: { name: 'Sapphire Click', stem: '#2F6FD6', meta: 'Clicky · Clack Works · 55 g', profile: 'Clacky', status: 'recorded', vars: { stock: 'recorded', lubed: 'missing', foam: 'missing' } },
+  jade: { name: 'Jade Hush', stem: '#2E9E7A', meta: 'Silent · Quiet Labs · 45 g', profile: 'Muted', status: 'recorded', vars: { stock: 'recorded', lubed: 'recorded', foam: 'missing' } },
+  protoorange: { name: 'Proto Orange', stem: '#F28C28', meta: 'Tactile · Thock Co. · 67 g', profile: 'Poppy', status: 'missing', vars: { stock: 'missing', lubed: 'missing', foam: 'missing' } }
+};
+const ORDER = ['coralpop', 'milkyellow', 'inkblack', 'sapphire', 'jade', 'protoorange'];
+const VARS = [['stock', 'Stock'], ['lubed', 'Lubed'], ['foam', 'Foam mod']];
+class Component extends DCLogic {
+  state = { sel: null, v: 'stock', toast: null, playing: null };
+  componentWillUnmount() { try { this.ctx && this.ctx.close(); } catch (e) {} }
+  beep(profile, stroke) {
+    try {
+      const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+      this.ctx = this.ctx || new C();
+      const ctx = this.ctx, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+      const f = { Deep: 180, Poppy: 420, Clacky: 900, Muted: 140 }[profile] || 300;
+      o.type = profile === 'Clacky' ? 'square' : 'triangle'; o.frequency.setValueAtTime(stroke === 'Release' ? f * 1.3 : f, t);
+      o.frequency.exponentialRampToValueAtTime(60, t + 0.06);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(profile === 'Muted' ? 0.12 : 0.3, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+      o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + 0.08);
+    } catch (e) {}
+  }
+  renderVals() {
+    const s = this.state, id = s.sel || this.props.selected || 'coralpop', cur = SW[id] || SW.coralpop;
+    const vStatus = cur.vars[s.v];
+    const has = vStatus !== 'missing';
+    const seedBase = ORDER.indexOf(id) * 17 + (s.v === 'lubed' ? 5 : s.v === 'foam' ? 9 : 1);
+    const muted = s.v === 'foam' ? 'Muted' : cur.profile;
+    const vLabel = VARS.find((x) => x[0] === s.v)[1];
+    const fn = cur.name.toLowerCase().replace(/ /g, '-') + '_' + s.v;
+    return Object.assign({
+      switches: ORDER.map((k) => ({ name: SW[k].name, stem: SW[k].stem, status: SW[k].status, files: Object.values(SW[k].vars).filter((x) => x !== 'missing').length * 2 + ' FILES', on: String(k === id), pick: () => this.setState({ sel: k, v: 'stock' }) })),
+      cur: cur,
+      variants: VARS.map((x) => ({ label: x[1], on: String(x[0] === s.v), pick: () => this.setState({ v: x[0] }) })),
+      variantLabel: vLabel + ' recordings',
+      hasSound: has, noSound: !has,
+      rows: ['Press', 'Release'].map((st, i) => ({ stroke: st, profile: muted, seed: seedBase + i * 3, len: (st === 'Press' ? 0.19 + (seedBase % 5) / 100 : 0.14 + (seedBase % 4) / 100).toFixed(2) + ' s', lufs: '−' + (16 + (seedBase + i) % 5) + ' LUFS', status: vStatus, playLabel: 'Play ' + cur.name + ' ' + vLabel.toLowerCase() + ' ' + st.toLowerCase(), play: () => this.beep(muted, st) })),
+      fileNote: fn + '_press.wav · ' + fn + '_release.wav · 48 kHz · 24-bit',
+      upLabel: cur.name + ' · drop a .wav',
+      upFile: fn + '_press.wav',
+      uploadState: this.props.uploadState || 'idle',
+      uploaded: () => this.setState({ toast: { kind: 'success', title: 'Recording uploaded', body: 'Processing the waveform and loudness. It goes live once you publish the switch.', action: 'Open switch', href: 'AdminSwitchEdit.dc.html' } }),
+      checklist: ['Quiet room, under 30 dB background', 'Mic 10 cm from the switch, same rig every time', '48 kHz, 24-bit WAV, mono', 'One clean stroke per file, 100 ms of silence before', 'Peak below −3 dB, no clipping', 'Same keycap (PBT, row 3) for every switch']
+    }, toastVals(this, s.toast));
+  }
+}
+</script>
+</body>
+</html>

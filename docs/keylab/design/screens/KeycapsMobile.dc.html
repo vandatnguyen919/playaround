@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Keycaps studio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Nunito:wght@700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.kl{--bg:#FFFDF5;--surface:#FFFFFF;--surface2:#FFF1C7;--text:#000000;--muted:#3A3A3A;--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--indigo:#2C2A5A;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.kl[data-theme="dark"]{--bg:#1E1C3F;--surface:#2C2A5A;--surface2:#3A3870;--text:#FFFDF5;--muted:#D6D3F5}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc[aria-pressed="true"],.kc[aria-checked="true"],.kc[aria-selected="true"],.kc.on{background:var(--acc)}
+.kc.primary{background:var(--lime);min-height:56px;font-size:16px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc.sm{padding:0 10px;font-size:13px}
+.kc:focus-visible,.nv:focus-visible,.tile:focus-visible,.sw:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.tile{appearance:none;margin:0;font:inherit;color:#000;text-align:left;cursor:pointer;background:#FFFFFF;border:3px solid #000;border-radius:0;padding:10px;display:flex;gap:12px;align-items:center;text-decoration:none;box-shadow:4px 4px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.tile:active{transform:translate(4px,4px);box-shadow:0 0 0 #000}
+.tile[aria-pressed="true"],.tile[aria-checked="true"]{background:var(--acc);transform:translate(-2px,-2px);box-shadow:7px 7px 0 #000}
+.sw{appearance:none;margin:0;padding:0;cursor:pointer;min-height:44px;border:2.5px solid #000;border-radius:0;box-shadow:3px 3px 0 #000;transition:transform 70ms}
+.sw:active{transform:translate(3px,3px);box-shadow:none}
+.sw[aria-pressed="true"]{outline:3px solid var(--text);outline-offset:3px}
+.stage{background:var(--sky);color:#000;border:3px solid #000;box-shadow:6px 6px 0 #000}
+.orbit{cursor:grab;touch-action:none;user-select:none}
+.orbit.dragging{cursor:grabbing}
+.lbl{font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;margin:0}
+.h1{font-size:36px;line-height:34px;font-weight:900;letter-spacing:-.05em;margin:0}
+.sq{border:2px solid #000}
+.nav{flex:none;display:flex;gap:2px;padding:8px 8px 22px;background:#FFFFFF;border-top:3px solid #000}
+.nv{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px;flex:1;color:#000;text-decoration:none;font-size:11px;font-weight:800}
+.nv .ic{width:46px;height:32px;display:flex;align-items:center;justify-content:center;border:2.5px solid transparent;transition:transform 70ms}
+.nv:active .ic{transform:translate(2px,2px)}
+.nv.on .ic{background:var(--acc);border-color:#000;box-shadow:3px 3px 0 #000}
+.noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="kl" data-theme="{{theme}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <header style="flex: none; padding: 14px 16px 12px; display: flex; flex-direction: column; gap: 6px">
+    <h1 class="h1">Keycaps studio</h1>
+    <p class="mono" style="margin: 0; font-size: 11px; line-height: 15px; font-weight: 700">{{summary}}</p>
+  </header>
+
+  <div class="stage {{orbitCls}}" aria-label="3D keyboard preview on desk pad" role="group" onPointerDown="{{dragStart}}" onPointerMove="{{dragMove}}" onPointerUp="{{dragEnd}}" onPointerCancel="{{dragEnd}}" style="flex: none; position: relative; margin: 0 16px; padding: 10px 8px 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; background: {{pad.bg}}">
+    <span aria-hidden="true" style="position: absolute; inset: 5px; border: 2px dashed {{pad.stitch}}; pointer-events: none"></span>
+    <div role="radiogroup" aria-label="Keyboard view" style="position: relative; width: 100%; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px">
+      <sc-for list="{{views}}" as="v" hint-placeholder-count="5">
+        <button type="button" role="radio" class="kc sm" aria-checked="{{v.on}}" aria-label="{{v.aria}}" onClick="{{v.pick}}" style="padding: 0; font-size: 12px; box-shadow: 2px 2px 0 #000">{{v.label}}</button>
+      </sc-for>
+    </div>
+    <dc-import name="Keyboard" layout="65" width="310" view3d="{{v3}}" rx="{{rx}}" rz="{{rz}}" instant="{{instant}}" alpha="{{c.alpha}}" mod="{{c.mod}}" accent="{{c.accent}}" overrides="{{over}}" profile="{{profile}}" material="{{material}}" legend="{{legend}}" font="{{font}}" shine="{{shine}}" artisan-esc="{{artEsc}}" artisan-enter="{{artEnter}}" selected="{{selKeys}}" on-key-tap="{{tapKey}}" sound="{{snd}}" swap-seq="{{swap}}" ping-seq="{{ping}}" hint-size="310px,180px"></dc-import>
+    <div style="position: relative; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 6px">
+      <button type="button" class="kc sm" onClick="{{cyclePad}}" aria-label="Desk pad: {{pad.name}}. Tap for the next pad" style="padding: 0 10px 0 6px; font-size: 11px; box-shadow: 2px 2px 0 #000">
+        <span aria-hidden="true" style="width: 26px; height: 26px; border: 2px solid #000; background: {{pad.bg}}"></span>
+        <span class="mono" style="font-weight: 700">PAD · {{padShort}}</span>
+      </button>
+      <span class="mono" aria-hidden="true" style="flex: 1; min-width: 0; text-align: center; font-size: 10px; font-weight: 700; color: {{pad.fg}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{orbitHint}}</span>
+      <button type="button" class="kc sm" aria-pressed="{{spinAttr}}" onClick="{{toggleSpin}}" style="font-size: 12px; box-shadow: 2px 2px 0 #000">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"></path></svg>
+        {{spinLabel}}
+      </button>
+    </div>
+  </div>
+
+  <div role="tablist" aria-label="Keycap options" class="noscroll" style="flex: none; display: flex; gap: 8px; overflow-x: auto; padding: 14px 16px 8px; border-bottom: 3px solid #000">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
+      <button type="button" role="tab" class="kc sm" aria-selected="{{t.on}}" onClick="{{t.pick}}" style="flex: none">{{t.label}}</button>
+    </sc-for>
+  </div>
+
+  <main class="noscroll" role="tabpanel" aria-label="{{tabLabel}}" style="flex: 1; overflow-y: auto; padding: 16px 16px 26px; display: flex; flex-direction: column; gap: 18px">
+    <sc-if value="{{isProfile}}" hint-placeholder-val="{{ false }}">
+      <div role="radiogroup" aria-label="Keycap profile" style="display: flex; flex-direction: column; gap: 12px">
+        <sc-for list="{{profiles}}" as="p" hint-placeholder-count="5">
+          <button type="button" role="radio" class="tile" aria-checked="{{p.on}}" onClick="{{p.pick}}">
+            <svg width="120" height="48" viewBox="0 0 120 48" aria-hidden="true" style="flex: none">
+              <line x1="0" y1="45.5" x2="120" y2="45.5" stroke="#000" stroke-width="3"></line>
+              <sc-for list="{{p.caps}}" as="cap" hint-placeholder-count="3">
+                <path d="{{cap}}" fill="#99D6FF" stroke="#000" stroke-width="2.2" stroke-linejoin="miter"></path>
+              </sc-for>
+            </svg>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 18px; font-weight: 900; letter-spacing: -0.03em">{{p.name}}</span>
+              <span class="mono" style="font-size: 11px; font-weight: 700">{{p.spec}}</span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isMaterial}}" hint-placeholder-val="{{ false }}">
+      <div role="radiogroup" aria-label="Keycap material" style="display: flex; flex-direction: column; gap: 12px">
+        <sc-for list="{{materials}}" as="m" hint-placeholder-count="2">
+          <button type="button" role="radio" class="tile" aria-checked="{{m.on}}" onClick="{{m.pick}}" style="align-items: flex-start">
+            <span aria-hidden="true" style="flex: none; width: 52px; height: 52px; border: 3px solid #000; background: {{m.swatch}}"></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+              <span style="display: flex; align-items: center; gap: 8px"><span style="font-size: 20px; font-weight: 900; letter-spacing: -0.03em">{{m.name}}</span><span class="mono" style="font-size: 10px; font-weight: 700; padding: 1px 6px; border: 2px solid #000; background: #FFFDF5">{{m.sound}}</span></span>
+              <span style="font-size: 13px; line-height: 18px; font-weight: 500">{{m.desc}}</span>
+            </span>
+          </button>
+        </sc-for>
+        <p style="margin: 0; font-size: 13px; font-weight: 700">Tap a key in the preview to hear the difference.</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isColors}}" hint-placeholder-val="{{ true }}">
+      <section aria-labelledby="th-h" style="display: flex; flex-direction: column; gap: 10px">
+        <h2 id="th-h" class="lbl">Colorways</h2>
+        <div class="noscroll" style="display: flex; gap: 12px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 10px">
+          <sc-for list="{{themes}}" as="t" hint-placeholder-count="6">
+            <button type="button" class="tile" aria-pressed="{{t.on}}" onClick="{{t.pick}}" style="flex: none; flex-direction: column; align-items: flex-start; gap: 8px; width: 118px">
+              <span aria-hidden="true" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; width: 100%">
+                <span class="sq" style="height: 20px; background: {{t.x}}"></span>
+                <span class="sq" style="height: 20px; background: {{t.a}}"></span>
+                <span class="sq" style="height: 20px; background: {{t.a}}"></span>
+                <span class="sq" style="height: 20px; background: {{t.m}}"></span>
+              </span>
+              <span style="font-size: 13px; font-weight: 900">{{t.name}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </section>
+      <section aria-labelledby="pt-h" style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: baseline; justify-content: space-between">
+          <h2 id="pt-h" class="lbl">Custom painter</h2>
+          <span style="font-size: 12px; font-weight: 700">{{painterHint}}</span>
+        </div>
+        <div role="radiogroup" aria-labelledby="pt-h" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+          <sc-for list="{{targets}}" as="g" hint-placeholder-count="4">
+            <button type="button" role="radio" class="kc sm" aria-checked="{{g.on}}" onClick="{{g.pick}}" style="padding: 0; font-size: 12px; gap: 5px">
+              <span aria-hidden="true" class="sq" style="width: 11px; height: 11px; background: {{g.col}}"></span>{{g.label}}
+            </button>
+          </sc-for>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px">
+          <sc-for list="{{swatches}}" as="w" hint-placeholder-count="12">
+            <button type="button" class="sw" aria-label="{{w.name}}" aria-pressed="{{w.on}}" onClick="{{w.pick}}" style="background: {{w.hex}}"></button>
+          </sc-for>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{isLegends}}" hint-placeholder-val="{{ false }}">
+      <section aria-labelledby="lf-h" style="display: flex; flex-direction: column; gap: 10px">
+        <h2 id="lf-h" class="lbl">Font</h2>
+        <div role="radiogroup" aria-labelledby="lf-h" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+          <sc-for list="{{fonts}}" as="f" hint-placeholder-count="3">
+            <button type="button" role="radio" class="kc" aria-checked="{{f.on}}" onClick="{{f.pick}}" style="font-family: {{f.fam}}; flex-direction: column; gap: 0; min-height: 64px; padding: 0"><span style="font-size: 22px; line-height: 26px">Aa</span><span style="font-size: 11px">{{f.label}}</span></button>
+          </sc-for>
+        </div>
+      </section>
+      <section aria-labelledby="lp-h" style="display: flex; flex-direction: column; gap: 10px">
+        <h2 id="lp-h" class="lbl">Position</h2>
+        <div role="radiogroup" aria-labelledby="lp-h" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+          <sc-for list="{{positions}}" as="o" hint-placeholder-count="4">
+            <button type="button" role="radio" class="kc sm" aria-checked="{{o.on}}" onClick="{{o.pick}}" style="padding: 0">{{o.label}}</button>
+          </sc-for>
+        </div>
+      </section>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 3px solid #000; background: #FFFFFF; color: #000; box-shadow: 4px 4px 0 #000">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 16px; font-weight: 900">Shine-through legends</span>
+          <span style="font-size: 13px; line-height: 18px; font-weight: 500">Translucent legends let the backlight glow through.</span>
+        </span>
+        <button type="button" role="switch" class="kc sm" aria-checked="{{shineAttr}}" onClick="{{toggleShine}}" aria-label="Shine-through legends">{{shineWord}}</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isArtisan}}" hint-placeholder-val="{{ false }}">
+      <sc-for list="{{artisanRows}}" as="r" hint-placeholder-count="2">
+        <section style="display: flex; flex-direction: column; gap: 10px">
+          <h2 class="lbl">{{r.label}}</h2>
+          <div role="radiogroup" aria-label="{{r.label}}" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+            <sc-for list="{{r.opts}}" as="o" hint-placeholder-count="4">
+              <button type="button" role="radio" class="tile" aria-checked="{{o.on}}" onClick="{{o.pick}}" style="flex-direction: column; gap: 6px; padding: 8px 4px; align-items: center">
+                <span aria-hidden="true" style="width: 42px; height: 42px; border: 2.5px solid #000; background: {{o.bg}}; display: flex; align-items: center; justify-content: center"><span style="width: 62%; height: 50%; margin-bottom: 4px; background: {{o.screen}}; box-shadow: {{o.scrRing}}"></span></span>
+                <span style="font-size: 12px; font-weight: 900">{{o.label}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </section>
+      </sc-for>
+    </sc-if>
+
+    <a class="kc primary" href="BuildsMobile.dc.html" style="margin-top: 4px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6.5 3.5h11v17l-5.5-3.8-5.5 3.8z"></path></svg>
+      Save build
+    </a>
+  </main>
+
+  <nav class="nav" aria-label="Primary">
+    <a class="nv" href="Main.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M6 10h1M10 10h1M14 10h1M18 10h1M7 14h10"></path></svg></span>Build</a>
+    <a class="nv" href="SwitchesMobile.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><path d="M12 2.5v7M8.5 6h7"></path><rect x="4.5" y="11" width="15" height="9.5"></rect></svg></span>Switches</a>
+    <a class="nv" href="ModsMobile.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"></path><rect x="13" y="5" width="4" height="4"></rect><rect x="7" y="15" width="4" height="4"></rect></svg></span>Mods</a>
+    <a class="nv on" href="KeycapsMobile.dc.html" aria-current="page"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M3.5 19.5h17L18 6H6z"></path><path d="M9 10.5h6"></path></svg></span>Keycaps</a>
+    <a class="nv" href="BuildsMobile.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6.5 3.5h11v17l-5.5-3.8-5.5 3.8z"></path></svg></span>My builds</a>
+    <a class="nv" href="ProfileMobile.dc.html"><span class="ic"><span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border: 2.5px solid #000; background: #FFD24D; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; letter-spacing: -0.03em">TW</span></span>Profile</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"tab":{"editor":"enum","options":["profile","material","colors","legends","artisan"],"default":"colors"},"$preview":{"width":390,"height":844}}'>
+const THEMES = [
+  { name: 'Navy Mustard', a: '#3D6A8C', m: '#1F2B45', x: '#F2C14E' },
+  { name: 'Cream & Ink', a: '#ECE6D8', m: '#2A2E38', x: '#D9573B' },
+  { name: 'Arctic', a: '#F2F5F9', m: '#B9C6D8', x: '#3F72AF' },
+  { name: 'Terracotta', a: '#E9D8C4', m: '#B4654A', x: '#2F4858' },
+  { name: 'Mono Slate', a: '#3B4458', m: '#2A3142', x: '#9AA7BD' },
+  { name: 'Retro Grey', a: '#8B867E', m: '#6B675F', x: '#4A4741' }
+];
+const SWATCH = [['Navy', '#1F2B45'], ['Steel blue', '#3D6A8C'], ['Mustard', '#F2C14E'], ['Cream', '#ECE6D8'], ['Ink', '#2A2E38'], ['Coral', '#F16B53'], ['Ice', '#F2F5F9'], ['Sky', '#99D6FF'], ['Lime', '#C6F079'], ['Clay', '#B4654A'], ['Indigo', '#2C2A5A'], ['Graphite', '#4A5160']];
+const PROFILES = [
+  { id: 'cherry', name: 'Cherry', spec: 'SCULPTED · LOW', H: 15, dd: 2, tilt: 2, sc: true },
+  { id: 'oem', name: 'OEM', spec: 'SCULPTED · MEDIUM', H: 19, dd: 1.6, tilt: 2.2, sc: true },
+  { id: 'sa', name: 'SA', spec: 'SCULPTED · TALL, SPHERICAL', H: 27, dd: 3.4, tilt: 2.6, sc: true },
+  { id: 'xda', name: 'XDA', spec: 'UNIFORM · LOW, FLAT TOP', H: 15, dd: 1.2, tilt: 0, sc: false },
+  { id: 'mt3', name: 'MT3', spec: 'SCULPTED · TALL, DEEP DISH', H: 24, dd: 4.4, tilt: 2.4, sc: true }
+];
+const ART = {
+  none: { bg: '#FFFDF5', scr: '' },
+  arcade: { bg: '#D6453A', scr: 'linear-gradient(#F2C14E,#F2C14E) 26% 64%/18% 24% no-repeat, linear-gradient(#5BD3C7,#5BD3C7) 70% 34%/18% 24% no-repeat, linear-gradient(#E86AA6,#E86AA6) 52% 84%/12% 14% no-repeat, #0B1020' },
+  handheld: { bg: '#E86AA6', scr: 'linear-gradient(180deg, #9ED8F2 0 52%, #5DB86C 52% 78%, #3E8F4E 78%)' },
+  resin: { bg: 'radial-gradient(circle at 34% 34%, #FFD24D 0 20%, #000 20% 26%, #5BD3C7 26%)', scr: '' }
+};
+const TABS = [['profile', 'Profile'], ['material', 'Material'], ['colors', 'Colors'], ['legends', 'Legends'], ['artisan', 'Artisan']];
+const SND = { pitch: 470, bright: .2, decay: 62, thump: 1, vol: .7 };
+const PADS = [
+  { id: 'sky', name: 'Sky', fg: '#000', stitch: 'rgba(0,0,0,.35)', bg: '#99D6FF' },
+  { id: 'splash', name: 'Splash', fg: '#FFFDF5', stitch: 'rgba(255,253,245,.55)', bg: 'radial-gradient(circle at 10% 20%, #F16B53 0 22px, transparent 23px) 0 0/100% 100%, radial-gradient(circle at 88% 78%, #F16B53 0 34px, transparent 35px) 0 0/100% 100%, radial-gradient(circle at 72% 14%, #FFD24D 0 9px, transparent 10px) 0 0/100% 100%, linear-gradient(115deg, transparent 0 60%, #3A3870 60% 76%, transparent 76%) 0 0/100% 100%, #2C2A5A' },
+  { id: 'grid', name: 'Grid', fg: '#000', stitch: 'rgba(0,0,0,.35)', bg: 'linear-gradient(transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/22px 22px, linear-gradient(90deg, transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/22px 22px, #FFFDF5' },
+  { id: 'dots', name: 'Dots', fg: '#000', stitch: 'rgba(0,0,0,.35)', bg: 'radial-gradient(circle, #000 0 2px, transparent 2.5px) 0 0/18px 18px, #FFD24D' },
+  { id: 'stripes', name: 'Stripes', fg: '#000', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-linear-gradient(135deg, #C6F079 0 16px, #B2DE63 16px 32px)' },
+  { id: 'checker', name: 'Checker', fg: '#000', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-conic-gradient(#FFFDF5 0 25%, #EFE6CD 0 50%) 0 0/28px 28px' },
+  { id: 'walnut', name: 'Walnut', fg: '#FFFDF5', stitch: 'rgba(255,253,245,.45)', bg: 'repeating-linear-gradient(92deg, #8A5E3C 0 9px, #7A5233 9px 20px, #93663F 20px 27px)' }
+];
+const VIEWS = [
+  { id: 'flat', label: 'Flat', aria: 'Flat' },
+  { id: 'top', label: 'Top', aria: 'Top down', rx: 0, rz: 0 },
+  { id: 'tilt', label: 'Tilt', aria: 'Tilt', rx: 34, rz: 0 },
+  { id: 'diag', label: '3/4', aria: 'Diagonal', rx: 52, rz: -32 },
+  { id: 'low', label: 'Low', aria: 'Low angle', rx: 72, rz: -14 }
+];
+const wrapDeg = (d) => Math.round(((d + 180) % 360 + 360) % 360 - 180);
+function capPath(x0, H, dd, tilt) {
+  const b = 45, tl = b - H - tilt, tr = b - H + tilt;
+  return 'M' + x0 + ' ' + b + ' L' + (x0 + 4) + ' ' + tl + ' Q' + (x0 + 15) + ' ' + ((tl + tr) / 2 + dd) + ' ' + (x0 + 28) + ' ' + tr + ' L' + (x0 + 32) + ' ' + b + ' Z';
+}
+
+class Component extends DCLogic {
+  state = { tab: null, theme: 0, cols: { alpha: '#3D6A8C', mod: '#1F2B45', accent: '#F2C14E' }, over: {}, target: 'alpha', selKeys: [], profile: 'cherry', material: 'pbt', legend: 'top-left', font: 'grotesk', shine: false, artEsc: 'arcade', artEnter: 'none', swap: 0, ping: 0, pad: 'sky', view: 'diag', rx: 52, rz: -32, spin: false, drag: null };
+
+  bump(extra) { this.setState(Object.assign({ swap: this.state.swap + 1 }, extra)); clearTimeout(this.tm); this.tm = setTimeout(() => this.setState({ ping: this.state.ping + 1 }), 1000); }
+  stopSpin() { clearInterval(this.spinT); this.spinT = null; }
+  startSpin() { this.stopSpin(); this.spinT = setInterval(() => this.setState({ rz: wrapDeg(this.state.rz + 2) }), 40); }
+  from3d() { return this.state.view === 'flat' ? { rx: 52, rz: -32 } : { rx: this.state.rx, rz: this.state.rz }; }
+  componentWillUnmount() { clearTimeout(this.tm); this.stopSpin(); }
+
+  renderVals() {
+    const s = this.state, p = this.props;
+    const tab = s.tab || p.tab || 'colors';
+    const picking = s.target === 'keys';
+    const prof = PROFILES.find((x) => x.id === s.profile);
+    const themeName = s.theme >= 0 ? THEMES[s.theme].name : 'Custom';
+    const snd = s.material === 'abs' ? Object.assign({}, SND, { pitch: SND.pitch * 1.07, bright: SND.bright + .08 }) : SND;
+    const pad = PADS.find((d) => d.id === s.pad) || PADS[0];
+    const flat = s.view === 'flat';
+    return {
+      pad: pad, padShort: pad.name.toUpperCase(),
+      cyclePad: () => { const i = PADS.findIndex((d) => d.id === this.state.pad); this.setState({ pad: PADS[(i + 1) % PADS.length].id }); },
+      v3: !flat, rx: s.rx, rz: s.rz, instant: !!(s.drag || s.spin),
+      orbitCls: flat ? '' : (s.drag ? 'orbit dragging' : 'orbit'),
+      orbitHint: flat ? 'PICK A VIEW' : (s.spin ? 'SPINNING' : 'DRAG TO ORBIT'),
+      spinAttr: String(s.spin), spinLabel: s.spin ? 'Stop' : 'Spin',
+      views: VIEWS.map((v) => ({
+        label: v.label, aria: v.aria, on: String(s.view === v.id),
+        pick: () => { this.stopSpin(); this.setState(v.id === 'flat' ? { view: 'flat', spin: false } : { view: v.id, rx: v.rx, rz: v.rz, spin: false }); }
+      })),
+      toggleSpin: () => {
+        if (this.state.spin) { this.stopSpin(); this.setState({ spin: false }); return; }
+        this.setState(Object.assign(this.from3d(), { spin: true, view: this.state.view === 'flat' ? 'diag' : this.state.view }));
+        this.startSpin();
+      },
+      dragStart: (e) => {
+        if (e.button > 0 || (e.target && e.target.closest && e.target.closest('button, input, label, a, [role="radiogroup"]'))) return;
+        this.stopSpin();
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch (x) {}
+        const o = this.from3d();
+        this.setState({ spin: false, view: 'custom', rx: o.rx, rz: o.rz, drag: { x: e.clientX, y: e.clientY, rx: o.rx, rz: o.rz } });
+      },
+      dragMove: (e) => {
+        const d = this.state.drag; if (!d) return;
+        this.setState({ rz: wrapDeg(d.rz + (e.clientX - d.x) * .6), rx: Math.round(Math.max(0, Math.min(80, d.rx - (e.clientY - d.y) * .45))) });
+      },
+      dragEnd: () => { if (this.state.drag) this.setState({ drag: null }); },
+      theme: p.theme || 'light',
+      summary: (prof.name + ' · ' + s.material + ' · ' + themeName).toUpperCase(),
+      c: s.cols, over: s.over, profile: s.profile, material: s.material, legend: s.legend, font: s.font, shine: s.shine,
+      artEsc: s.artEsc, artEnter: s.artEnter, snd: snd, swap: s.swap, ping: s.ping,
+      selKeys: picking ? s.selKeys : [],
+      tapKey: (id) => {
+        if (this.state.target !== 'keys') return;
+        const k = this.state.selKeys.slice(); const i = k.indexOf(id);
+        if (i >= 0) k.splice(i, 1); else k.push(id);
+        this.setState({ selKeys: k });
+      },
+      tabs: TABS.map((t) => ({ label: t[1], on: String(t[0] === tab), pick: () => this.setState({ tab: t[0] }) })),
+      tabLabel: (TABS.find((t) => t[0] === tab) || TABS[2])[1],
+      isProfile: tab === 'profile', isMaterial: tab === 'material', isColors: tab === 'colors', isLegends: tab === 'legends', isArtisan: tab === 'artisan',
+      profiles: PROFILES.map((x) => ({
+        name: x.name, spec: x.spec, on: String(x.id === s.profile),
+        caps: [0, 1, 2].map((i) => capPath(4 + i * 38, x.sc ? x.H * [1.12, 1, .92][i] : x.H, x.dd, x.sc ? x.tilt * [1.4, .4, -.8][i] : 0)),
+        pick: () => this.bump({ profile: x.id })
+      })),
+      materials: [
+        { id: 'pbt', name: 'PBT', sound: 'DEEPER', desc: 'Textured and matte. Resists shine and gives a slightly deeper, drier sound.', swatch: '#3D6A8C' },
+        { id: 'abs', name: 'ABS', sound: 'HIGHER', desc: 'Smooth, rich colors and crisp legends. A touch higher-pitched; can shine with use.', swatch: 'linear-gradient(135deg, #3D6A8C 0 55%, #A6ECF5 55% 62%, #3D6A8C 62%)' }
+      ].map((m) => Object.assign(m, { on: String(m.id === s.material), pick: () => this.bump({ material: m.id }) })),
+      themes: THEMES.map((t, i) => ({ name: t.name, a: t.a, m: t.m, x: t.x, on: String(i === s.theme), pick: () => this.bump({ theme: i, cols: { alpha: t.a, mod: t.m, accent: t.x }, over: {} }) })),
+      painterHint: picking ? (s.selKeys.length ? s.selKeys.length + ' keys selected' : 'Tap keys in the preview') : 'Pick a group, then a color',
+      targets: [['alpha', 'Alphas'], ['mod', 'Mods'], ['accent', 'Accents'], ['keys', 'Keys']].map((g) => ({
+        label: g[1], on: String(s.target === g[0]), col: g[0] === 'keys' ? '#FFFFFF' : s.cols[g[0]],
+        pick: () => this.setState({ target: g[0], selKeys: [] })
+      })),
+      swatches: SWATCH.map((w) => {
+        const on = !picking && s.cols[s.target] === w[1];
+        return {
+          name: w[0], hex: w[1], on: String(on),
+          pick: () => {
+            if (picking) {
+              if (!s.selKeys.length) return;
+              const o = Object.assign({}, s.over); s.selKeys.forEach((id) => { o[id] = w[1]; });
+              this.setState({ over: o, theme: -1 });
+            } else {
+              const c = Object.assign({}, s.cols); c[s.target] = w[1];
+              this.setState({ cols: c, theme: -1 });
+            }
+          }
+        };
+      }),
+      fonts: [['grotesk', 'Grotesk', "'Archivo', sans-serif"], ['mono', 'Mono', "'Space Mono', monospace"], ['rounded', 'Rounded', "'Nunito', sans-serif"]].map((f) => ({ label: f[1], fam: f[2], on: String(s.font === f[0]), pick: () => this.setState({ font: f[0] }) })),
+      positions: [['top-left', 'Top-left'], ['center', 'Center'], ['front', 'Front'], ['blank', 'Blank']].map((o) => ({ label: o[1], on: String(s.legend === o[0]), pick: () => this.setState({ legend: o[0] }) })),
+      shineAttr: String(s.shine), shineWord: s.shine ? 'On' : 'Off',
+      toggleShine: () => this.setState({ shine: !s.shine }),
+      artisanRows: [['artEsc', 'Escape key'], ['artEnter', 'Enter key']].map((r) => ({
+        label: r[1],
+        opts: [['none', 'Standard'], ['arcade', 'Arcade'], ['handheld', 'Handheld'], ['resin', 'Resin']].map((o) => ({
+          label: o[1], bg: ART[o[0]].bg, screen: ART[o[0]].scr || 'transparent', scrRing: ART[o[0]].scr ? 'inset 0 0 0 2px #000' : 'none', on: String(s[r[0]] === o[0]),
+          pick: () => { const u = {}; u[r[0]] = o[0]; this.setState(u); }
+        }))
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

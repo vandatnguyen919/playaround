@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Toast</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tst-btn{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:13px;font-weight:800;color:#000;background:#FFFDF5;border:2px solid #000;border-radius:0;min-height:36px;padding:0 10px;box-shadow:2px 2px 0 #000;text-decoration:none;display:inline-flex;align-items:center;white-space:nowrap}
+.tst-btn:active{transform:translate(2px,2px);box-shadow:none}
+.tst-btn:focus-visible{outline:3px solid #F16B53;outline-offset:2px}
+.tst-x{appearance:none;margin:0;cursor:pointer;width:36px;height:36px;border:0;background:transparent;color:#000;display:flex;align-items:center;justify-content:center}
+.tst-x:focus-visible{outline:3px solid #F16B53;outline-offset:2px}
+</style>
+</helmet>
+<div role="{{role}}" aria-live="{{live}}" style="width: 100%; max-width: 440px; box-sizing: border-box; border: 3px solid #000; background: {{bg}}; color: #000; box-shadow: 5px 5px 0 #000; padding: 10px 6px 10px 12px; display: flex; align-items: center; gap: 12px; font-family: 'Archivo', system-ui, sans-serif">
+  <span aria-hidden="true" style="flex: none; width: 34px; height: 34px; border: 2.5px solid #000; background: #000; color: {{iconCol}}; display: flex; align-items: center; justify-content: center">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="{{icon}}"></path></svg>
+  </span>
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px">
+    <span style="font-size: 14px; line-height: 18px; font-weight: 900">{{title}}</span>
+    <span style="font-size: 12px; line-height: 16px; font-weight: 500">{{body}}</span>
+  </div>
+  <sc-if value="{{hasAction}}" hint-placeholder-val="{{ true }}">
+    <a class="tst-btn" href="{{href}}">{{action}}</a>
+  </sc-if>
+  <button type="button" class="tst-x" aria-label="Dismiss" onClick="{{dismiss}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"kind":{"editor":"enum","options":["success","error","info"],"default":"success"},"title":{"editor":"text","default":"Switch published"},"body":{"editor":"text","default":"Proto Orange is live in the public switch library."},"action":{"editor":"text","default":"View"},"href":{"editor":null},"onDismiss":{"editor":null},"$preview":{"width":440,"height":72}}'>
+const TK = {
+  success: { bg: '#C6F079', icon: 'M5 12.5l4.5 4.5L19 7.5', col: '#C6F079', role: 'status', live: 'polite' },
+  error: { bg: '#FFC9BE', icon: 'M12 6v8M12 17.5v.5', col: '#F16B53', role: 'alert', live: 'assertive' },
+  info: { bg: '#99D6FF', icon: 'M12 10v8M12 6.5v.5', col: '#99D6FF', role: 'status', live: 'polite' }
+};
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, k = TK[p.kind] || TK.success;
+    return {
+      bg: k.bg, icon: k.icon, iconCol: k.col, role: k.role, live: k.live,
+      title: p.title || 'Switch published', body: p.body == null ? 'Proto Orange is live in the public switch library.' : p.body,
+      action: p.action == null ? 'View' : p.action, hasAction: !!(p.action == null ? 'View' : p.action), href: p.href || 'MktLibrary.dc.html',
+      dismiss: () => { if (p.onDismiss) p.onDismiss(); }
+    };
+  }
+}
+</script>
+</body>
+</html>

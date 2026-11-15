@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · User profile states (mobile)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.cap{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.04em;font-weight:700;text-transform:uppercase;color:#000}
+</style>
+</helmet>
+<div style="min-height: 100vh; box-sizing: border-box; background: #EFE8D6; padding: 36px 40px 48px; display: flex; flex-direction: column; gap: 22px; font-family: 'Archivo', system-ui, sans-serif">
+  <div style="display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap"><h1 style="margin: 0; font-size: 34px; line-height: 38px; font-weight: 900; letter-spacing: -0.04em">States · mobile 390</h1><p style="margin: 0; font-size: 14px; font-weight: 500">Each phone is the live screen with one prop set. The same props exist on the desktop boards.</p></div>
+  <div style="display: flex; gap: 40px; align-items: flex-start">
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="cap">My profile · new user, no builds</span>
+      <div style="width: 390px; height: 844px; border: 3px solid #000; box-shadow: 8px 8px 0 #000; overflow: hidden; background: #FFFDF5"><dc-import name="ProfileMobile" state="new" hint-size="390px,844px"></dc-import></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="cap">My profile · loading skeletons</span>
+      <div style="width: 390px; height: 844px; border: 3px solid #000; box-shadow: 8px 8px 0 #000; overflow: hidden; background: #FFFDF5"><dc-import name="ProfileMobile" state="loading" hint-size="390px,844px"></dc-import></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="cap">My profile · save success toast</span>
+      <div style="width: 390px; height: 844px; border: 3px solid #000; box-shadow: 8px 8px 0 #000; overflow: hidden; background: #FFFDF5"><dc-import name="ProfileMobile" toast="saved" hint-size="390px,844px"></dc-import></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="cap">Public profile · follow success toast</span>
+      <div style="width: 390px; height: 844px; border: 3px solid #000; box-shadow: 8px 8px 0 #000; overflow: hidden; background: #FFFDF5"><dc-import name="PublicProfileMobile" toast="followed" hint-size="390px,844px"></dc-import></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="cap">Public profile · private</span>
+      <div style="width: 390px; height: 844px; border: 3px solid #000; box-shadow: 8px 8px 0 #000; overflow: hidden; background: #FFFDF5"><dc-import name="PublicProfileMobile" state="private" hint-size="390px,844px"></dc-import></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="cap">Public profile · user not found</span>
+      <div style="width: 390px; height: 844px; border: 3px solid #000; box-shadow: 8px 8px 0 #000; overflow: hidden; background: #FFFDF5"><dc-import name="PublicProfileMobile" state="notfound" hint-size="390px,844px"></dc-import></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="cap">Edit profile · inline validation</span>
+      <div style="width: 390px; height: 844px; border: 3px solid #000; box-shadow: 8px 8px 0 #000; overflow: hidden; background: #FFFDF5"><dc-import name="EditProfileMobile" demo="errors" hint-size="390px,844px"></dc-import></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="cap">Edit profile · tap Save → error toast</span>
+      <div style="width: 390px; height: 844px; border: 3px solid #000; box-shadow: 8px 8px 0 #000; overflow: hidden; background: #FFFDF5"><dc-import name="EditProfileMobile" demo="saveError" hint-size="390px,844px"></dc-import></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="cap">Settings · delete account confirm</span>
+      <div style="width: 390px; height: 844px; border: 3px solid #000; box-shadow: 8px 8px 0 #000; overflow: hidden; background: #FFFDF5"><dc-import name="AccountMobile" section="danger" dialog="{{ true }}" hint-size="390px,844px"></dc-import></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":3920,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

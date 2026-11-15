@@ -1,0 +1,5701 @@
+# KeyLab API v1 · OpenAPI 3.1 · generated from docs/keylab/api-design-v1.md (draft, 2026-11-12)
+openapi: 3.1.0
+info:
+  title: KeyLab API
+  version: 1.0.0-draft+2026-11-08
+  summary: Resource-oriented JSON API for the KeyLab app, marketing site and admin dashboard.
+  description: |-
+    Generated from the endpoint tables in api-design-v1.md; that doc explains the rules (versioning, paging, errors, concurrency). Every operation carries `x-endpoint-id` (CAT-01…), `x-stories` (US-xx), `x-module` (Spring Modulith module) and, when signed in, `x-required-role` (lowest Keycloak role).
+
+    Versioning: the major version is in the path; additive changes ship inside v1 and are dated by the `KeyLab-API-Revision` response header. Deprecated versions send `Deprecation` and `Sunset` headers and answer `410 Gone` after the sunset date.
+servers:
+- url: https://keylab.app/bff/keylab/v1
+  description: Browser, through the Spring Cloud Gateway BFF (session cookie).
+- url: '{apiBase}/v1'
+  description: keylab-api directly (bearer token, audience keylab-api).
+  variables:
+    apiBase:
+      default: http://localhost:8183
+security:
+- bffSession: []
+- bearerAuth: []
+tags:
+- name: System
+  description: SYS · service status
+- name: Catalog
+  description: CAT · public, read-only catalog
+- name: Builds
+  description: BLD · builds and the sound recipe
+- name: Me
+  description: ME · the caller’s profile
+- name: Social
+  description: SOC · other people and community
+- name: Account
+  description: ACC · settings, identities, billing, export, deletion
+- name: Admin
+  description: ADM · /admin, Keycloak roles viewer < editor < admin
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      tags:
+      - System
+      summary: Service status and who the caller is
+      description: '**SYS-01** · access: Public · stories: none (KL0 foundation) · module: `shared`. Reports the
+        caller as keylab-api sees it, so one call through the BFF proves the route, token relay, audience and role
+        mapping. A guest gets `authenticated: false`; a bad token gets 401.'
+      x-endpoint-id: SYS-01
+      x-module: shared
+      x-stories: []
+      security:
+      - {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /switches:
+    get:
+      operationId: listSwitches
+      tags:
+      - Catalog
+      summary: List switches
+      description: '**CAT-01** · access: Public · stories: US-02, US-03, US-39 · module: `catalog`'
+      x-endpoint-id: CAT-01
+      x-module: catalog
+      x-stories:
+      - US-02
+      - US-03
+      - US-39
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      - name: sort
+        in: query
+        schema:
+          type: string
+          enum:
+          - popular
+          - -publishedAt
+          - force
+          default: popular
+      - name: type
+        in: query
+        schema:
+          $ref: '#/components/schemas/SwitchType'
+      - name: profile
+        in: query
+        schema:
+          $ref: '#/components/schemas/SoundProfile'
+      - name: sound
+        in: query
+        schema:
+          type: string
+          enum:
+          - recorded
+          - missing
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: is_new
+        in: query
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SwitchSummary'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /switches/{slug}:
+    get:
+      operationId: getSwitch
+      tags:
+      - Catalog
+      summary: Get one switch
+      description: '**CAT-02** · access: Public · stories: US-04 · module: `catalog`'
+      x-endpoint-id: CAT-02
+      x-module: catalog
+      x-stories:
+      - US-04
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/slug'
+      - $ref: '#/components/parameters/include'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Switch'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /switches/{slug}/sounds:
+    get:
+      operationId: listSwitchSounds
+      tags:
+      - Catalog
+      summary: Recordings by variant and stroke
+      description: '**CAT-03** · access: Public · stories: US-03, US-04 · module: `catalog`'
+      x-endpoint-id: CAT-03
+      x-module: catalog
+      x-stories:
+      - US-03
+      - US-04
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/slug'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwitchSounds'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /switches/{slug}/related:
+    get:
+      operationId: listRelatedSwitches
+      tags:
+      - Catalog
+      summary: Switches that sound similar
+      description: '**CAT-04** · access: Public · stories: US-04 · module: `catalog`'
+      x-endpoint-id: CAT-04
+      x-module: catalog
+      x-stories:
+      - US-04
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/slug'
+      - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SwitchSummary'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /keycap-sets:
+    get:
+      operationId: listKeycapSets
+      tags:
+      - Catalog
+      summary: List keycap sets
+      description: '**CAT-05** · access: Public · stories: US-06 · module: `catalog`'
+      x-endpoint-id: CAT-05
+      x-module: catalog
+      x-stories:
+      - US-06
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KeycapSet'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /keycap-sets/{slug}:
+    get:
+      operationId: getKeycapSet
+      tags:
+      - Catalog
+      summary: Get one keycap set
+      description: '**CAT-06** · access: Public · stories: US-06 · module: `catalog`'
+      x-endpoint-id: CAT-06
+      x-module: catalog
+      x-stories:
+      - US-06
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/slug'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeycapSet'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /mods:
+    get:
+      operationId: listMods
+      tags:
+      - Catalog
+      summary: List mods and their sound effects
+      description: '**CAT-07** · access: Public · stories: US-05 · module: `catalog`'
+      x-endpoint-id: CAT-07
+      x-module: catalog
+      x-stories:
+      - US-05
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Mod'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /case-options:
+    get:
+      operationId: getCaseOptions
+      tags:
+      - Catalog
+      summary: Case materials, plates and mounts
+      description: '**CAT-08** · access: Public · stories: US-07 · module: `catalog`'
+      x-endpoint-id: CAT-08
+      x-module: catalog
+      x-stories:
+      - US-07
+      security:
+      - {}
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseOptions'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/builds:
+    get:
+      operationId: listMyBuilds
+      tags:
+      - Builds
+      summary: My builds
+      description: '**BLD-01** · access: Member · stories: US-08 · module: `builds`'
+      x-endpoint-id: BLD-01
+      x-module: builds
+      x-stories:
+      - US-08
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      - $ref: '#/components/parameters/sort'
+      - name: visibility
+        in: query
+        schema:
+          $ref: '#/components/schemas/Visibility'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Build'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /builds:
+    post:
+      operationId: createBuild
+      tags:
+      - Builds
+      summary: Save a build
+      description: '**BLD-02** · access: Member · stories: US-08 · module: `builds`'
+      x-endpoint-id: BLD-02
+      x-module: builds
+      x-stories:
+      - US-08
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BuildInput'
+      responses:
+        '201':
+          description: Created
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Build'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /builds/{id}:
+    get:
+      operationId: getBuild
+      tags:
+      - Builds
+      summary: Get one build
+      description: '**BLD-03** · access: Public or owner · stories: US-09, US-14, US-19 · module: `builds`'
+      x-endpoint-id: BLD-03
+      x-module: builds
+      x-stories:
+      - US-09
+      - US-14
+      - US-19
+      security:
+      - {}
+      - bffSession: []
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Build'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    patch:
+      operationId: updateBuild
+      tags:
+      - Builds
+      summary: Rename, change parts or visibility
+      description: '**BLD-04** · access: Owner · stories: US-08, US-12 · module: `builds`'
+      x-endpoint-id: BLD-04
+      x-module: builds
+      x-stories:
+      - US-08
+      - US-12
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/BuildPatch'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Build'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: deleteBuild
+      tags:
+      - Builds
+      summary: Delete a build
+      description: '**BLD-05** · access: Owner · stories: US-12 · module: `builds`'
+      x-endpoint-id: BLD-05
+      x-module: builds
+      x-stories:
+      - US-12
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /builds/{id}/copies:
+    post:
+      operationId: copyBuild
+      tags:
+      - Builds
+      summary: Copy a public build into my builds
+      description: '**BLD-06** · access: Member · stories: US-15 · module: `builds`'
+      x-endpoint-id: BLD-06
+      x-module: builds
+      x-stories:
+      - US-15
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '201':
+          description: Created
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Build'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /builds/{id}/parts-list:
+    get:
+      operationId: getPartsList
+      tags:
+      - Builds
+      summary: Parts list
+      description: '**BLD-07** · access: Public or owner · stories: US-10 · module: `builds`'
+      x-endpoint-id: BLD-07
+      x-module: builds
+      x-stories:
+      - US-10
+      security:
+      - {}
+      - bffSession: []
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartsList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /builds/{id}/share-image:
+    get:
+      operationId: getShareImage
+      tags:
+      - Builds
+      summary: Share card image
+      description: '**BLD-08** · access: Public or owner · stories: US-11 · module: `builds`'
+      x-endpoint-id: BLD-08
+      x-module: builds
+      x-stories:
+      - US-11
+      security:
+      - {}
+      - bffSession: []
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            image/png:
+              schema:
+                type: string
+                contentMediaType: image/png
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/builds/imports:
+    post:
+      operationId: importGuestBuilds
+      tags:
+      - Builds
+      summary: Keep builds made as a guest
+      description: '**BLD-09** · access: Member · stories: US-13 · module: `builds`'
+      x-endpoint-id: BLD-09
+      x-module: builds
+      x-stories:
+      - US-13
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuestImport'
+      responses:
+        '201':
+          description: Created
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Build'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /sound-recipe:
+    get:
+      operationId: getSoundRecipe
+      tags:
+      - Builds
+      summary: Samples and filters for a set of parts
+      description: '**BLD-10** · access: Public · stories: US-05, US-06, US-07, US-09, US-14, US-19 · module: `sound`'
+      x-endpoint-id: BLD-10
+      x-module: sound
+      x-stories:
+      - US-05
+      - US-06
+      - US-07
+      - US-09
+      - US-14
+      - US-19
+      security:
+      - {}
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SoundRecipe'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      parameters:
+      - name: switch
+        in: query
+        schema:
+          type: string
+        required: true
+      - name: variant
+        in: query
+        schema:
+          type: string
+          enum:
+          - stock
+          - lubed
+          - foam
+      - name: mod
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+        style: form
+        explode: true
+        description: Repeat for each mod (`?mod=foam&mod=tape:2`); each value is `slug` or `slug:level`.
+      - name: keycap_set
+        in: query
+        schema:
+          type: string
+      - name: case_material
+        in: query
+        schema:
+          type: string
+      - name: plate
+        in: query
+        schema:
+          type: string
+      - name: mount
+        in: query
+        schema:
+          type: string
+  /me:
+    get:
+      operationId: getMe
+      tags:
+      - Me
+      summary: My profile
+      description: '**ME-01** · access: Member · stories: US-16 · module: `community`'
+      x-endpoint-id: ME-01
+      x-module: community
+      x-stories:
+      - US-16
+      x-required-role: keylab-user
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: deleteAccount
+      tags:
+      - Account
+      summary: Delete my account (14-day grace)
+      description: '**ACC-10** · access: Member · stories: US-34 · module: `account`'
+      x-endpoint-id: ACC-10
+      x-module: account
+      x-stories:
+      - US-34
+      x-required-role: keylab-user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteAccount'
+      responses:
+        '202':
+          description: Accepted
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionScheduled'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/profile:
+    patch:
+      operationId: updateMyProfile
+      tags:
+      - Me
+      summary: Edit my profile
+      description: '**ME-02** · access: Member · stories: US-24, US-26 · module: `community`'
+      x-endpoint-id: ME-02
+      x-module: community
+      x-stories:
+      - US-24
+      - US-26
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/ProfilePatch'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /usernames/{username}/availability:
+    get:
+      operationId: checkUsername
+      tags:
+      - Me
+      summary: Is a username free?
+      description: '**ME-03** · access: Member · stories: US-24 · module: `community`'
+      x-endpoint-id: ME-03
+      x-module: community
+      x-stories:
+      - US-24
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/username'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsernameAvailability'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/avatar/uploads:
+    post:
+      operationId: createAvatarUpload
+      tags:
+      - Me
+      summary: Get a presigned avatar upload URL
+      description: '**ME-04** · access: Member · stories: US-25 · module: `community`'
+      x-endpoint-id: ME-04
+      x-module: community
+      x-stories:
+      - US-25
+      x-required-role: keylab-user
+      responses:
+        '201':
+          description: Created
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadTicket'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/avatar:
+    put:
+      operationId: setAvatar
+      tags:
+      - Me
+      summary: Set the uploaded avatar with its crop
+      description: '**ME-04** · access: Member · stories: US-25 · module: `community`'
+      x-endpoint-id: ME-04
+      x-module: community
+      x-stories:
+      - US-25
+      x-required-role: keylab-user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvatarSet'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: removeAvatar
+      tags:
+      - Me
+      summary: Back to initials
+      description: '**ME-05** · access: Member · stories: US-25 · module: `community`'
+      x-endpoint-id: ME-05
+      x-module: community
+      x-stories:
+      - US-25
+      x-required-role: keylab-user
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/onboarding:
+    put:
+      operationId: saveOnboarding
+      tags:
+      - Me
+      summary: Save the onboarding answers
+      description: '**ME-06** · access: Member · stories: US-01 · module: `community`'
+      x-endpoint-id: ME-06
+      x-module: community
+      x-stories:
+      - US-01
+      x-required-role: keylab-user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Onboarding'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /users/{username}:
+    get:
+      operationId: getUserProfile
+      tags:
+      - Social
+      summary: Public profile
+      description: '**SOC-01** · access: Public · stories: US-16, US-17, US-19, US-20 · module: `community`'
+      x-endpoint-id: SOC-01
+      x-module: community
+      x-stories:
+      - US-16
+      - US-17
+      - US-19
+      - US-20
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/username'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicProfile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /users/{username}/builds:
+    get:
+      operationId: listUserBuilds
+      tags:
+      - Social
+      summary: Their public builds
+      description: '**SOC-02** · access: Public · stories: US-17 · module: `community`'
+      x-endpoint-id: SOC-02
+      x-module: community
+      x-stories:
+      - US-17
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/username'
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Build'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /users/{username}/likes:
+    get:
+      operationId: listUserLikes
+      tags:
+      - Social
+      summary: Builds they liked
+      description: '**SOC-03** · access: Public · stories: US-21 · module: `community`'
+      x-endpoint-id: SOC-03
+      x-module: community
+      x-stories:
+      - US-21
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/username'
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Build'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /users/{username}/collections:
+    get:
+      operationId: listUserCollections
+      tags:
+      - Social
+      summary: Their collections
+      description: '**SOC-04** · access: Public · stories: US-17, US-22 · module: `community`'
+      x-endpoint-id: SOC-04
+      x-module: community
+      x-stories:
+      - US-17
+      - US-22
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/username'
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Collection'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /collections/{id}:
+    get:
+      operationId: getCollection
+      tags:
+      - Social
+      summary: One collection
+      description: '**SOC-05** · access: Public or owner · stories: US-17, US-22 · module: `community`'
+      x-endpoint-id: SOC-05
+      x-module: community
+      x-stories:
+      - US-17
+      - US-22
+      security:
+      - {}
+      - bffSession: []
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    patch:
+      operationId: updateCollection
+      tags:
+      - Social
+      summary: Rename or change visibility
+      description: '**SOC-10** · access: Owner · stories: US-22 · module: `community`'
+      x-endpoint-id: SOC-10
+      x-module: community
+      x-stories:
+      - US-22
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/CollectionInput'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: deleteCollection
+      tags:
+      - Social
+      summary: Delete a collection
+      description: '**SOC-10** · access: Owner · stories: US-22 · module: `community`'
+      x-endpoint-id: SOC-10
+      x-module: community
+      x-stories:
+      - US-22
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /users/{username}/activity:
+    get:
+      operationId: listUserActivity
+      tags:
+      - Social
+      summary: Activity timeline
+      description: '**SOC-06** · access: Public · stories: US-17 · module: `community`'
+      x-endpoint-id: SOC-06
+      x-module: community
+      x-stories:
+      - US-17
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/username'
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ActivityItem'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/following/{username}:
+    put:
+      operationId: follow
+      tags:
+      - Social
+      summary: Follow (or request to follow)
+      description: '**SOC-07** · access: Member · stories: US-18 · module: `community`'
+      x-endpoint-id: SOC-07
+      x-module: community
+      x-stories:
+      - US-18
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/username'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowResult'
+        '202':
+          description: Follow requested (private profile).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: unfollow
+      tags:
+      - Social
+      summary: Unfollow
+      description: '**SOC-07** · access: Member · stories: US-18 · module: `community`'
+      x-endpoint-id: SOC-07
+      x-module: community
+      x-stories:
+      - US-18
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/username'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /users/{username}/followers:
+    get:
+      operationId: listFollowers
+      tags:
+      - Social
+      summary: Followers
+      description: '**SOC-08** · access: Public · stories: US-18 · module: `community`'
+      x-endpoint-id: SOC-08
+      x-module: community
+      x-stories:
+      - US-18
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/username'
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserRef'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /users/{username}/following:
+    get:
+      operationId: listFollowing
+      tags:
+      - Social
+      summary: Following
+      description: '**SOC-08** · access: Public · stories: US-18 · module: `community`'
+      x-endpoint-id: SOC-08
+      x-module: community
+      x-stories:
+      - US-18
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/username'
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserRef'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/likes/{build_id}:
+    put:
+      operationId: likeBuild
+      tags:
+      - Social
+      summary: Like a build
+      description: '**SOC-09** · access: Member · stories: US-21 · module: `community`'
+      x-endpoint-id: SOC-09
+      x-module: community
+      x-stories:
+      - US-21
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/buildId'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: unlikeBuild
+      tags:
+      - Social
+      summary: Unlike a build
+      description: '**SOC-09** · access: Member · stories: US-21 · module: `community`'
+      x-endpoint-id: SOC-09
+      x-module: community
+      x-stories:
+      - US-21
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/buildId'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/collections:
+    post:
+      operationId: createCollection
+      tags:
+      - Social
+      summary: Create a collection
+      description: '**SOC-10** · access: Member · stories: US-22 · module: `community`'
+      x-endpoint-id: SOC-10
+      x-module: community
+      x-stories:
+      - US-22
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionInput'
+      responses:
+        '201':
+          description: Created
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /collections/{id}/items:
+    post:
+      operationId: addCollectionItem
+      tags:
+      - Social
+      summary: Add a build or switch
+      description: '**SOC-10** · access: Owner · stories: US-22 · module: `community`'
+      x-endpoint-id: SOC-10
+      x-module: community
+      x-stories:
+      - US-22
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionItemInput'
+      responses:
+        '201':
+          description: Created
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /collections/{id}/items/{item_id}:
+    delete:
+      operationId: removeCollectionItem
+      tags:
+      - Social
+      summary: Remove an item
+      description: '**SOC-10** · access: Owner · stories: US-22 · module: `community`'
+      x-endpoint-id: SOC-10
+      x-module: community
+      x-stories:
+      - US-22
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/itemId'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /community/builds:
+    get:
+      operationId: listCommunityBuilds
+      tags:
+      - Social
+      summary: Community gallery
+      description: '**SOC-11** · access: Public · stories: US-20 · module: `community`'
+      x-endpoint-id: SOC-11
+      x-module: community
+      x-stories:
+      - US-20
+      security:
+      - {}
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      - name: filter
+        in: query
+        schema:
+          type: string
+          enum:
+          - featured
+          - new
+          - popular
+          default: featured
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Build'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /reports:
+    post:
+      operationId: createReport
+      tags:
+      - Social
+      summary: Report a build or profile
+      description: '**SOC-12** · access: Member · stories: US-23 · module: `community`'
+      x-endpoint-id: SOC-12
+      x-module: community
+      x-stories:
+      - US-23
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportInput'
+      responses:
+        '202':
+          $ref: '#/components/responses/Accepted'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/blocks/{username}:
+    put:
+      operationId: block
+      tags:
+      - Social
+      summary: Block a user
+      description: '**SOC-13** · access: Member · stories: US-23 · module: `community`'
+      x-endpoint-id: SOC-13
+      x-module: community
+      x-stories:
+      - US-23
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/username'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: unblock
+      tags:
+      - Social
+      summary: Unblock a user
+      description: '**SOC-13** · access: Member · stories: US-23 · module: `community`'
+      x-endpoint-id: SOC-13
+      x-module: community
+      x-stories:
+      - US-23
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/username'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/blocks:
+    get:
+      operationId: listBlocks
+      tags:
+      - Social
+      summary: People I blocked
+      description: '**SOC-13** · access: Member · stories: US-23 · module: `community`'
+      x-endpoint-id: SOC-13
+      x-module: community
+      x-stories:
+      - US-23
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserRef'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/settings:
+    get:
+      operationId: getSettings
+      tags:
+      - Account
+      summary: My settings
+      description: '**ACC-01** · access: Member · stories: US-27, US-28, US-29 · module: `account`'
+      x-endpoint-id: ACC-01
+      x-module: account
+      x-stories:
+      - US-27
+      - US-28
+      - US-29
+      x-required-role: keylab-user
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    patch:
+      operationId: updateSettings
+      tags:
+      - Account
+      summary: Change settings
+      description: '**ACC-01** · access: Member · stories: US-27, US-28, US-29 · module: `account`'
+      x-endpoint-id: ACC-01
+      x-module: account
+      x-stories:
+      - US-27
+      - US-28
+      - US-29
+      x-required-role: keylab-user
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/Settings'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/identities:
+    get:
+      operationId: listIdentities
+      tags:
+      - Account
+      summary: Linked sign-ins (from Keycloak)
+      description: '**ACC-02** · access: Member · stories: US-30 · module: `account`'
+      x-endpoint-id: ACC-02
+      x-module: account
+      x-stories:
+      - US-30
+      x-required-role: keylab-user
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Identity'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/identities/{provider}:
+    delete:
+      operationId: unlinkIdentity
+      tags:
+      - Account
+      summary: Unlink Google or Apple
+      description: '**ACC-02** · access: Member · stories: US-30 · module: `account`'
+      x-endpoint-id: ACC-02
+      x-module: account
+      x-stories:
+      - US-30
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/provider'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/subscription:
+    get:
+      operationId: getSubscription
+      tags:
+      - Account
+      summary: My plan
+      description: '**ACC-03** · access: Member · stories: US-31 · module: `billing`'
+      x-endpoint-id: ACC-03
+      x-module: billing
+      x-stories:
+      - US-31
+      x-required-role: keylab-user
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /billing/checkout-sessions:
+    post:
+      operationId: createCheckout
+      tags:
+      - Account
+      summary: Start Pro checkout
+      description: '**ACC-04** · access: Member · stories: US-31 · module: `billing`'
+      x-endpoint-id: ACC-04
+      x-module: billing
+      x-stories:
+      - US-31
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKeyRequired'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutInput'
+      responses:
+        '201':
+          description: Created
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectUrl'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /billing/portal-sessions:
+    post:
+      operationId: createPortalSession
+      tags:
+      - Account
+      summary: Open the billing portal
+      description: '**ACC-05** · access: Member (Pro) · stories: US-32 · module: `billing`'
+      x-endpoint-id: ACC-05
+      x-module: billing
+      x-stories:
+      - US-32
+      x-required-role: keylab-user
+      responses:
+        '201':
+          description: Created
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectUrl'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/invoices:
+    get:
+      operationId: listInvoices
+      tags:
+      - Account
+      summary: My invoices
+      description: '**ACC-06** · access: Member · stories: US-32 · module: `billing`'
+      x-endpoint-id: ACC-06
+      x-module: billing
+      x-stories:
+      - US-32
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Invoice'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/invoices/{id}/pdf:
+    get:
+      operationId: getInvoicePdf
+      tags:
+      - Account
+      summary: Invoice PDF
+      description: '**ACC-06** · access: Member · stories: US-32 · module: `billing`'
+      x-endpoint-id: ACC-06
+      x-module: billing
+      x-stories:
+      - US-32
+      x-required-role: keylab-user
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/pdf:
+              schema:
+                type: string
+                contentMediaType: application/pdf
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /plans:
+    get:
+      operationId: listPlans
+      tags:
+      - Account
+      summary: Plans and prices
+      description: '**ACC-07** · access: Public · stories: US-31 · module: `billing`'
+      x-endpoint-id: ACC-07
+      x-module: billing
+      x-stories:
+      - US-31
+      security:
+      - {}
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Plan'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /billing/webhooks:
+    post:
+      operationId: receiveBillingWebhook
+      tags:
+      - Account
+      summary: Payment provider events
+      description: '**ACC-08** · access: Provider · stories: — · module: `billing`'
+      x-endpoint-id: ACC-08
+      x-module: billing
+      x-stories: []
+      security:
+      - providerSignature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEvent'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/exports:
+    post:
+      operationId: startExport
+      tags:
+      - Account
+      summary: Export my data
+      description: '**ACC-09** · access: Member · stories: US-33 · module: `account`'
+      x-endpoint-id: ACC-09
+      x-module: account
+      x-stories:
+      - US-33
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '202':
+          description: Accepted
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Export'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /me/exports/{id}:
+    get:
+      operationId: getExport
+      tags:
+      - Account
+      summary: Export status
+      description: '**ACC-09** · access: Member · stories: US-33 · module: `account`'
+      x-endpoint-id: ACC-09
+      x-module: account
+      x-stories:
+      - US-33
+      x-required-role: keylab-user
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Export'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/metrics/overview:
+    get:
+      operationId: getOverviewMetrics
+      tags:
+      - Admin
+      summary: Overview KPIs and charts
+      description: '**ADM-01** · access: Viewer · stories: US-35 · module: `backoffice`'
+      x-endpoint-id: ADM-01
+      x-module: backoffice
+      x-stories:
+      - US-35
+      x-required-role: keylab-viewer
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverviewMetrics'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      parameters:
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+        required: true
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+        required: true
+  /admin/switches:
+    get:
+      operationId: adminListSwitches
+      tags:
+      - Admin
+      summary: Switches incl. drafts
+      description: '**ADM-02** · access: Editor · stories: US-36 · module: `catalog`'
+      x-endpoint-id: ADM-02
+      x-module: catalog
+      x-stories:
+      - US-36
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      - $ref: '#/components/parameters/sort'
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          $ref: '#/components/schemas/SwitchType'
+      - name: sound_status
+        in: query
+        schema:
+          $ref: '#/components/schemas/SoundStatus'
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - draft
+          - published
+          - hidden
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminSwitch'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      operationId: adminCreateSwitch
+      tags:
+      - Admin
+      summary: Create a draft switch
+      description: '**ADM-02** · access: Editor · stories: US-37 · module: `catalog`'
+      x-endpoint-id: ADM-02
+      x-module: catalog
+      x-stories:
+      - US-37
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminSwitchInput'
+      responses:
+        '201':
+          description: Created
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSwitch'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/switches/{id}:
+    get:
+      operationId: adminGetSwitch
+      tags:
+      - Admin
+      summary: One switch
+      description: '**ADM-02** · access: Editor · stories: US-37 · module: `catalog`'
+      x-endpoint-id: ADM-02
+      x-module: catalog
+      x-stories:
+      - US-37
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSwitch'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    patch:
+      operationId: adminUpdateSwitch
+      tags:
+      - Admin
+      summary: Edit a switch
+      description: '**ADM-02** · access: Editor · stories: US-37 · module: `catalog`'
+      x-endpoint-id: ADM-02
+      x-module: catalog
+      x-stories:
+      - US-37
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/AdminSwitchInput'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSwitch'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: adminDeleteSwitch
+      tags:
+      - Admin
+      summary: Delete a switch
+      description: '**ADM-02** · access: Editor · stories: US-37 · module: `catalog`'
+      x-endpoint-id: ADM-02
+      x-module: catalog
+      x-stories:
+      - US-37
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/switches/{id}/publication:
+    post:
+      operationId: publishSwitch
+      tags:
+      - Admin
+      summary: Publish to the public library
+      description: '**ADM-03** · access: Editor · stories: US-39 · module: `catalog`'
+      x-endpoint-id: ADM-03
+      x-module: catalog
+      x-stories:
+      - US-39
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishInput'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSwitch'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: unpublishSwitch
+      tags:
+      - Admin
+      summary: Pull from the public library
+      description: '**ADM-03** · access: Editor · stories: US-39 · module: `catalog`'
+      x-endpoint-id: ADM-03
+      x-module: catalog
+      x-stories:
+      - US-39
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/uploads:
+    post:
+      operationId: adminCreateUpload
+      tags:
+      - Admin
+      summary: Presigned upload URL (WAV 48 kHz 24-bit, photos)
+      description: '**ADM-04** · access: Editor · stories: US-38 · module: `sound`'
+      x-endpoint-id: ADM-04
+      x-module: sound
+      x-stories:
+      - US-38
+      x-required-role: keylab-editor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadRequest'
+      responses:
+        '201':
+          description: Created
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadTicket'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/switches/{id}/sounds:
+    post:
+      operationId: attachSound
+      tags:
+      - Admin
+      summary: Attach an uploaded recording
+      description: '**ADM-04** · access: Editor · stories: US-38 · module: `sound`'
+      x-endpoint-id: ADM-04
+      x-module: sound
+      x-stories:
+      - US-38
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SoundAttach'
+      responses:
+        '202':
+          description: Accepted
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/sounds:
+    get:
+      operationId: adminListSounds
+      tags:
+      - Admin
+      summary: Recordings by status
+      description: '**ADM-05** · access: Editor · stories: US-38 · module: `sound`'
+      x-endpoint-id: ADM-05
+      x-module: sound
+      x-stories:
+      - US-38
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - processing
+          - ready
+          - failed
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminSound'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/sounds/{id}:
+    get:
+      operationId: adminGetSound
+      tags:
+      - Admin
+      summary: One recording
+      description: '**ADM-05** · access: Editor · stories: US-38 · module: `sound`'
+      x-endpoint-id: ADM-05
+      x-module: sound
+      x-stories:
+      - US-38
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: adminDeleteSound
+      tags:
+      - Admin
+      summary: Delete a bad take
+      description: '**ADM-05** · access: Editor · stories: US-38 · module: `sound`'
+      x-endpoint-id: ADM-05
+      x-module: sound
+      x-stories:
+      - US-38
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/switches/bulk-actions:
+    post:
+      operationId: bulkSwitchAction
+      tags:
+      - Admin
+      summary: Publish, unpublish or delete many
+      description: '**ADM-06** · access: Editor · stories: US-36 · module: `catalog`'
+      x-endpoint-id: ADM-06
+      x-module: catalog
+      x-stories:
+      - US-36
+      x-required-role: keylab-editor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkAction'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/keycap-sets:
+    get:
+      operationId: adminListKeycapSets
+      tags:
+      - Admin
+      summary: List keycap-sets
+      description: '**ADM-07** · access: Editor · stories: US-40 · module: `catalog`'
+      x-endpoint-id: ADM-07
+      x-module: catalog
+      x-stories:
+      - US-40
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KeycapSet'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      operationId: adminCreateKeycapSet
+      tags:
+      - Admin
+      summary: Create
+      description: '**ADM-07** · access: Editor · stories: US-40 · module: `catalog`'
+      x-endpoint-id: ADM-07
+      x-module: catalog
+      x-stories:
+      - US-40
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeycapSet'
+      responses:
+        '201':
+          description: Created
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeycapSet'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/keycap-sets/{id}:
+    patch:
+      operationId: adminUpdateKeycapSet
+      tags:
+      - Admin
+      summary: Edit
+      description: '**ADM-07** · access: Editor · stories: US-40 · module: `catalog`'
+      x-endpoint-id: ADM-07
+      x-module: catalog
+      x-stories:
+      - US-40
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeycapSet'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: adminDeleteKeycapSet
+      tags:
+      - Admin
+      summary: Delete
+      description: '**ADM-07** · access: Editor · stories: US-40 · module: `catalog`'
+      x-endpoint-id: ADM-07
+      x-module: catalog
+      x-stories:
+      - US-40
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/mods:
+    get:
+      operationId: adminListMods
+      tags:
+      - Admin
+      summary: List mods
+      description: '**ADM-07** · access: Editor · stories: US-40 · module: `catalog`'
+      x-endpoint-id: ADM-07
+      x-module: catalog
+      x-stories:
+      - US-40
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Mod'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      operationId: adminCreateMod
+      tags:
+      - Admin
+      summary: Create
+      description: '**ADM-07** · access: Editor · stories: US-40 · module: `catalog`'
+      x-endpoint-id: ADM-07
+      x-module: catalog
+      x-stories:
+      - US-40
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Mod'
+      responses:
+        '201':
+          description: Created
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mod'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/mods/{id}:
+    patch:
+      operationId: adminUpdateMod
+      tags:
+      - Admin
+      summary: Edit (incl. the `live` toggle)
+      description: '**ADM-07** · access: Editor · stories: US-40 · module: `catalog`'
+      x-endpoint-id: ADM-07
+      x-module: catalog
+      x-stories:
+      - US-40
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mod'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: adminDeleteMod
+      tags:
+      - Admin
+      summary: Delete
+      description: '**ADM-07** · access: Editor · stories: US-40 · module: `catalog`'
+      x-endpoint-id: ADM-07
+      x-module: catalog
+      x-stories:
+      - US-40
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags:
+      - Admin
+      summary: Search users
+      description: '**ADM-08** · access: Admin · stories: US-41 · module: `account`'
+      x-endpoint-id: ADM-08
+      x-module: account
+      x-stories:
+      - US-41
+      x-required-role: keylab-admin
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: plan
+        in: query
+        schema:
+          type: string
+          enum:
+          - free
+          - pro
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminUser'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/users/{id}:
+    get:
+      operationId: adminGetUser
+      tags:
+      - Admin
+      summary: One user
+      description: '**ADM-08** · access: Admin · stories: US-41 · module: `account`'
+      x-endpoint-id: ADM-08
+      x-module: account
+      x-stories:
+      - US-41
+      x-required-role: keylab-admin
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/users/{id}/suspension:
+    post:
+      operationId: suspendUser
+      tags:
+      - Admin
+      summary: Suspend
+      description: '**ADM-08** · access: Admin · stories: US-41 · module: `account`'
+      x-endpoint-id: ADM-08
+      x-module: account
+      x-stories:
+      - US-41
+      x-required-role: keylab-admin
+      parameters:
+      - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Suspension'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: reinstateUser
+      tags:
+      - Admin
+      summary: Reinstate
+      description: '**ADM-08** · access: Admin · stories: US-41 · module: `account`'
+      x-endpoint-id: ADM-08
+      x-module: account
+      x-stories:
+      - US-41
+      x-required-role: keylab-admin
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/moderation/queue:
+    get:
+      operationId: getModerationQueue
+      tags:
+      - Admin
+      summary: Moderation queue
+      description: '**ADM-09** · access: Editor · stories: US-42 · module: `moderation`'
+      x-endpoint-id: ADM-09
+      x-module: moderation
+      x-stories:
+      - US-42
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      - name: kind
+        in: query
+        schema:
+          type: string
+          enum:
+          - report
+          - first_post
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ModerationItem'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/moderation/items/{id}/decision:
+    post:
+      operationId: decideModerationItem
+      tags:
+      - Admin
+      summary: Approve, hide or feature
+      description: '**ADM-09** · access: Editor · stories: US-42 · module: `moderation`'
+      x-endpoint-id: ADM-09
+      x-module: moderation
+      x-stories:
+      - US-42
+      x-required-role: keylab-editor
+      parameters:
+      - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModerationDecision'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModerationItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/featured-slots:
+    get:
+      operationId: getFeaturedSlots
+      tags:
+      - Admin
+      summary: Featured builds on the landing page
+      description: '**ADM-10** · access: Editor · stories: US-42 · module: `moderation`'
+      x-endpoint-id: ADM-10
+      x-module: moderation
+      x-stories:
+      - US-42
+      x-required-role: keylab-editor
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeaturedSlots'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    put:
+      operationId: setFeaturedSlots
+      tags:
+      - Admin
+      summary: Order the featured slots (max 4)
+      description: '**ADM-10** · access: Editor · stories: US-42 · module: `moderation`'
+      x-endpoint-id: ADM-10
+      x-module: moderation
+      x-stories:
+      - US-42
+      x-required-role: keylab-editor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeaturedSlots'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeaturedSlots'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/team:
+    get:
+      operationId: listTeam
+      tags:
+      - Admin
+      summary: Team members
+      description: '**ADM-11** · access: Admin · stories: US-43 · module: `backoffice`'
+      x-endpoint-id: ADM-11
+      x-module: backoffice
+      x-stories:
+      - US-43
+      x-required-role: keylab-admin
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamMember'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/team/invitations:
+    post:
+      operationId: inviteTeamMember
+      tags:
+      - Admin
+      summary: Invite a team member
+      description: '**ADM-11** · access: Admin · stories: US-43 · module: `backoffice`'
+      x-endpoint-id: ADM-11
+      x-module: backoffice
+      x-stories:
+      - US-43
+      x-required-role: keylab-admin
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invitation'
+      responses:
+        '202':
+          $ref: '#/components/responses/Accepted'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/team/{user_id}:
+    patch:
+      operationId: updateTeamMember
+      tags:
+      - Admin
+      summary: Change role
+      description: '**ADM-11** · access: Admin · stories: US-43 · module: `backoffice`'
+      x-endpoint-id: ADM-11
+      x-module: backoffice
+      x-stories:
+      - US-43
+      x-required-role: keylab-admin
+      parameters:
+      - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  enum:
+                  - admin
+                  - editor
+                  - viewer
+              required:
+              - role
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMember'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      operationId: removeTeamMember
+      tags:
+      - Admin
+      summary: Remove from team
+      description: '**ADM-11** · access: Admin · stories: US-43 · module: `backoffice`'
+      x-endpoint-id: ADM-11
+      x-module: backoffice
+      x-stories:
+      - US-43
+      x-required-role: keylab-admin
+      parameters:
+      - $ref: '#/components/parameters/userId'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/app-settings:
+    get:
+      operationId: getAppSettings
+      tags:
+      - Admin
+      summary: App settings
+      description: '**ADM-12** · access: Admin · stories: US-43 · module: `backoffice`'
+      x-endpoint-id: ADM-12
+      x-module: backoffice
+      x-stories:
+      - US-43
+      x-required-role: keylab-admin
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    patch:
+      operationId: updateAppSettings
+      tags:
+      - Admin
+      summary: Change app settings
+      description: '**ADM-12** · access: Admin · stories: US-43 · module: `backoffice`'
+      x-endpoint-id: ADM-12
+      x-module: backoffice
+      x-stories:
+      - US-43
+      x-required-role: keylab-admin
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/AppSettings'
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /admin/audit-events:
+    get:
+      operationId: listAuditEvents
+      tags:
+      - Admin
+      summary: Audit log (read-only)
+      description: '**ADM-13** · access: Admin · stories: US-44 · module: `backoffice`'
+      x-endpoint-id: ADM-13
+      x-module: backoffice
+      x-stories:
+      - US-44
+      x-required-role: keylab-admin
+      parameters:
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageToken'
+      - name: actor
+        in: query
+        schema:
+          type: string
+      - name: action
+        in: query
+        schema:
+          type: string
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: OK
+          headers:
+            KeyLab-API-Revision:
+              $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                - page
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditEvent'
+                  page:
+                    $ref: '#/components/schemas/PageInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+components:
+  securitySchemes:
+    bffSession:
+      type: apiKey
+      in: cookie
+      name: SESSION
+      description: BFF session cookie. Unsafe methods also send X-XSRF-TOKEN.
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Keycloak access token relayed by the gateway; audience keylab-api.
+    providerSignature:
+      type: apiKey
+      in: header
+      name: Webhook-Signature
+      description: Payment provider signature; ACC-08 only.
+  schemas:
+    Problem:
+      type: object
+      description: RFC 9457 problem details. `code` is stable and safe to switch on.
+      required:
+      - type
+      - title
+      - status
+      - code
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        code:
+          type: string
+          examples:
+          - validation_failed
+          - missing_required_sounds
+          - username_taken
+          - slots_full
+          - last_identity
+          - reauth_required
+          - tab_private
+          - invalid_page_size
+          - invalid_page_token
+          - if_match_required
+          - precondition_failed
+          - invalid_idempotency_key
+          - idempotency_key_reused
+          - idempotency_in_progress
+        detail:
+          type: string
+        instance:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              pointer:
+                type: string
+                description: JSON Pointer into the request body
+              code:
+                type: string
+              message:
+                type: string
+            required:
+            - pointer
+            - code
+            - message
+      example:
+        type: https://keylab.app/problems/validation
+        title: Some fields need a fix
+        status: 422
+        code: validation_failed
+        errors:
+        - pointer: /username
+          code: username_taken
+          message: '@clackattack is taken. Try another.'
+        - pointer: /links/website
+          code: invalid_url
+          message: Start with https:// and include a domain.
+    Health:
+      type: object
+      required:
+      - status
+      - revision
+      - authenticated
+      - roles
+      properties:
+        status:
+          type: string
+          enum:
+          - ok
+        revision:
+          type: string
+          description: Same value as the `KeyLab-API-Revision` header.
+          examples:
+          - '2026-11-08'
+        authenticated:
+          type: boolean
+        roles:
+          type: array
+          description: The caller's KeyLab roles (`keylab-*` only), sorted. Empty for a guest.
+          items:
+            type: string
+            enum:
+            - keylab-user
+            - keylab-viewer
+            - keylab-editor
+            - keylab-admin
+    PageInfo:
+      type: object
+      properties:
+        nextPageToken:
+          type:
+          - string
+          - 'null'
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+      required:
+      - pageSize
+    SwitchType:
+      type: string
+      enum:
+      - linear
+      - tactile
+      - clicky
+      - silent
+      description: New values may be added; treat unknown values as "other".
+    SoundProfile:
+      type: string
+      enum:
+      - deep
+      - poppy
+      - clacky
+      - muted
+      description: New values may be added; treat unknown values as "other".
+    SoundStatus:
+      type: string
+      enum:
+      - recorded
+      - missing
+      - processing
+    Visibility:
+      type: string
+      enum:
+      - public
+      - private
+    SwitchSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        brand:
+          type: string
+        type:
+          $ref: '#/components/schemas/SwitchType'
+        profile:
+          $ref: '#/components/schemas/SoundProfile'
+        stemColor:
+          type: string
+          pattern: ^#[0-9A-Fa-f]{6}$
+        forceG:
+          type: number
+        actuationMm:
+          type: number
+        travelMm:
+          type: number
+        soundStatus:
+          $ref: '#/components/schemas/SoundStatus'
+        isNew:
+          type: boolean
+        publishedAt:
+          type: string
+          format: date-time
+      required:
+      - id
+      - slug
+      - name
+      - type
+      - soundStatus
+      example:
+        id: 0193f2c4-7a1e-7c5b-9d2e-4f8a1b3c5d6e
+        slug: coral-pop
+        name: Coral Pop
+        brand: Clack Works
+        type: tactile
+        profile: poppy
+        stemColor: '#F16B53'
+        forceG: 62
+        actuationMm: 2.0
+        travelMm: 3.8
+        soundStatus: recorded
+        isNew: true
+        publishedAt: '2026-11-02T03:42:00Z'
+    ForceCurvePoint:
+      type: object
+      properties:
+        travelMm:
+          type: number
+        forceG:
+          type: number
+        stroke:
+          type: string
+          enum:
+          - press
+          - release
+      required:
+      - travelMm
+      - forceG
+    Switch:
+      allOf:
+      - $ref: '#/components/schemas/SwitchSummary'
+      - type: object
+        properties:
+          spring:
+            type: string
+          housing:
+            type: string
+          bottomOutG:
+            type: number
+          forceCurve:
+            type: array
+            items:
+              $ref: '#/components/schemas/ForceCurvePoint'
+          soundSummary:
+            type: object
+            properties:
+              profile:
+                $ref: '#/components/schemas/SoundProfile'
+              word:
+                type: string
+                examples:
+                - Deep & rounded
+          sounds:
+            description: Present with `include=sounds`.
+            type: array
+            items:
+              $ref: '#/components/schemas/Recording'
+          related:
+            description: Present with `include=related`.
+            type: array
+            items:
+              $ref: '#/components/schemas/SwitchSummary'
+    Recording:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        variant:
+          type: string
+          enum:
+          - stock
+          - lubed
+          - foam
+        stroke:
+          type: string
+          enum:
+          - press
+          - release
+        url:
+          type: string
+          format: uri
+          description: Content-addressed CDN URL, never changes once published.
+        durationMs:
+          type: integer
+        loudnessLufs:
+          type: number
+        peaks:
+          type: array
+          items:
+            type: number
+      required:
+      - variant
+      - stroke
+      - url
+    SwitchSounds:
+      type: object
+      properties:
+        soundStatus:
+          $ref: '#/components/schemas/SoundStatus'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recording'
+      required:
+      - soundStatus
+      - data
+    KeycapSet:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        material:
+          type: string
+          enum:
+          - pbt
+          - abs
+          - pom
+        profile:
+          type: string
+          enum:
+          - cherry
+          - oem
+          - sa
+          - xda
+        colors:
+          type: object
+          properties:
+            base:
+              type: string
+              pattern: ^#[0-9A-Fa-f]{6}$
+            alpha:
+              type: string
+              pattern: ^#[0-9A-Fa-f]{6}$
+            mod:
+              type: string
+              pattern: ^#[0-9A-Fa-f]{6}$
+            accent:
+              type: string
+              pattern: ^#[0-9A-Fa-f]{6}$
+        soundShift:
+          type: number
+          minimum: -1
+          maximum: 1
+          description: -1 deeper … +1 brighter, relative to stock PBT Cherry.
+        keys:
+          type: integer
+      required:
+      - id
+      - slug
+      - name
+      - material
+      - profile
+    Mod:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        levels:
+          type: array
+          items:
+            type: string
+            examples:
+            - none
+            - light
+            - heavy
+        effects:
+          type: object
+          properties:
+            pitch:
+              type: integer
+            thock:
+              type: integer
+            volume:
+              type: integer
+            rattle:
+              type: integer
+        live:
+          type: boolean
+      required:
+      - id
+      - slug
+      - name
+    CaseOptions:
+      type: object
+      properties:
+        materials:
+          type: array
+          items:
+            type: object
+            properties:
+              slug:
+                type: string
+              name:
+                type: string
+              colors:
+                type: array
+                items:
+                  type: string
+                  pattern: ^#[0-9A-Fa-f]{6}$
+              soundEffect:
+                type: string
+        plates:
+          type: array
+          items:
+            type: object
+            properties:
+              slug:
+                type: string
+              name:
+                type: string
+              soundEffect:
+                type: string
+        mounts:
+          type: array
+          items:
+            type: object
+            properties:
+              slug:
+                type: string
+              name:
+                type: string
+              soundEffect:
+                type: string
+      required:
+      - materials
+      - plates
+      - mounts
+    BuildParts:
+      type: object
+      properties:
+        layout:
+          type: string
+          examples:
+          - '60'
+          - '65'
+          - '75'
+          - tkl
+          - full
+        switch:
+          type: object
+          properties:
+            slug:
+              type: string
+            variant:
+              type: string
+              enum:
+              - stock
+              - lubed
+              - foam
+          required:
+          - slug
+        mods:
+          type: array
+          items:
+            type: object
+            properties:
+              slug:
+                type: string
+              level:
+                type: string
+            required:
+            - slug
+        keycaps:
+          type: object
+          properties:
+            set:
+              type: string
+            profile:
+              type: string
+            material:
+              type: string
+        case:
+          type: object
+          properties:
+            material:
+              type: string
+            color:
+              type: string
+              pattern: ^#[0-9A-Fa-f]{6}$
+            plate:
+              type: string
+            mount:
+              type: string
+        deskPad:
+          type: string
+      required:
+      - layout
+      - switch
+    BuildInput:
+      allOf:
+      - type: object
+        properties:
+          name:
+            type: string
+            maxLength: 60
+          visibility:
+            $ref: '#/components/schemas/Visibility'
+        required:
+        - name
+      - $ref: '#/components/schemas/BuildParts'
+      example:
+        name: Night Thock 65
+        visibility: public
+        layout: '65'
+        switch:
+          slug: milk-yellow
+          variant: lubed
+        mods:
+        - slug: lube
+          level: light
+        - slug: case-foam
+        - slug: stab-tuning
+        keycaps:
+          set: navy-mustard
+          profile: cherry
+          material: pbt
+        case:
+          material: aluminum
+          color: '#2B4677'
+          plate: brass
+          mount: gasket
+        deskPad: sky
+    Build:
+      allOf:
+      - type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+          name:
+            type: string
+          visibility:
+            $ref: '#/components/schemas/Visibility'
+          owner:
+            $ref: '#/components/schemas/UserRef'
+          likeCount:
+            type: integer
+          copiedFrom:
+            oneOf:
+            - type: 'null'
+            - type: object
+              properties:
+                buildId:
+                  type: string
+                  format: uuid
+                owner:
+                  $ref: '#/components/schemas/UserRef'
+          version:
+            type: integer
+          createdAt:
+            type: string
+            format: date-time
+          updatedAt:
+            type: string
+            format: date-time
+        required:
+        - id
+        - name
+        - visibility
+        - owner
+        - createdAt
+      - $ref: '#/components/schemas/BuildParts'
+    BuildPatch:
+      description: JSON Merge Patch (RFC 7396) of BuildInput.
+      type: object
+    PartsList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              part:
+                type: string
+              name:
+                type: string
+              quantity:
+                type: integer
+              shopUrl:
+                type:
+                - string
+                - 'null'
+                description: Placeholder for now.
+            required:
+            - part
+            - quantity
+      required:
+      - items
+    SoundRecipe:
+      type: object
+      properties:
+        samples:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recording'
+        filters:
+          type: object
+          properties:
+            lowShelfDb:
+              type: number
+            highShelfDb:
+              type: number
+            reverbMix:
+              type: number
+            gainDb:
+              type: number
+        meter:
+          type: object
+          properties:
+            position:
+              type: number
+              minimum: 0
+              maximum: 1
+              description: 0 deep … 1 bright
+            word:
+              type: string
+              examples:
+              - Deep & rounded
+          required:
+          - position
+          - word
+      required:
+      - samples
+      - filters
+      - meter
+    GuestImport:
+      type: object
+      properties:
+        builds:
+          maxItems: 3
+          type: array
+          items:
+            $ref: '#/components/schemas/BuildInput'
+      required:
+      - builds
+    UserRef:
+      type: object
+      properties:
+        username:
+          type: string
+        displayName:
+          type: string
+        avatarUrl:
+          type:
+          - string
+          - 'null'
+          format: uri
+        initials:
+          type: string
+        avatarColor:
+          type: string
+          pattern: ^#[0-9A-Fa-f]{6}$
+      required:
+      - username
+    Badge:
+      type: object
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        earnedAt:
+          type: string
+          format: date-time
+      required:
+      - slug
+      - name
+    ProfileStats:
+      type: object
+      properties:
+        builds:
+          type: integer
+        likesReceived:
+          type: integer
+        followers:
+          type: integer
+        following:
+          type: integer
+        switchesTried:
+          type: integer
+    SoundSignature:
+      type: object
+      properties:
+        profile:
+          $ref: '#/components/schemas/SoundProfile'
+        mostPlayed:
+          type: array
+          items:
+            type: object
+            properties:
+              switch:
+                $ref: '#/components/schemas/SwitchSummary'
+              plays:
+                type: integer
+        layout:
+          type: string
+        layoutShare:
+          type: number
+    PublicTabs:
+      type: object
+      properties:
+        builds:
+          type: boolean
+        liked:
+          type: boolean
+        collections:
+          type: boolean
+        activity:
+          type: boolean
+    PublicProfile:
+      type: object
+      properties:
+        username:
+          type: string
+        displayName:
+          type: string
+        bio:
+          type: string
+        location:
+          type: string
+        joinedAt:
+          type: string
+          format: date-time
+        plan:
+          type: string
+          enum:
+          - free
+          - pro
+        avatarUrl:
+          type:
+          - string
+          - 'null'
+        initials:
+          type: string
+        avatarColor:
+          type: string
+          pattern: ^#[0-9A-Fa-f]{6}$
+        links:
+          type: object
+          properties:
+            website:
+              type: string
+            youtube:
+              type: string
+            instagram:
+              type: string
+            discord:
+              type: string
+        restricted:
+          type: boolean
+          description: 'true for a private profile: only header fields are filled.'
+        stats:
+          $ref: '#/components/schemas/ProfileStats'
+        soundSignature:
+          $ref: '#/components/schemas/SoundSignature'
+        dailyDriver:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/Build'
+        badges:
+          type: array
+          items:
+            $ref: '#/components/schemas/Badge'
+        publicTabs:
+          $ref: '#/components/schemas/PublicTabs'
+        following:
+          type: boolean
+        followsYou:
+          type: boolean
+      required:
+      - username
+      - displayName
+      - restricted
+    Me:
+      allOf:
+      - $ref: '#/components/schemas/PublicProfile'
+      - type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+          email:
+            type: string
+            format: email
+          roles:
+            type: array
+            items:
+              type: string
+              enum:
+              - keylab-user
+              - keylab-viewer
+              - keylab-editor
+              - keylab-admin
+          onboarded:
+            type: boolean
+        required:
+        - id
+        - roles
+    ProfilePatch:
+      type: object
+      description: JSON Merge Patch.
+      properties:
+        displayName:
+          type: string
+          maxLength: 40
+        username:
+          type: string
+          minLength: 3
+          maxLength: 20
+          pattern: ^[a-z0-9._]+$
+        bio:
+          type: string
+          maxLength: 160
+        location:
+          type: string
+        links:
+          type: object
+          properties:
+            website:
+              type: string
+            youtube:
+              type: string
+            instagram:
+              type: string
+            discord:
+              type: string
+        dailyDriverBuildId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        publicTabs:
+          $ref: '#/components/schemas/PublicTabs'
+    UsernameAvailability:
+      type: object
+      properties:
+        available:
+          type: boolean
+        reason:
+          type: string
+          enum:
+          - taken
+          - reserved
+          - invalid
+      required:
+      - available
+    UploadTicket:
+      type: object
+      properties:
+        uploadId:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+      - uploadId
+      - url
+      - expiresAt
+    AvatarSet:
+      type: object
+      properties:
+        uploadId:
+          type: string
+          format: uuid
+        crop:
+          type: object
+          properties:
+            x:
+              type: integer
+            y:
+              type: integer
+            size:
+              type: integer
+              minimum: 400
+          required:
+          - x
+          - y
+          - size
+      required:
+      - uploadId
+      - crop
+    Onboarding:
+      type: object
+      properties:
+        experience:
+          type: string
+          enum:
+          - new
+          - built_one
+          - many
+        soundProfile:
+          $ref: '#/components/schemas/SoundProfile'
+        layout:
+          type: string
+      required:
+      - experience
+      - soundProfile
+      - layout
+    Collection:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 60
+        visibility:
+          $ref: '#/components/schemas/Visibility'
+        owner:
+          $ref: '#/components/schemas/UserRef'
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              kind:
+                type: string
+                enum:
+                - build
+                - switch
+              build:
+                $ref: '#/components/schemas/Build'
+              switch:
+                $ref: '#/components/schemas/SwitchSummary'
+            required:
+            - id
+            - kind
+      required:
+      - id
+      - name
+      - visibility
+    CollectionInput:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 60
+        visibility:
+          $ref: '#/components/schemas/Visibility'
+      required:
+      - name
+    CollectionItemInput:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+          - build
+          - switch
+        targetId:
+          type: string
+          format: uuid
+      required:
+      - kind
+      - targetId
+    ActivityItem:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+          - published
+          - tried
+          - followed
+          - liked
+          - badge
+          - collection
+        at:
+          type: string
+          format: date-time
+        actor:
+          $ref: '#/components/schemas/UserRef'
+        target:
+          type: object
+          properties:
+            type:
+              type: string
+            id:
+              type: string
+            label:
+              type: string
+            href:
+              type: string
+      required:
+      - kind
+      - at
+    FollowResult:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - following
+          - requested
+      required:
+      - status
+    ReportInput:
+      type: object
+      properties:
+        targetType:
+          type: string
+          enum:
+          - build
+          - profile
+        targetId:
+          type: string
+        reason:
+          type: string
+          enum:
+          - spam
+          - offensive
+          - impersonation
+          - other
+        note:
+          type: string
+          maxLength: 500
+      required:
+      - targetType
+      - targetId
+      - reason
+    Settings:
+      type: object
+      properties:
+        sound:
+          type: object
+          properties:
+            masterVolume:
+              type: integer
+              minimum: 0
+              maximum: 100
+            defaultAmbient:
+              type: string
+              enum:
+              - none
+              - rain
+              - cafe
+              - office
+            muteOnStartup:
+              type: boolean
+        notifications:
+          type: object
+          properties:
+            likes:
+              type: boolean
+            follows:
+              type: boolean
+            comments:
+              type: boolean
+            productNews:
+              type: boolean
+        privacy:
+          type: object
+          properties:
+            profileVisibility:
+              type: string
+              enum:
+              - public
+              - followers
+              - private
+            showActivity:
+              type: boolean
+            allowTrySetup:
+              type: boolean
+    Identity:
+      type: object
+      properties:
+        provider:
+          type: string
+          enum:
+          - password
+          - google
+          - apple
+        connected:
+          type: boolean
+        email:
+          type: string
+      required:
+      - provider
+      - connected
+    Subscription:
+      type: object
+      properties:
+        plan:
+          type: string
+          enum:
+          - free
+          - pro
+        interval:
+          type:
+          - string
+          - 'null'
+          enum:
+          - monthly
+          - yearly
+          - null
+        status:
+          type: string
+          enum:
+          - active
+          - past_due
+          - cancelled
+          - none
+        renewsAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      required:
+      - plan
+      - status
+    CheckoutInput:
+      type: object
+      properties:
+        plan:
+          type: string
+          enum:
+          - pro
+        interval:
+          type: string
+          enum:
+          - monthly
+          - yearly
+      required:
+      - plan
+      - interval
+    RedirectUrl:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+      required:
+      - url
+    Money:
+      type: object
+      properties:
+        amountMinor:
+          type: integer
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+      required:
+      - amountMinor
+      - currency
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+        issuedAt:
+          type: string
+          format: date-time
+        total:
+          $ref: '#/components/schemas/Money'
+        status:
+          type: string
+          enum:
+          - paid
+          - open
+          - void
+      required:
+      - id
+      - issuedAt
+      - total
+      - status
+    Plan:
+      type: object
+      properties:
+        id:
+          type: string
+          enum:
+          - free
+          - pro
+        name:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        monthly:
+          $ref: '#/components/schemas/Money'
+        yearly:
+          $ref: '#/components/schemas/Money'
+      required:
+      - id
+      - name
+      - features
+    Export:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+          - ready
+          - failed
+        downloadUrl:
+          type:
+          - string
+          - 'null'
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+      - id
+      - status
+    DeleteAccount:
+      type: object
+      properties:
+        confirm:
+          const: DELETE
+      required:
+      - confirm
+    DeletionScheduled:
+      type: object
+      properties:
+        deleteAt:
+          type: string
+          format: date-time
+      required:
+      - deleteAt
+    Job:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - processing
+          - ready
+          - failed
+        resultUrl:
+          type: string
+      required:
+      - id
+      - status
+    AdminSwitch:
+      allOf:
+      - $ref: '#/components/schemas/Switch'
+      - type: object
+        properties:
+          status:
+            type: string
+            enum:
+            - draft
+            - published
+            - hidden
+          photoUrl:
+            type: string
+          updatedBy:
+            $ref: '#/components/schemas/UserRef'
+        required:
+        - status
+    AdminSwitchInput:
+      type: object
+      properties:
+        name:
+          type: string
+        brand:
+          type: string
+        type:
+          $ref: '#/components/schemas/SwitchType'
+        profile:
+          $ref: '#/components/schemas/SoundProfile'
+        stemColor:
+          type: string
+          pattern: ^#[0-9A-Fa-f]{6}$
+        forceG:
+          type: number
+        actuationMm:
+          type: number
+        travelMm:
+          type: number
+        bottomOutG:
+          type: number
+        spring:
+          type: string
+        housing:
+          type: string
+        forceCurve:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForceCurvePoint'
+        photoUploadId:
+          type: string
+          format: uuid
+      required:
+      - name
+      - type
+    PublishInput:
+      type: object
+      properties:
+        markNew:
+          type: boolean
+          description: Show the New sticker (30 days by default, see app settings).
+    SoundAttach:
+      type: object
+      properties:
+        uploadId:
+          type: string
+          format: uuid
+        variant:
+          type: string
+          enum:
+          - stock
+          - lubed
+          - foam
+        stroke:
+          type: string
+          enum:
+          - press
+          - release
+      required:
+      - uploadId
+      - variant
+      - stroke
+    UploadRequest:
+      type: object
+      properties:
+        purpose:
+          type: string
+          enum:
+          - sound
+          - switch_photo
+          - avatar
+        contentType:
+          type: string
+          examples:
+          - audio/wav
+          - image/png
+        bytes:
+          type: integer
+      required:
+      - purpose
+      - contentType
+    AdminSound:
+      allOf:
+      - $ref: '#/components/schemas/Recording'
+      - type: object
+        properties:
+          status:
+            type: string
+            enum:
+            - processing
+            - ready
+            - failed
+          switch:
+            $ref: '#/components/schemas/SwitchSummary'
+          error:
+            type: string
+        required:
+        - status
+    BulkAction:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+          - publish
+          - unpublish
+          - delete
+        ids:
+          maxItems: 100
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - action
+      - ids
+    BulkResult:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              ok:
+                type: boolean
+              problem:
+                $ref: '#/components/schemas/Problem'
+            required:
+            - id
+            - ok
+      required:
+      - results
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+        plan:
+          type: string
+          enum:
+          - free
+          - pro
+        suspended:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        builds:
+          type: integer
+        lastActiveAt:
+          type: string
+          format: date-time
+      required:
+      - id
+      - username
+      - plan
+    Suspension:
+      type: object
+      properties:
+        reason:
+          type: string
+        until:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      required:
+      - reason
+    ModerationItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - report
+          - first_post
+        target:
+          type: object
+          properties:
+            type:
+              type: string
+            id:
+              type: string
+            label:
+              type: string
+        reports:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+      - id
+      - kind
+      - target
+    ModerationDecision:
+      type: object
+      properties:
+        decision:
+          type: string
+          enum:
+          - approve
+          - hide
+          - feature
+        note:
+          type: string
+      required:
+      - decision
+    FeaturedSlots:
+      type: object
+      properties:
+        buildIds:
+          maxItems: 4
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - buildIds
+    TeamMember:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/UserRef'
+        role:
+          type: string
+          enum:
+          - admin
+          - editor
+          - viewer
+      required:
+      - userId
+      - role
+    Invitation:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+          - admin
+          - editor
+          - viewer
+      required:
+      - email
+      - role
+    AppSettings:
+      type: object
+      properties:
+        guestBuilds:
+          type: boolean
+        reviewFirstPosts:
+          type: boolean
+        soundCompareOnSwitchPages:
+          type: boolean
+        newBadgeDays:
+          type: integer
+          minimum: 0
+        maintenanceMode:
+          type: boolean
+        defaultPreviewVolume:
+          type: integer
+          minimum: 0
+          maximum: 100
+    AuditEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        at:
+          type: string
+          format: date-time
+        actor:
+          $ref: '#/components/schemas/UserRef'
+        action:
+          type: string
+        target:
+          type: object
+          properties:
+            type:
+              type: string
+            id:
+              type: string
+        before:
+          type:
+          - object
+          - 'null'
+        after:
+          type:
+          - object
+          - 'null'
+      required:
+      - id
+      - at
+      - actor
+      - action
+    OverviewMetrics:
+      type: object
+      properties:
+        kpis:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: number
+              delta:
+                type: number
+            required:
+            - key
+            - value
+        dailyBuilds:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              count:
+                type: integer
+        mostPlayed:
+          type: array
+          items:
+            type: object
+            properties:
+              switch:
+                $ref: '#/components/schemas/SwitchSummary'
+              plays:
+                type: integer
+        soundPreference:
+          type: array
+          items:
+            type: object
+            properties:
+              profile:
+                $ref: '#/components/schemas/SoundProfile'
+              share:
+                type: number
+        recentBuilds:
+          type: array
+          items:
+            $ref: '#/components/schemas/Build'
+        needsAttention:
+          type: object
+          properties:
+            reported:
+              type: integer
+            missingSounds:
+              type: integer
+            processing:
+              type: integer
+    WebhookEvent:
+      type: object
+      description: Provider-specific payload; verified by signature.
+  parameters:
+    pageSize:
+      name: page_size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 24
+    pageToken:
+      name: page_token
+      in: query
+      schema:
+        type: string
+      description: Opaque; from page.nextPageToken.
+    sort:
+      name: sort
+      in: query
+      schema:
+        type: string
+      description: Field name, `-` prefix for descending.
+    include:
+      name: include
+      in: query
+      schema:
+        type: string
+      description: Comma-separated related records to embed.
+    slug:
+      name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+    id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    buildId:
+      name: build_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    username:
+      name: username
+      in: path
+      required: true
+      schema:
+        type: string
+    userId:
+      name: user_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    itemId:
+      name: item_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    provider:
+      name: provider
+      in: path
+      required: true
+      schema:
+        type: string
+        enum:
+        - google
+        - apple
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema:
+        type: string
+      description: ETag from the last GET; stale tag → 412.
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      schema:
+        type: string
+        maxLength: 64
+      description: Replays within 24 h return the first result.
+    IdempotencyKeyRequired:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        maxLength: 64
+    Preview:
+      name: KeyLab-Preview
+      in: header
+      schema:
+        type: string
+      description: Opt into a preview feature; no stability promise.
+  headers:
+    Revision:
+      description: Date of the last additive release of v1.
+      schema:
+        type: string
+        format: date
+        examples:
+        - '2026-11-08'
+    ETag:
+      schema:
+        type: string
+    Location:
+      schema:
+        type: string
+        format: uri-reference
+    RetryAfter:
+      schema:
+        type: integer
+    Deprecation:
+      description: RFC 9745, set once v1 is deprecated.
+      schema:
+        type: string
+        examples:
+        - '@1798761600'
+    Sunset:
+      description: RFC 8594, set once v1 is deprecated.
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: Bad syntax.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      headers:
+        KeyLab-API-Revision:
+          $ref: '#/components/headers/Revision'
+    Unauthorized:
+      description: No session, or re-auth required (`reauth_required`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      headers:
+        KeyLab-API-Revision:
+          $ref: '#/components/headers/Revision'
+    Forbidden:
+      description: Wrong role, or a private tab (`tab_private`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      headers:
+        KeyLab-API-Revision:
+          $ref: '#/components/headers/Revision'
+    NotFound:
+      description: Not found, or private and not yours.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      headers:
+        KeyLab-API-Revision:
+          $ref: '#/components/headers/Revision'
+    Conflict:
+      description: State conflict, see `code`.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      headers:
+        KeyLab-API-Revision:
+          $ref: '#/components/headers/Revision'
+    Gone:
+      description: This API version has been sunset; the body links the migration guide.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      headers:
+        KeyLab-API-Revision:
+          $ref: '#/components/headers/Revision'
+    PreconditionFailed:
+      description: Stale If-Match.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      headers:
+        KeyLab-API-Revision:
+          $ref: '#/components/headers/Revision'
+    Unprocessable:
+      description: Validation failed; `errors` lists each field.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      headers:
+        KeyLab-API-Revision:
+          $ref: '#/components/headers/Revision'
+    TooManyRequests:
+      description: Rate limited.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        KeyLab-API-Revision:
+          $ref: '#/components/headers/Revision'
+    NoContent:
+      description: Done.
+      headers:
+        KeyLab-API-Revision:
+          $ref: '#/components/headers/Revision'
+    Accepted:
+      description: Accepted; poll Location.
+      headers:
+        Location:
+          $ref: '#/components/headers/Location'
+        KeyLab-API-Revision:
+          $ref: '#/components/headers/Revision'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Job'

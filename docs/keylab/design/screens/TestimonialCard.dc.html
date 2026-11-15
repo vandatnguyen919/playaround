@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Testimonial card</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<figure style="margin: 0; width: 100%; box-sizing: border-box; border: 3px solid #000; background: {{bg}}; color: {{fg}}; box-shadow: 6px 6px 0 #000; padding: 20px; display: flex; flex-direction: column; gap: 16px; font-family: 'Archivo', system-ui, sans-serif">
+  <svg width="34" height="26" viewBox="0 0 34 26" aria-hidden="true"><path d="M0 26V14L8 0h7L10 12h5v14zM19 26V14L27 0h7l-5 12h5v14z" fill="{{mark}}" stroke="#000" stroke-width="2"></path></svg>
+  <blockquote style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 800; letter-spacing: -0.02em">[TESTIMONIAL]</blockquote>
+  <figcaption style="display: flex; align-items: center; gap: 12px">
+    <span aria-hidden="true" style="flex: none; width: 44px; height: 44px; border: 2.5px solid #000; background: repeating-linear-gradient(45deg, #FFF1C7 0 6px, #FFFDF5 6px 12px); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #000">IMG</span>
+    <span style="display: flex; flex-direction: column; gap: 2px">
+      <span style="font-size: 15px; font-weight: 900">[CREATOR NAME]</span>
+      <span style="font-family: 'Space Mono', ui-monospace, monospace; font-size: 11px; font-weight: 700">[CHANNEL OR HANDLE]</span>
+    </span>
+  </figcaption>
+</figure>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tone":{"editor":"enum","options":["paper","ink","sky"],"default":"paper"},"$preview":{"width":380,"height":230}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const t = this.props.tone || 'paper';
+    return {
+      bg: t === 'ink' ? '#2C2A5A' : t === 'sky' ? '#99D6FF' : '#FFFFFF',
+      fg: t === 'ink' ? '#FFFDF5' : '#000000',
+      mark: t === 'ink' ? '#FFD24D' : '#F16B53'
+    };
+  }
+}
+</script>
+</body>
+</html>

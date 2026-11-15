@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab admin · Settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+.ad{--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--ink:#2C2A5A;--sun:#FFF1C7;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:#000;background:#EFE8D6;font-size:13px;-webkit-font-smoothing:antialiased}
+.ad *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:13px;font-weight:800;color:#000;background:#FFFDF5;border:2px solid #000;border-radius:0;min-height:34px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;box-shadow:2px 2px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(2px,2px);box-shadow:0 0 0 #000}
+.kc[aria-pressed="true"],.kc[aria-selected="true"],.kc[aria-checked="true"]{background:var(--acc)}
+.kc.go{background:var(--lime);min-height:38px;font-weight:900;border-width:2.5px;box-shadow:3px 3px 0 #000}
+.kc.coral{background:var(--coral)}
+.kc.ghost{box-shadow:none;background:transparent}
+.kc:focus-visible,.tg:focus-visible,.chk:focus-visible,.field:focus,.rlink:focus-visible,.pick:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.card{background:#FFFDF5;border:2.5px solid #000;box-shadow:4px 4px 0 #000;min-width:0}
+.pad{padding:16px;display:flex;flex-direction:column;gap:12px}
+.h2{margin:0;font-size:16px;line-height:20px;font-weight:900;letter-spacing:-.02em}
+.lbl{margin:0;font-size:10.5px;line-height:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:900}
+.sub{margin:0;font-size:12.5px;line-height:17px;font-weight:500}
+.field{height:36px;border:2px solid #000;border-radius:0;background:#FFFFFF;font:inherit;font-size:13px;font-weight:600;padding:0 10px;color:#000}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;padding:8px 10px;border-bottom:2.5px solid #000;background:#FFF1C7;white-space:nowrap}
+.tbl td{padding:6px 10px;border-bottom:1.5px solid #000;vertical-align:middle;font-size:13px;height:50px}
+.tbl tbody tr:hover{background:#FFF1C7}
+.tbl tbody tr.sel{background:#FFD24D}
+.chk{width:18px;height:18px;margin:0;accent-color:#000;cursor:pointer}
+.tg{appearance:none;margin:0;cursor:pointer;position:relative;width:46px;height:26px;border:2px solid #000;border-radius:0;background:#FFFFFF;padding:0;box-shadow:2px 2px 0 #000;flex:none}
+.tg[aria-checked="true"]{background:#000}
+.tg span{position:absolute;top:3px;left:3px;width:16px;height:16px;border:2px solid #000;background:#000;transition:left 100ms ease}
+.tg[aria-checked="true"] span{left:23px;background:var(--acc)}
+.rlink{font-weight:800;text-decoration:underline;text-underline-offset:3px}
+.pick{appearance:none;margin:0;cursor:pointer;font:inherit;text-align:left;width:100%;background:#FFFDF5;border:0;border-bottom:1.5px solid #000;padding:10px 12px;display:flex;align-items:center;gap:10px;color:#000}
+.pick:hover{background:#FFF1C7}
+.pick[aria-current="true"]{background:var(--acc)}
+.tabs{display:flex;gap:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skel{background:#E2DAC6;animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.perm td,.perm th{text-align:center}
+.perm td:first-child,.perm th:first-child{text-align:left}
+.set{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1.5px solid #000}
+.set:last-child{border-bottom:0}
+</style>
+</helmet>
+<div class="ad" style="min-height: 100vh; display: flex; flex-wrap: wrap">
+  <div style="flex: 0 0 232px; background: #2C2A5A; border-right: 3px solid #000"><dc-import name="AdminSidebar" active="settings" min-height="1500" hint-size="100%,1500px"></dc-import></div>
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="AdminTopbar" title="Settings" crumb="Workspace · team, app and audit log" hint-size="100%,66px"></dc-import>
+    <main style="padding: 18px 20px 32px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+        <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+          <section aria-labelledby="tm-h" class="card" style="overflow-x: auto">
+            <div style="padding: 14px 16px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px; border-bottom: 2.5px solid #000">
+              <div><h2 id="tm-h" class="h2">Team</h2><p class="sub">Who can change the catalog and moderate builds.</p></div>
+              <form onSubmit="{{invite}}" style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap">
+                <div style="display: flex; flex-direction: column; gap: 4px"><label for="inv-e" class="lbl">Invite by email</label><input id="inv-e" class="field" type="email" placeholder="name@[COMPANY]" value="{{inviteEmail}}" onChange="{{setInvite}}" style="width: 220px"></div>
+                <div style="display: flex; flex-direction: column; gap: 4px"><label for="inv-r" class="lbl">Role</label><select id="inv-r" class="field"><option>Editor</option><option>Viewer</option><option>Admin</option></select></div>
+                <button type="submit" class="kc go">Send invite</button>
+              </form>
+            </div>
+            <table class="tbl" style="min-width: 640px">
+              <caption class="sr">Team members</caption>
+              <thead><tr><th scope="col">Member</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Last active</th><th scope="col"><span class="sr">Remove</span></th></tr></thead>
+              <tbody>
+                <sc-for list="{{team}}" as="m" hint-placeholder-count="5">
+                  <tr>
+                    <td><span style="display: flex; flex-direction: column"><span style="font-weight: 900">{{m.name}}</span><span class="mono" style="font-size: 10.5px; font-weight: 700">{{m.email}}</span></span></td>
+                    <td><div role="radiogroup" aria-label="{{m.roleLabel}}" style="display: flex; gap: 4px"><sc-for list="{{m.roles}}" as="r" hint-placeholder-count="3"><button type="button" role="radio" class="kc" aria-checked="{{r.sel}}" onClick="{{r.pick}}" style="min-height: 30px; padding: 0 8px; font-size: 12px">{{r.v}}</button></sc-for></div></td>
+                    <td><dc-import name="StatusBadge" status="{{m.status}}" hint-size="90px,22px"></dc-import></td>
+                    <td class="mono" style="font-weight: 700">{{m.seen}}</td>
+                    <td><button type="button" class="kc ghost" aria-label="{{m.rmLabel}}">Remove</button></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </section>
+
+          <section aria-labelledby="pm-h" class="card" style="overflow-x: auto">
+            <div style="padding: 14px 16px; border-bottom: 2.5px solid #000"><h2 id="pm-h" class="h2">What each role can do</h2></div>
+            <table class="tbl perm" style="min-width: 560px">
+              <thead><tr><th scope="col">Permission</th><th scope="col">Admin</th><th scope="col">Editor</th><th scope="col">Viewer</th></tr></thead>
+              <tbody>
+                <sc-for list="{{perms}}" as="p" hint-placeholder-count="7">
+                  <tr><td style="font-weight: 700">{{p.label}}</td><td><span role="img" aria-label="{{p.aL}}" style="font-weight: 900; font-size: 16px">{{p.a}}</span></td><td><span role="img" aria-label="{{p.eL}}" style="font-weight: 900; font-size: 16px">{{p.e}}</span></td><td><span role="img" aria-label="{{p.vL}}" style="font-weight: 900; font-size: 16px">{{p.v}}</span></td></tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </section>
+        </div>
+
+        <div style="flex: 1 1 360px; min-width: 300px; display: flex; flex-direction: column; gap: 16px">
+          <section aria-labelledby="ap-h" class="card pad">
+            <h2 id="ap-h" class="h2">App settings</h2>
+            <div>
+              <sc-for list="{{settings}}" as="t" hint-placeholder-count="5">
+                <div class="set">
+                  <div style="flex: 1; min-width: 0"><span id="{{t.id}}" style="display: block; font-weight: 900">{{t.label}}</span><span class="sub" style="display: block">{{t.desc}}</span></div>
+                  <button type="button" class="tg" role="switch" aria-checked="{{t.on}}" aria-labelledby="{{t.id}}" onClick="{{t.toggle}}"><span></span></button>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px"><label for="vol" class="lbl">Default preview volume · {{vol}}%</label><input id="vol" type="range" min="0" max="100" value="{{vol}}" onChange="{{setVol}}" style="accent-color: #000; height: 28px"></div>
+          </section>
+
+          <section aria-labelledby="al-h" class="card" style="overflow: hidden">
+            <div style="padding: 14px 16px; border-bottom: 2.5px solid #000; display: flex; justify-content: space-between; align-items: center; gap: 10px"><h2 id="al-h" class="h2">Audit log</h2><button type="button" class="kc">Export</button></div>
+            <ol style="margin: 0; padding: 0; list-style: none">
+              <sc-for list="{{audit}}" as="a" hint-placeholder-count="8">
+                <li style="display: grid; grid-template-columns: 74px 1fr; gap: 10px; padding: 9px 16px; border-bottom: 1.5px solid #000; font-size: 12.5px"><span class="mono" style="font-weight: 700">{{a.t}}</span><span><strong style="font-weight: 900">{{a.who}}</strong> <span style="font-weight: 600">{{a.x}}</span></span></li>
+              </sc-for>
+            </ol>
+          </section>
+        </div>
+      </div>
+      <sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
+        <div style="position: fixed; right: 24px; bottom: 24px; width: 440px; max-width: calc(100% - 48px); z-index: 5"><dc-import name="Toast" kind="{{toastKind}}" title="{{toastTitle}}" body="{{toastBody}}" action="{{toastAction}}" href="{{toastHref}}" on-dismiss="{{dismiss}}" hint-size="100%,72px"></dc-import></div>
+      </sc-if>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 1440, "height": 1500}}'>
+const TOASTLESS = { toast: false, toastKind: 'success', toastTitle: '', toastBody: '', toastAction: '', toastHref: '' };
+function toastVals(self, t) {
+  if (!t) return Object.assign({}, TOASTLESS, { dismiss: () => self.setState({ toast: null }) });
+  return { toast: true, toastKind: t.kind || 'success', toastTitle: t.title, toastBody: t.body || '', toastAction: t.action || '', toastHref: t.href || '', dismiss: () => self.setState({ toast: null }) };
+}
+const ROLES = ['Admin', 'Editor', 'Viewer'];
+const TEAM0 = [
+  ['[ADMIN NAME]', 'admin@[COMPANY]', 'Admin', 'active', 'now'],
+  ['[EDITOR NAME]', 'sound@[COMPANY]', 'Editor', 'active', '2 h ago'],
+  ['[EDITOR NAME]', 'catalog@[COMPANY]', 'Editor', 'active', 'yesterday'],
+  ['[VIEWER NAME]', 'support@[COMPANY]', 'Viewer', 'active', '3 d ago'],
+  ['[INVITEE]', 'mod@[COMPANY]', 'Viewer', 'invited', '—']
+];
+const PERMS = [
+  ['See the dashboard and reports', 1, 1, 1], ['Edit switches, keycaps and mods', 1, 1, 0], ['Upload and replace sounds', 1, 1, 0],
+  ['Publish to the public library', 1, 1, 0], ['Moderate and feature builds', 1, 1, 0], ['Suspend users', 1, 0, 0], ['Manage team and app settings', 1, 0, 0]
+];
+const SETTINGS = [
+  ['guest', 'Guest builds', 'Let people build and listen before signing up.', true],
+  ['review', 'Review first community posts', 'A user’s first shared build waits in the moderation queue.', true],
+  ['compare', 'Sound compare on switch pages', 'Show the three-switch compare strip on public switch pages.', true],
+  ['newbadge', 'New badge for 30 days', 'Mark newly published switches as New in the library.', true],
+  ['maint', 'Maintenance mode', 'Public site shows a short notice. Admin keeps working.', false]
+];
+class Component extends DCLogic {
+  state = { team: TEAM0.map((t) => t.slice()), set: {}, vol: 70, inviteEmail: '', toast: null };
+  renderVals() {
+    const s = this.state;
+    const mark = (n) => n ? '✓' : '—';
+    return Object.assign({
+      inviteEmail: s.inviteEmail, setInvite: (e) => this.setState({ inviteEmail: e.target.value }),
+      invite: (e) => { e.preventDefault(); const em = s.inviteEmail.trim(); if (!em || em.indexOf('@') < 1) { this.setState({ toast: { kind: 'error', title: 'Check the email', body: 'Enter a full email address to send an invite.' } }); return; } this.setState({ team: s.team.concat([['[INVITEE]', em, 'Editor', 'invited', '—']]), inviteEmail: '', toast: { kind: 'success', title: 'Invite sent', body: em + ' can join as Editor.' } }); },
+      team: s.team.map((m, i) => ({ name: m[0], email: m[1], status: m[3], seen: m[4], roleLabel: 'Role for ' + m[1], rmLabel: 'Remove ' + m[1],
+        roles: ROLES.map((r) => ({ v: r, sel: String(r === m[2]), pick: () => { if (r === m[2]) return; const t = s.team.map((x) => x.slice()); t[i][2] = r; this.setState({ team: t, toast: { kind: 'success', title: 'Role updated', body: m[1] + ' is now ' + r + '.' } }); } })) })),
+      perms: PERMS.map((p) => ({ label: p[0], a: mark(p[1]), e: mark(p[2]), v: mark(p[3]), aL: p[1] ? 'Allowed' : 'Not allowed', eL: p[2] ? 'Allowed' : 'Not allowed', vL: p[3] ? 'Allowed' : 'Not allowed' })),
+      settings: SETTINGS.map((t) => { const on = s.set[t[0]] === undefined ? t[3] : s.set[t[0]]; return { id: 'set-' + t[0], label: t[1], desc: t[2], on: String(on), toggle: () => { const o = Object.assign({}, s.set); o[t[0]] = !on; this.setState({ set: o, toast: { kind: 'success', title: t[1] + (on ? ' off' : ' on'), body: 'Saved. Logged in the audit log.' } }); } }; }),
+      vol: s.vol, setVol: (e) => this.setState({ vol: +e.target.value }),
+      audit: [
+        { t: '10:42', who: '[ADMIN NAME]', x: 'published Coral Pop to the library' },
+        { t: '10:31', who: '[EDITOR NAME]', x: 'uploaded coral-pop_stock_release.wav' },
+        { t: '10:28', who: '[EDITOR NAME]', x: 'uploaded coral-pop_stock_press.wav' },
+        { t: '09:55', who: '[ADMIN NAME]', x: 'hid “Free keys giveaway” (spam)' },
+        { t: 'Yesterday', who: '[EDITOR NAME]', x: 'featured “Desk 75%” in slot 1' },
+        { t: 'Yesterday', who: '[ADMIN NAME]', x: 'changed [EDITOR NAME] from Viewer to Editor' },
+        { t: 'Oct 30', who: '[ADMIN NAME]', x: 'turned on Review first community posts' },
+        { t: 'Oct 29', who: '[EDITOR NAME]', x: 'added keycap set Lime Pop as draft' }
+      ]
+    }, toastVals(this, s.toast));
+  }
+}
+</script>
+</body>
+</html>

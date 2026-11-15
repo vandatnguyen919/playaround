@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Public profile (desktop)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.kl{--bg:#FFFDF5;--surface:#FFFFFF;--surface2:#FFF1C7;--text:#000000;--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--indigo:#2C2A5A;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc[aria-pressed="true"],.kc[aria-checked="true"],.kc[aria-current="true"]{background:var(--acc)}
+.kc.primary{background:var(--lime);min-height:54px;font-size:16px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc.coral{background:var(--coral)}
+.kc.danger{background:var(--coral);font-weight:900}
+.kc.sm{padding:0 12px;font-size:13px}
+.kc.icon{width:44px;padding:0}
+.kc[aria-disabled="true"]{background:#E6E1D3;color:#3A3A3A;box-shadow:none;cursor:not-allowed;transform:none}
+.kc:focus-visible,.sl:focus-visible,.mel:focus-visible,.nv:focus-visible,.tile:focus-visible,.folder:focus-visible,.newb:focus-visible,.tl:focus-visible,.inp:focus-visible,.sw:focus-visible,.crop:focus-visible,.secl:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.lbl{font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;margin:0}
+.h1{font-size:52px;line-height:46px;font-weight:900;letter-spacing:-.055em;margin:0}
+.h2{font-size:26px;line-height:28px;font-weight:900;letter-spacing:-.045em;margin:0}
+.sub{margin:0;font-size:14px;line-height:20px;font-weight:500}
+.sticker{display:inline-flex;align-items:center;gap:5px;padding:1px 7px;border:2px solid #000;background:var(--acc);color:#000;font-size:10.5px;line-height:15px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.card{background:#FFFFFF;border:3px solid #000;box-shadow:6px 6px 0 #000;min-width:0}
+.tl{font-weight:900;text-decoration:none;border-bottom:2.5px solid transparent}
+.tl:hover{border-bottom-color:#000}
+.side{background:#FFFFFF;color:#000;border-right:3px solid #000}
+.sl{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 12px;border:2.5px solid transparent;color:#000;text-decoration:none;font-size:15px;font-weight:800;flex:1 1 180px}
+.sl:hover{border-color:#000;background:var(--surface2)}
+.sl.on{background:var(--acc);border-color:#000;box-shadow:3px 3px 0 #000}
+.mel{display:flex;align-items:center;gap:10px;min-height:54px;padding:6px 8px;border:2.5px solid #000;background:#FFFFFF;color:#000;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.mel:hover{background:#FFF1C7}
+.mel:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.mel.on{background:var(--acc)}
+.nav{flex:none;display:flex;gap:2px;padding:8px 8px 22px;background:#FFFFFF;border-top:3px solid #000}
+.nv{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px;flex:1;color:#000;text-decoration:none;font-size:11px;font-weight:800}
+.nv .ic{width:46px;height:32px;display:flex;align-items:center;justify-content:center;border:2.5px solid transparent;transition:transform 70ms}
+.nv:active .ic{transform:translate(2px,2px)}
+.nv.on .ic{background:var(--acc);border-color:#000;box-shadow:3px 3px 0 #000}
+.noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+.rail{display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding:4px 16px 10px;margin:0 -16px}
+.rail::-webkit-scrollbar{display:none}
+.rail>*{flex:none}
+.skel{background:#E9E2CF;border:2.5px solid #000;animation:klp 1.1s ease-in-out infinite}
+@keyframes klp{0%,100%{opacity:1}50%{opacity:.45}}
+.spec{display:grid;grid-template-columns:96px minmax(0,1fr);margin:0;border:2.5px solid #000;background:#FFFFFF}
+.spec dt,.spec dd{margin:0;padding:9px 10px;border-bottom:2px solid #000}
+.spec dt{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;background:#FFFDF5;border-right:2px solid #000}
+.spec dd{font-size:13px;font-weight:700}
+.spec .end{border-bottom:0}
+.chip{display:inline-flex;align-items:center;font-size:11px;line-height:15px;font-weight:800;padding:1px 6px;border:2px solid #000;background:var(--lime)}
+.folder{appearance:none;margin:0;font:inherit;color:#000;text-align:left;cursor:pointer;position:relative;background:#FFFFFF;border:3px solid #000;border-radius:0;padding:16px 14px 14px;display:flex;flex-direction:column;gap:8px;min-height:168px;box-shadow:5px 5px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.folder:hover{background:#FFF1C7}
+.folder:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.folder[aria-pressed="true"]{background:var(--acc)}
+.folder .ftab{position:absolute;left:-3px;top:-15px;width:74px;height:14px;border:3px solid #000;border-bottom:0;background:inherit}
+.newb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:200px;border:3px dashed #000;background:transparent;color:#000;text-decoration:none;font-weight:900;text-align:center;padding:20px;cursor:pointer;font:inherit}
+.newb:hover{background:#FFF1C7}
+.newb .plus{width:64px;height:64px;border:3px solid #000;background:var(--lime);box-shadow:5px 5px 0 #000;display:flex;align-items:center;justify-content:center;transition:transform 70ms ease,box-shadow 70ms ease}
+.newb:active .plus{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.tile{appearance:none;margin:0;font:inherit;color:#000;text-align:left;cursor:pointer;background:#FFFFFF;border:3px solid #000;border-radius:0;padding:10px 12px;display:flex;gap:12px;align-items:center;min-height:62px;box-shadow:4px 4px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;text-decoration:none}
+.tile:active{transform:translate(4px,4px);box-shadow:0 0 0 #000}
+.tile[aria-checked="true"]{background:var(--acc);transform:translate(-2px,-2px);box-shadow:7px 7px 0 #000}
+.inp{width:100%;min-height:48px;border:3px solid #000;border-radius:0;padding:0 12px;font:inherit;font-size:16px;font-weight:600;color:#000;background:#FFFFFF;box-shadow:4px 4px 0 #000}
+.inp:focus{background:#FFF1C7}
+textarea.inp{padding:10px 12px;min-height:96px;resize:vertical;line-height:22px}
+.inp[aria-invalid="true"]{border-color:#B3261E;background:#FFF5F2}
+.fg{display:flex;flex-direction:column;gap:7px;min-width:0}
+.err{margin:0;color:#8C1D18;font-size:13px;line-height:17px;font-weight:800;display:flex;gap:6px;align-items:flex-start}
+.ok{margin:0;color:#1E5B0F;font-size:13px;line-height:17px;font-weight:800}
+.hint{margin:0;font-size:12.5px;line-height:17px;font-weight:600}
+.pre{display:flex;align-items:stretch}
+.pre span{flex:none;display:flex;align-items:center;padding:0 10px;border:3px solid #000;border-right:0;background:#FFF1C7;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;box-shadow:4px 4px 0 #000}
+.tg{appearance:none;margin:0;cursor:pointer;position:relative;flex:none;width:56px;height:32px;border:2.5px solid #000;border-radius:0;background:#FFFFFF;padding:0;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.tg:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.tg[aria-checked="true"]{background:#000}
+.tg span{position:absolute;top:4px;left:4px;width:19px;height:19px;border:2.5px solid #000;background:#000;transition:left 100ms ease}
+.tg[aria-checked="true"] span{left:28px;background:var(--lime)}
+.tg:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.sw{appearance:none;margin:0;padding:0;cursor:pointer;width:44px;height:44px;border:2.5px solid #000;border-radius:0;box-shadow:3px 3px 0 #000}
+.sw:active{transform:translate(3px,3px);box-shadow:none}
+.sw[aria-checked="true"]{outline:3px solid #000;outline-offset:3px}
+.secl{appearance:none;margin:0;width:100%;text-align:left;cursor:pointer;font:inherit;font-size:15px;font-weight:800;color:#000;background:transparent;border:2.5px solid transparent;border-radius:0;min-height:48px;padding:0 12px;display:flex;align-items:center;gap:10px}
+.secl:hover{border-color:#000;background:#FFF1C7}
+.secl[aria-current="true"]{background:var(--acc);border-color:#000;box-shadow:3px 3px 0 #000}
+.secl.dz{color:#8C1D18}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</helmet>
+<div class="kl" style="min-height: 100vh; display: flex; flex-wrap: wrap">
+  <aside class="side" style="flex: 1 1 236px; padding: 20px 16px; display: flex; flex-direction: column; gap: 24px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span aria-hidden="true" style="width: 36px; height: 36px; border: 3px solid #000; background: var(--acc); box-shadow: 3px 3px 0 #000; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 17px">K</span>
+      <span style="font-weight: 900; font-size: 24px; letter-spacing: -0.05em">KEYLAB</span>
+    </div>
+    <nav aria-label="Primary" style="display: flex; flex-wrap: wrap; gap: 6px">
+      <a class="sl" href="HomeDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M6 10h1M10 10h1M14 10h1M18 10h1M7 14h10"></path></svg>Build</a>
+      <a class="sl" href="SwitchesDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M12 2.5v7M8.5 6h7"></path><rect x="4.5" y="11" width="15" height="9.5"></rect></svg>Switches</a>
+      <a class="sl" href="ModsDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"></path><rect x="13" y="5" width="4" height="4"></rect><rect x="7" y="15" width="4" height="4"></rect></svg>Mods</a>
+      <a class="sl" href="KeycapsDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M3.5 19.5h17L18 6H6z"></path><path d="M9 10.5h6"></path></svg>Keycaps</a>
+      <a class="sl" href="CaseDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><rect x="2.5" y="7" width="19" height="10"></rect><path d="M2.5 12.5h19"></path></svg>Case &amp; plate</a>
+      <a class="sl" href="PlaygroundDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M3 12h2l2-6 3 12 3-9 2 5 2-2h4"></path></svg>Playground</a>
+      <a class="sl" href="BuildsDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6.5 3.5h11v17l-5.5-3.8-5.5 3.8z"></path></svg>My builds</a>
+    </nav>
+    <div style="margin-top: auto; padding-top: 16px; border-top: 3px solid #000; display: flex; flex-direction: column; gap: 8px">
+      <a class="mel" href="ProfileDesktop.dc.html" aria-label="Your profile, Thockwise, @thockwise"><span aria-hidden="true" style="flex: none; width: 38px; height: 38px; border: 2.5px solid #000; background: #FFD24D; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; letter-spacing: -0.03em">TW</span><span style="display: flex; flex-direction: column; min-width: 0"><span style="font-weight: 900; font-size: 15px">Thockwise</span><span class="mono" style="font-size: 11px; font-weight: 700">@thockwise</span></span></a>
+      <a class="sl" href="AccountDesktop.dc.html" style="flex: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><rect x="9" y="9" width="6" height="6"></rect><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"></path></svg>Settings</a>
+    </div>
+  </aside>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 30px 34px 56px; display: flex; flex-direction: column; gap: 30px">
+    <sc-if value="{{showHeader}}" hint-placeholder-val="{{ true }}">
+      <dc-import name="ProfileHeader" variant="{{hdr}}" mobile="{{ false }}" display-name="{{u.name}}" handle="{{u.handle}}" bio="{{u.bio}}" loc="{{u.loc}}" joined="{{u.joined}}" plan="{{u.plan}}" initials="{{u.initials}}" avatar-bg="{{u.avatar}}" following="{{following}}" follows-you="{{followsYou}}" edit-href="EditProfileDesktop.dc.html" try-href="PlaygroundDesktop.dc.html" on-follow="{{onFollow}}" on-report="{{onReport}}" on-block="{{onBlock}}" hint-size="100%,220px"></dc-import>
+    </sc-if>
+    <sc-if value="{{isLoading}}" hint-placeholder-val="{{ false }}">
+      <div role="status" aria-label="Loading profile" style="display: flex; flex-direction: column; gap: 28px">
+        <dc-import name="ProfileHeader" variant="loading" mobile="{{ false }}" hint-size="100%,150px"></dc-import>
+        <div class="" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px"><div style=""><dc-import name="StatTile" label="Builds" state="loading" compact="{{ false }}" hint-size="100%,92px"></dc-import></div><div style=""><dc-import name="StatTile" label="Likes received" state="loading" compact="{{ false }}" hint-size="100%,92px"></dc-import></div><div style=""><dc-import name="StatTile" label="Followers" state="loading" compact="{{ false }}" hint-size="100%,92px"></dc-import></div><div style=""><dc-import name="StatTile" label="Following" state="loading" compact="{{ false }}" hint-size="100%,92px"></dc-import></div><div style=""><dc-import name="StatTile" label="Switches tried" state="loading" compact="{{ false }}" hint-size="100%,92px"></dc-import></div></div>
+        <div style="display: flex; flex-wrap: wrap; gap: 28px"><div class="skel" style="flex: 1 1 300px; height: 400px"></div><div class="skel" style="flex: 1.6 1 300px; height: 400px"></div></div>
+        <div class="skel" style="height: 50px"></div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px"><div class="skel" style="height: 420px"></div><div class="skel" style="height: 420px"></div><div class="skel" style="height: 420px"></div></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{isPrivate}}" hint-placeholder-val="{{ false }}">
+      <div class="card" style="padding: 40px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; background: var(--surface2)">
+        <span aria-hidden="true" style="width: 76px; height: 76px; border: 3px solid #000; background: #FFFFFF; box-shadow: 5px 5px 0 #000; display: flex; align-items: center; justify-content: center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.6"><rect x="5" y="11" width="14" height="10"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
+        <h2 class="h2">This profile is private</h2>
+        <p class="sub" style="max-width: 460px">{{privateText}}</p>
+      </div>
+    </sc-if>
+    <sc-if value="{{isNotFound}}" hint-placeholder-val="{{ false }}">
+      <div style="min-height: 560px; display: flex; align-items: center; justify-content: center">
+        <div class="card" style="max-width: 600px; padding: 36px; display: flex; flex-direction: column; gap: 16px; align-items: flex-start; background: var(--surface2)">
+          <span aria-hidden="true" style="width: 72px; height: 72px; border: 3px solid #000; background: var(--sky); box-shadow: 5px 5px 0 #000; display: flex; align-items: center; justify-content: center; font-family: 'Space Mono', monospace; font-size: 34px; font-weight: 700">?</span>
+          <h1 class="h1" style="font-size: 44px; line-height: 44px">User not found</h1>
+          <p class="sub">There’s no one at <span class="mono" style="font-weight: 700">@[USERNAME]</span>. They may have changed their username or deleted their account.</p>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap"><a class="kc primary" href="MktLanding.dc.html#community">Browse community builds</a><a class="kc" href="ProfileDesktop.dc.html" style="min-height: 54px">Back to my profile</a></div>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{showBody}}" hint-placeholder-val="{{ true }}">
+    <section aria-label="Stats" class="" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px">
+      <sc-for list="{{stats}}" as="s" hint-placeholder-count="5"><div style=""><dc-import name="StatTile" label="{{s.label}}" value="{{s.value}}" accent="{{s.accent}}" state="{{s.state}}" compact="{{ false }}" hint-size="100%,92px"></dc-import></div></sc-for>
+    </section>
+    <div style="display: flex; flex-wrap: wrap; gap: 28px; align-items: stretch">
+    <section aria-labelledby="sig-h" class="card" style="flex: 1 1 400px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap">
+        <h2 id="sig-h" class="h2">Sound signature</h2>
+        <sc-if value="{{hasSig}}" hint-placeholder-val="{{ true }}"><span class="sticker" style="font-size: 12px; padding: 3px 10px">{{sig.prof}} profile</span></sc-if>
+      </div>
+      <sc-if value="{{hasSig}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div role="meter" aria-label="{{sig.meterLabel}}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{sig.pos}}" style="height: 30px; display: flex; align-items: flex-end; gap: 3px">
+            <sc-for list="{{sig.ticks}}" as="t" hint-placeholder-count="28"><span style="flex: 1; height: {{t.h}}px; background: {{t.c}}; border: 1.5px solid #000"></span></sc-for>
+          </div>
+          <div aria-hidden="true" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+            <sc-for list="{{sig.zones}}" as="z" hint-placeholder-count="4"><span class="mono" style="text-align: center; font-size: 10.5px; font-weight: 700; padding: 2px 0; border: 2px solid {{z.border}}; background: {{z.bg}}">{{z.label}}</span></sc-for>
+          </div>
+          <div class="mono" aria-hidden="true" style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700"><span>&#8592; DEEP</span><span>BRIGHT &#8594;</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column">
+          <h3 class="lbl" style="padding-bottom: 6px">Most played</h3>
+          <ol style="list-style: none; margin: 0; padding: 0">
+            <sc-for list="{{sig.top}}" as="t" hint-placeholder-count="3">
+              <li style="display: grid; grid-template-columns: 22px 22px minmax(0, 1fr) 110px 44px; align-items: center; gap: 10px; padding: 8px 0; border-top: 2px solid #000">
+                <span class="mono" style="font-size: 12px; font-weight: 700">{{t.rank}}</span>
+                <span aria-hidden="true" style="width: 22px; height: 22px; border: 2.5px solid #000; background: {{t.stem}}"></span>
+                <span style="min-width: 0; display: flex; flex-direction: column; gap: 1px"><a class="tl" href="{{t.href}}" style="font-size: 15px">{{t.name}}</a><span class="mono" style="font-size: 10.5px; font-weight: 700">{{t.meta}}</span></span>
+                <span style="display: block; min-width: 0"><dc-import name="Waveform" profile="{{t.prof}}" seed="{{t.seed}}" height="34" labels="{{ false }}" hint-size="100%,34px"></dc-import></span>
+                <button type="button" class="kc icon coral" aria-label="{{t.playLabel}}" onClick="{{t.play}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg></button>
+              </li>
+            </sc-for>
+          </ol>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding-top: 12px; border-top: 3px solid #000">
+          <svg width="58" height="26" viewBox="0 0 58 26" aria-hidden="true" fill="none" stroke="#000" stroke-width="2"><rect x="1" y="1" width="56" height="24" fill="#FFFDF5"></rect><path d="M5 6h4M11 6h4M17 6h4M23 6h4M29 6h4M35 6h4M41 6h4M47 6h6M5 11h6M13 11h4M19 11h4M25 11h4M31 11h4M37 11h4M43 11h10M5 16h7M14 16h4M20 16h4M26 16h4M32 16h4M38 16h4M44 16h9M5 21h5M12 21h28M42 21h4M48 21h5" stroke-width="2.5"></path></svg>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span class="lbl">Go-to layout</span><span style="font-size: 13px; font-weight: 600">{{sig.layoutNote}}</span></span>
+          <span class="mono" style="font-size: 22px; font-weight: 700">{{sig.layout}}</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{noSig}}" hint-placeholder-val="{{ false }}">
+        <div style="border: 3px dashed #000; padding: 18px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start">
+          <strong style="font-size: 17px; font-weight: 900">No signature yet</strong>
+          <p class="sub">Play a few switches and KeyLab maps where your ear sits between deep and bright.</p>
+          <a class="kc" href="SwitchesDesktop.dc.html">Explore switches</a>
+        </div>
+      </sc-if>
+    </section>
+    <section aria-labelledby="dd-h" class="card" style="flex: 1.6 1 560px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+        <h2 id="dd-h" class="h2">Daily driver</h2>
+        <sc-if value="{{hasDD}}" hint-placeholder-val="{{ true }}"><span class="sticker" style="background: var(--lime)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M9 3h6l-1 6 4 4H6l4-4zM12 13v8"></path></svg>Pinned</span><span class="mono" style="margin-left: auto; font-size: 12px; font-weight: 700">{{dd.name}}</span></sc-if>
+      </div>
+      <sc-if value="{{hasDD}}" hint-placeholder-val="{{ true }}">
+        <div style="border: 3px solid #000; background: var(--sky); padding: 18px 8px 10px; display: flex; flex-direction: column; align-items: center; gap: 10px">
+          <dc-import name="Keyboard" layout="{{dd.layout}}" width="560" alpha="{{dd.a}}" mod="{{dd.m}}" accent="{{dd.x}}" case-color="{{dd.c}}" profile="{{dd.profile}}" plate="{{dd.plate}}" legend="{{dd.legend}}" sound="{{dd.snd}}" ping-seq="{{ping}}" hint-size="560px,238px"></dc-import>
+          <p class="mono" style="margin: 0; font-size: 11px; font-weight: 700">TAP ANY KEY TO TYPE AND HEAR IT</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+          <dl class="spec" style="flex: 999 1 300px">
+            <dt>Switch</dt><dd style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span aria-hidden="true" style="width: 12px; height: 12px; border: 2px solid #000; background: {{dd.stem}}"></span>{{dd.sw}}<span class="mono" style="font-size: 11px">{{dd.swType}}</span></dd>
+            <dt>Mods</dt><dd style="display: flex; flex-wrap: wrap; gap: 5px"><sc-for list="{{dd.mods}}" as="m" hint-placeholder-count="3"><span class="chip">{{m}}</span></sc-for></dd>
+            <dt>Keycaps</dt><dd class="mono" style="font-size: 12px">{{dd.caps}}</dd>
+            <dt class="end">Case</dt><dd class="end mono" style="font-size: 12px">{{dd.case}}</dd>
+          </dl>
+          <div style="flex: 1 1 170px; display: flex; flex-direction: column; gap: 12px">
+            <button type="button" class="kc coral" onClick="{{playDD}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg>Play a sample</button>
+            <a class="kc primary" href="PlaygroundDesktop.dc.html" style="min-height: 48px; font-size: 15px">Try their setup</a>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{noDD}}" hint-placeholder-val="{{ false }}">
+        <div style="border: 3px dashed #000; padding: 22px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; background: var(--surface2)">
+          <strong style="font-size: 17px; font-weight: 900">No daily driver yet</strong>
+          <p class="sub">Save a build, then pin it here so visitors can type on your main keyboard.</p>
+          <a class="kc primary" href="HomeDesktop.dc.html">Start a build</a>
+        </div>
+      </sc-if>
+    </section>
+    </div>
+    <section aria-labelledby="bd-h" style="display: flex; flex-direction: column; gap: 12px">
+      <h2 id="bd-h" class="h2">Badges</h2>
+      <ul class="" style="list-style: none; margin: 0; padding: 6px 0 4px; display: flex; flex-wrap: wrap; gap: 20px">
+        <sc-for list="{{badges}}" as="b" hint-placeholder-count="4"><li><dc-import name="BadgeSticker" kind="{{b.kind}}" earned="{{b.earned}}" date="{{b.date}}" tilt="{{b.tilt}}" hint-size="250px,62px"></dc-import></li></sc-for>
+      </ul>
+    </section>
+    <section aria-label="Profile content" style="display: flex; flex-direction: column; gap: 22px">
+      <dc-import name="TabBar" tabs="{{tabs}}" active="{{tab}}" on-change="{{setTab}}" mobile="{{ false }}" label="Profile sections" hint-size="100%,51px"></dc-import>
+      <sc-if value="{{hiddenNote}}" hint-placeholder-val="{{ false }}"><p class="mono" style="margin: -8px 0 0; font-size: 11px; font-weight: 700">{{hiddenNoteText}}</p></sc-if>
+
+      <sc-if value="{{tabBuilds}}" hint-placeholder-val="{{ true }}">
+        <div role="tabpanel" aria-labelledby="tab-builds" tabindex="0" style="display: flex; flex-direction: column; gap: 20px">
+          <sc-if value="{{buildsEmpty}}" hint-placeholder-val="{{ false }}">
+            <div class="card" style="padding: 36px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; background: var(--surface2)">
+              <span aria-hidden="true" style="width: 84px; height: 84px; border: 3px solid #000; background: var(--acc); box-shadow: 6px 6px 0 #000; display: flex; align-items: center; justify-content: center"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M6 10h1M10 10h1M14 10h1M18 10h1M7 14h10"></path></svg></span>
+              <h3 class="h2">{{emptyTitle}}</h3>
+              <p class="sub" style="max-width: 420px">{{emptyBody}}</p>
+              <sc-if value="{{emptyCta}}" hint-placeholder-val="{{ true }}"><a class="kc primary" href="HomeDesktop.dc.html">Start a build</a></sc-if>
+            </div>
+          </sc-if>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px 28px; align-items: start">
+            <sc-for list="{{builds}}" as="b" hint-placeholder-count="4">
+              <article aria-label="{{b.card.name}}" style="display: flex; flex-direction: column; gap: 10px">
+                <div style="display: flex; align-items: center; gap: 8px; min-height: 26px">
+                  <sc-if value="{{b.showVis}}" hint-placeholder-val="{{ true }}"><span class="sticker" style="background: {{b.visBg}}">{{b.vis}}</span></sc-if>
+                  <sc-if value="{{b.pinned}}" hint-placeholder-val="{{ false }}"><span class="sticker" style="background: var(--lime)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M9 3h6l-1 6 4 4H6l4-4zM12 13v8"></path></svg>Daily driver</span></sc-if>
+                  <span class="mono" style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700"><svg width="14" height="14" viewBox="0 0 24 24" fill="#F16B53" stroke="#000" stroke-width="2.4" aria-hidden="true"><path d="M12 20l-8-8a4.5 4.5 0 0 1 8-4 4.5 4.5 0 0 1 8 4z"></path></svg><span class="sr-only">Likes:</span>{{b.likes}}</span>
+                </div>
+                <dc-import name="BuildCard" build="{{b.card}}" width="352" hint-size="352px,460px"></dc-import>
+              </article>
+            </sc-for>
+
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{tabLiked}}" hint-placeholder-val="{{ false }}">
+        <div role="tabpanel" aria-labelledby="tab-liked" tabindex="0" style="display: flex; flex-direction: column; gap: 20px">
+          <sc-if value="{{likedEmpty}}" hint-placeholder-val="{{ false }}">
+            <div class="card" style="padding: 32px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; background: var(--surface2)"><h3 class="h2">Nothing liked yet</h3><p class="sub">Tap the heart on any community build and it lands here.</p><a class="kc" href="MktLanding.dc.html#community">Browse community builds</a></div>
+          </sc-if>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px 28px; align-items: start">
+            <sc-for list="{{liked}}" as="b" hint-placeholder-count="3">
+              <article aria-label="{{b.card.name}}" style="display: flex; flex-direction: column; gap: 10px">
+                <div style="display: flex; align-items: center; gap: 8px; min-height: 26px"><span class="sticker" style="background: var(--coral)">Liked</span><span class="mono" style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700"><svg width="14" height="14" viewBox="0 0 24 24" fill="#F16B53" stroke="#000" stroke-width="2.4" aria-hidden="true"><path d="M12 20l-8-8a4.5 4.5 0 0 1 8-4 4.5 4.5 0 0 1 8 4z"></path></svg><span class="sr-only">Likes:</span>{{b.likes}}</span></div>
+                <dc-import name="BuildCard" build="{{b.card}}" width="352" hint-size="352px,490px"></dc-import>
+              </article>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{tabCols}}" hint-placeholder-val="{{ false }}">
+        <div role="tabpanel" aria-labelledby="tab-collections" tabindex="0" style="display: flex; flex-direction: column; gap: 26px; padding-top: 14px">
+          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 30px 20px">
+            <sc-for list="{{cols}}" as="c" hint-placeholder-count="3">
+              <button type="button" class="folder" aria-pressed="{{c.on}}" onClick="{{c.pick}}">
+                <span class="ftab" aria-hidden="true"></span>
+                <span aria-hidden="true" style="display: flex; gap: 4px"><sc-for list="{{c.swatches}}" as="w" hint-placeholder-count="4"><span style="width: 22px; height: 22px; border: 2px solid #000; background: {{w}}"></span></sc-for></span>
+                <span style="font-size: 18px; line-height: 21px; font-weight: 900; letter-spacing: -0.02em">{{c.name}}</span>
+                <span style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 6px"><span class="mono" style="font-size: 11px; font-weight: 700">{{c.count}}</span><span class="sticker" style="background: {{c.visBg}}">{{c.vis}}</span></span>
+              </button>
+            </sc-for>
+          </div>
+          <sc-if value="{{colsEmpty}}" hint-placeholder-val="{{ false }}"><p class="sub">No collections yet. Group builds and switches into folders like “Office quiet”.</p></sc-if>
+          <sc-if value="{{hasCol}}" hint-placeholder-val="{{ true }}">
+            <section aria-labelledby="col-h" class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 16px; background: var(--surface2)">
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><h3 id="col-h" class="h2" style="font-size: 22px">{{col.name}}</h3><span class="sticker" style="background: {{col.visBg}}">{{col.vis}}</span><span class="mono" style="margin-left: auto; font-size: 12px; font-weight: 700">{{col.count}}</span></div>
+              <p class="sub">{{col.desc}}</p>
+              <sc-if value="{{col.hasBuilds}}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; flex-wrap: wrap; gap: 14px"><sc-for list="{{col.builds}}" as="cb" hint-placeholder-count="1"><a class="tile" href="BuildsDesktop.dc.html" style="flex: 0 1 300px"><span aria-hidden="true" style="flex: none; width: 38px; height: 38px; border: 2.5px solid #000; background: {{cb.a}}; display: flex; align-items: flex-end; justify-content: flex-end; padding: 4px"><span style="width: 12px; height: 12px; border: 2px solid #000; background: {{cb.stem}}"></span></span><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 900">{{cb.name}}</span><span class="mono" style="font-size: 11px; font-weight: 700">{{cb.spec}}</span></span></a></sc-for></div>
+              </sc-if>
+              <div class="" style="display: flex; flex-wrap: wrap; gap: 20px"><sc-for list="{{col.sws}}" as="sw" hint-placeholder-count="3"><div style="width: 184px"><dc-import name="SwitchCard" sw="{{sw}}" hint-size="184px,236px"></dc-import></div></sc-for></div>
+            </section>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{tabActivity}}" hint-placeholder-val="{{ false }}">
+        <div role="tabpanel" aria-labelledby="tab-activity" tabindex="0" style="display: flex; flex-direction: column; gap: 16px; max-width: 760px">
+          <sc-if value="{{actEmpty}}" hint-placeholder-val="{{ false }}"><div class="card" style="padding: 28px; background: var(--surface2)"><h3 class="h2" style="font-size: 22px">Nothing here yet</h3><p class="sub" style="margin-top: 6px">Builds, follows and switches tried show up here as a timeline.</p></div></sc-if>
+          <ol style="list-style: none; margin: 0; padding: 0">
+            <sc-for list="{{activity}}" as="a" hint-placeholder-count="6"><li><dc-import name="ActivityRow" kind="{{a.kind}}" actor="{{a.actor}}" target="{{a.target}}" href="{{a.href}}" time="{{a.time}}" last="{{a.last}}" hint-size="100%,80px"></dc-import></li></sc-for>
+          </ol>
+          <sc-if value="{{actMore}}" hint-placeholder-val="{{ true }}"><button type="button" class="kc" style="align-self: flex-start">Load older activity</button></sc-if>
+        </div>
+      </sc-if>
+    </section>
+    </sc-if>
+  </main>
+  <sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; right: 28px; bottom: 28px; width: 440px; z-index: 20"><dc-import name="Toast" kind="{{toastKind}}" title="{{toastTitle}}" body="{{toastBody}}" action="{{toastAction}}" href="{{toastHref}}" on-dismiss="{{dismiss}}" hint-size="100%,72px"></dc-import></div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state": {"editor": "enum", "options": ["ready", "loading", "private", "notfound"], "default": "ready"}, "toast": {"editor": "enum", "options": ["none", "followed"], "default": "none"}, "$preview": {"width": 1440, "height": 2300}}'>
+const MODE = 'public', MOBILE = false;
+const L = {"profile": "ProfileDesktop.dc.html", "public": "PublicProfileDesktop.dc.html", "edit": "EditProfileDesktop.dc.html", "account": "AccountDesktop.dc.html", "home": "HomeDesktop.dc.html", "switches": "SwitchesDesktop.dc.html", "playground": "PlaygroundDesktop.dc.html", "switch": "MktSwitch.dc.html", "community": "MktLanding.dc.html#community", "pricing": "MktPricing.dc.html", "builds": "BuildsDesktop.dc.html"};
+
+function toastVals(self, t) {
+  const d = () => self.setState({ toast: null });
+  if (!t) return { toast: false, toastKind: 'success', toastTitle: '', toastBody: '', toastAction: '', toastHref: '', dismiss: d };
+  return { toast: true, toastKind: t.kind || 'success', toastTitle: t.title, toastBody: t.body || '', toastAction: t.action || '', toastHref: t.href || '', dismiss: d };
+}
+function klPlay(snd) {
+  try {
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+    klPlay.ctx = klPlay.ctx || new C();
+    const ctx = klPlay.ctx, s = snd || {}, t = ctx.currentTime;
+    const P = s.pitch || 500, D = (s.decay || 60) / 1000, V = Math.max(.02, (s.vol == null ? .6 : s.vol) * .5);
+    const hit = (at, f, v, d) => {
+      const o = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
+      o.type = 'triangle'; o.frequency.setValueAtTime(f, at); o.frequency.exponentialRampToValueAtTime(Math.max(50, f * .45), at + d);
+      lp.type = 'lowpass'; lp.frequency.value = 1400 + (s.bright || .3) * 7000;
+      g.gain.setValueAtTime(.0001, at); g.gain.exponentialRampToValueAtTime(v, at + .004); g.gain.exponentialRampToValueAtTime(.0001, at + d + .02);
+      o.connect(lp); lp.connect(g); g.connect(ctx.destination); o.start(at); o.stop(at + d + .05);
+    };
+    hit(t, P, V, D); hit(t + .17, P * 1.25, V * .55, D * .6);
+  } catch (e) {}
+}
+
+const ME = { name: 'Thockwise', handle: '@thockwise', initials: 'TW', avatar: '#FFD24D', plan: 'free', bio: 'Chasing the perfect thock. Mostly linears, always case foam, never stab rattle.', loc: '[CITY, COUNTRY]', joined: 'Joined Mar 2026' };
+const THEM = { name: 'Tactile First', handle: '@tactilefirst', initials: 'TF', avatar: '#C6F079', plan: 'pro', bio: 'Bumps over everything. Building a tactile board for every desk I own.', loc: '[CITY, COUNTRY]', joined: 'Joined Feb 2026' };
+const SW = {
+  milk: { id: 'milk', name: 'Milk Yellow', type: 'Linear', stem: '#E9C46A', housing: 'milky', force: 50, act: 2.0, total: 4.0, prof: 'Deep', snd: { pitch: 520, bright: .25, decay: 70, thump: .9, vol: .7 } },
+  ink: { id: 'ink', name: 'Ink Black', type: 'Linear', stem: '#2A2E38', housing: 'smoke', force: 60, act: 2.0, total: 4.0, prof: 'Deep', snd: { pitch: 430, bright: .18, decay: 82, thump: 1, vol: .72 } },
+  coralpop: { id: 'coralpop', name: 'Coral Pop', type: 'Tactile', stem: '#F16B53', housing: 'milky', force: 62, act: 2.0, total: 3.8, prof: 'Poppy', snd: { pitch: 980, bright: .5, decay: 56, thump: .7, vol: .72 } },
+  brown: { id: 'brown', name: 'Bump Brown', type: 'Tactile', stem: '#7A4E2D', housing: 'amber', force: 55, act: 2.0, total: 4.0, prof: 'Muted', snd: { pitch: 640, bright: .3, decay: 58, thump: .6, vol: .55 } },
+  hushr: { id: 'hushr', name: 'Hush Red', type: 'Silent', stem: '#E07A7A', housing: 'smoke', force: 45, act: 1.9, total: 3.7, prof: 'Muted', snd: { pitch: 380, bright: .08, decay: 34, thump: .4, vol: .28 } },
+  jade: { id: 'jade', name: 'Jade Hush', type: 'Silent', stem: '#2E9E7A', housing: 'smoke', force: 45, act: 1.9, total: 3.7, prof: 'Muted', snd: { pitch: 360, bright: .06, decay: 30, thump: .45, vol: .26 } },
+  sapphire: { id: 'sapphire', name: 'Sapphire Click', type: 'Clicky', stem: '#2F6FD6', housing: 'clear', box: true, force: 55, act: 2.2, total: 4.0, prof: 'Clacky', snd: { pitch: 1500, bright: .8, decay: 40, thump: .3, vol: .75 } },
+  red: { id: 'red', name: 'Classic Red', type: 'Linear', stem: '#D64545', housing: 'clear', box: true, force: 45, act: 2.0, total: 4.0, prof: 'Poppy', snd: { pitch: 880, bright: .45, decay: 55, thump: .55, vol: .65 } }
+};
+const BLD = {
+  night: { name: 'Night Thock 65', layout: '65', layoutLabel: '65%', sw: 'Milk Yellow', stem: '#E9C46A', swType: 'Linear · 50g', mods: ['Light lube', 'Case foam', 'Tuned stabs'], caps: 'PBT · Cherry · Navy Mustard', capsShort: 'Navy Mustard', case: 'Aluminum · gasket · brass', caseShort: 'Alu, gasket', a: '#3D6A8C', m: '#1F2B45', x: '#F2C14E', c: '#2B4677', profile: 'cherry', plate: 'brass', legend: 'top-left', snd: { pitch: 470, bright: .2, decay: 62, thump: 1, vol: .7 } },
+  coral60: { name: 'Coral Pop 60', layout: '60', layoutLabel: '60%', sw: 'Coral Pop', stem: '#F16B53', swType: 'Tactile · 62g', mods: ['PE foam', 'Tuned stabs'], caps: 'PBT · Cherry · Cream Paper', capsShort: 'Cream Paper', case: 'Polycarbonate · gasket · PC', caseShort: 'PC, gasket', a: '#FFFDF5', m: '#2C2A5A', x: '#F16B53', c: '#DCE3EC', profile: 'cherry', plate: 'pc', legend: 'top-left', snd: SW.coralpop.snd },
+  studio: { name: 'Studio TKL', layout: 'tkl', layoutLabel: 'TKL', sw: 'Bump Brown', stem: '#7A4E2D', swType: 'Tactile · 55g', mods: ['Case foam', 'O-rings'], caps: 'PBT · OEM · Cream & Ink', capsShort: 'Cream & Ink', case: 'Polycarbonate · tray · FR4', caseShort: 'PC, tray', a: '#ECE6D8', m: '#2A2E38', x: '#D9573B', c: '#DCE3EC', profile: 'oem', plate: 'fr4', legend: 'top-left', snd: { pitch: 600, bright: .26, decay: 44, thump: .7, vol: .45 } },
+  quiet: { name: 'Quiet 75', layout: '75', layoutLabel: '75%', sw: 'Hush Red', stem: '#E07A7A', swType: 'Silent · 45g', mods: ['Heavy lube', 'Case foam'], caps: 'PBT · XDA · Mono Slate', capsShort: 'Mono Slate', case: 'Plastic · top mount · POM', caseShort: 'Plastic, top', a: '#3B4458', m: '#2A3142', x: '#9AA7BD', c: '#5B657A', profile: 'xda', plate: 'pom', legend: 'top-left', snd: { pitch: 330, bright: .05, decay: 26, thump: .4, vol: .24 } },
+  coraltkl: { name: 'Coral TKL', layout: 'tkl', layoutLabel: 'TKL', sw: 'Coral Pop', stem: '#F16B53', swType: 'Tactile · 62g', mods: ['Case foam', 'Tuned stabs'], caps: 'PBT · Cherry · Coral Reef', capsShort: 'Coral Reef', case: 'Aluminum · gasket · PC', caseShort: 'Alu, gasket', a: '#FFF1C7', m: '#F16B53', x: '#2C2A5A', c: '#F16B53', profile: 'cherry', plate: 'pc', legend: 'top-left', snd: SW.coralpop.snd },
+  bump65: { name: 'Walnut Bump 65', layout: '65', layoutLabel: '65%', sw: 'Bump Brown', stem: '#7A4E2D', swType: 'Tactile · 55g', mods: ['Case foam', 'Light lube'], caps: 'PBT · OEM · Cream & Ink', capsShort: 'Cream & Ink', case: 'Wood · tray · FR4', caseShort: 'Wood, tray', a: '#ECE6D8', m: '#2A2E38', x: '#D9573B', c: '#6B4A33', profile: 'oem', plate: 'fr4', legend: 'top-left', snd: SW.brown.snd },
+  blue60: { name: 'Blue Hour 60', layout: '60', layoutLabel: '60%', sw: 'Sapphire Click', stem: '#2F6FD6', swType: 'Clicky · 55g', mods: ['Tuned stabs'], caps: 'ABS · SA · Sky Lab', capsShort: 'Sky Lab', case: 'Polycarbonate · top · alu', caseShort: 'PC, top', a: '#99D6FF', m: '#2C2A5A', x: '#FFD24D', c: '#DCE3EC', profile: 'sa', plate: 'alu', legend: 'center', snd: SW.sapphire.snd },
+  pastel: { name: 'Pastel Pop 60', layout: '60', layoutLabel: '60%', sw: 'Classic Red', stem: '#D64545', swType: 'Linear · 45g', mods: ['PE foam', 'Tuned stabs'], caps: 'PBT · Cherry · Pastel', capsShort: 'Pastel', case: 'Polycarbonate · gasket · PC', caseShort: 'PC, gasket', a: '#FFF1C7', m: '#99D6FF', x: '#F16B53', c: '#FFFDF5', profile: 'cherry', plate: 'pc', legend: 'top-left', snd: SW.red.snd, author: '@pastel.pop' },
+  typewriter: { name: 'Typewriter TKL', layout: 'tkl', layoutLabel: 'TKL', sw: 'Sapphire Click', stem: '#2F6FD6', swType: 'Clicky · 55g', mods: ['Light lube'], caps: 'ABS · SA · Retro', capsShort: 'Retro', case: 'Aluminum · top · brass', caseShort: 'Alu, top', a: '#ECE6D8', m: '#5B657A', x: '#D9573B', c: '#2A2E38', profile: 'sa', plate: 'brass', legend: 'center', snd: SW.sapphire.snd, author: '@clickclub' }
+};
+const ZONES = [['Muted', .12], ['Deep', .37], ['Poppy', .63], ['Clacky', .88]];
+const PROFILES = {
+  own: {
+    user: ME, dd: 'night',
+    sig: { prof: 'Deep', pos: .34, top: ['milk', 'ink', 'coralpop'], layout: '65%', layoutNote: 'Most of your builds' },
+    badges: [['first-build', true, 'MAR 2026'], ['tried-25', true, 'APR 2026'], ['mod-master', true, 'JUN 2026'], ['featured', true, 'OCT 2026']],
+    builds: [['night', 'public', true], ['coral60', 'public', false], ['studio', 'public', false], ['quiet', 'private', false]],
+    liked: ['pastel', 'typewriter', 'coraltkl'],
+    cols: [
+      { id: 'office', name: 'Office quiet', desc: 'Builds and switches that won’t bother the next desk.', vis: 'public', sws: ['hushr', 'jade', 'ink'], builds: ['quiet'] },
+      { id: 'dream', name: 'Thock dream list', desc: 'Deep linears to try next.', vis: 'public', sws: ['milk', 'ink', 'brown'], builds: ['night'] },
+      { id: 'weekend', name: 'Clacky weekend', desc: 'Loud ones for the home desk.', vis: 'private', sws: ['sapphire', 'red'], builds: [] }
+    ],
+    activity: [
+      ['published', 'You', 'Night Thock 65', 'builds', '2 h ago'], ['tried', 'You', 'Coral Pop', 'switch', 'Yesterday'],
+      ['followed', 'You', '@tactilefirst', 'public', '2 d ago'], ['liked', 'You', 'Pastel Pop 60', 'community', '3 d ago'],
+      ['badge', 'You', 'Mod master', '', 'Jun 2026'], ['collection', 'You', 'Jade Hush → Office quiet', '', 'Jun 2026']
+    ],
+    tabs: ['builds', 'liked', 'collections', 'activity']
+  },
+  public: {
+    user: THEM, dd: 'coraltkl',
+    sig: { prof: 'Poppy', pos: .62, top: ['coralpop', 'brown', 'sapphire'], layout: 'TKL', layoutNote: 'Most of their builds' },
+    badges: [['first-build', true, 'FEB 2026'], ['tried-25', true, 'MAR 2026'], ['featured', true, 'SEP 2026']],
+    builds: [['coraltkl', 'public', true], ['bump65', 'public', false], ['blue60', 'public', false]],
+    liked: [],
+    cols: [
+      { id: 'bumps', name: 'Bumps I love', desc: 'Tactiles with a sharp, early bump.', vis: 'public', sws: ['coralpop', 'brown'], builds: ['bump65'] },
+      { id: 'tour', name: 'Desk tour 2026', desc: 'Everything on the desk right now.', vis: 'public', sws: ['coralpop', 'sapphire'], builds: ['coraltkl', 'blue60'] }
+    ],
+    activity: [
+      ['published', 'Tactile First', 'Coral TKL', 'builds', '5 h ago'], ['badge', 'Tactile First', 'Featured on landing', 'community', 'Sep 2026'],
+      ['tried', 'Tactile First', 'Sapphire Click', 'switch', 'Sep 2026'], ['followed', 'Tactile First', '@thockwise', 'profile', 'Aug 2026']
+    ],
+    tabs: ['builds', 'collections', 'activity']
+  }
+};
+const TAB_LABEL = { builds: 'Builds', liked: 'Liked', collections: 'Collections', activity: 'Activity' };
+
+class Component extends DCLogic {
+  state = { tab: null, col: null, ping: 0, toast: undefined, follow: null, cols: null };
+  initialToast() {
+    let h = '';
+    try { h = (window.location && window.location.hash) || ''; } catch (e) {}
+    if (MODE === 'own' && (this.props.toast === 'saved' || h === '#saved')) return { kind: 'success', title: 'Profile saved', body: 'Your changes are live on your profile.' };
+    if (MODE === 'public' && this.props.toast === 'followed') return { kind: 'success', title: 'You’re following ' + THEM.handle, body: 'Their new builds show up in your feed.' };
+    return null;
+  }
+  renderVals() {
+    const s = this.state, pr = this.props, cfg = PROFILES[MODE];
+    const st = pr.state || 'ready';
+    const isNew = MODE === 'own' && st === 'new';
+    const loading = st === 'loading', priv = MODE === 'public' && st === 'private', nf = MODE === 'public' && st === 'notfound';
+    const showBody = !loading && !priv && !nf;
+    const u = cfg.user;
+    const toast = s.toast === undefined ? this.initialToast() : s.toast;
+    const following = s.follow === null ? (MODE === 'public' && pr.toast === 'followed') : s.follow;
+    const tab = s.tab || cfg.tabs[0];
+    const own = MODE === 'own';
+    const cols = s.cols || cfg.cols;
+    const colId = s.col === null ? (cols[0] && cols[0].id) : s.col;
+    const col = cols.find((c) => c.id === colId);
+    const sig = cfg.sig, n = 28, on = Math.round(sig.pos * (n - 1));
+    const bc = (k, extra) => { const b = Object.assign({}, BLD[k], extra || {}); if (b.author) b.authorHref = L.public; return b; };
+    const spec = (k) => (BLD[k].layoutLabel + ' · ' + BLD[k].sw + ' · ' + BLD[k].mods.length + ' mods').toUpperCase();
+    const builds = isNew ? [] : cfg.builds.map((b) => ({ card: bc(b[0]), vis: b[1] === 'private' ? 'Private' : 'Public', visBg: b[1] === 'private' ? '#FFFFFF' : '#99D6FF', showVis: own, pinned: b[2], likes: b[1] === 'private' ? '—' : '[N]' }));
+    const stats = [['Builds', '[BUILDS]', '#FFD24D'], ['Likes received', '[LIKES]', '#F16B53'], ['Followers', '[FOLLOWERS]', '#99D6FF'], ['Following', '[FOLLOWING]', '#C6F079'], ['Switches tried', '[TRIED]', '#2C2A5A']];
+    return Object.assign({
+      showHeader: !loading && !nf, showBody: showBody, isLoading: loading, isPrivate: priv, isNotFound: nf,
+      hdr: priv ? 'private' : own ? 'own' : 'public',
+      hdrHandle: nf ? '@[USERNAME]' : u.handle,
+      u: isNew ? Object.assign({}, u, { bio: '', joined: 'Joined today' }) : u,
+      following: following, followsYou: MODE === 'public' && !priv,
+      onFollow: (v) => this.setState({ follow: v, toast: v ? { kind: 'success', title: priv ? 'Follow request sent' : 'You’re following ' + u.handle, body: priv ? u.handle + ' will see your request.' : 'Their new builds show up in your feed.' } : { kind: 'info', title: (priv ? 'Request cancelled' : 'Unfollowed ' + u.handle), body: '' } }),
+      onReport: () => this.setState({ toast: { kind: 'info', title: 'Thanks for the report', body: 'Our team will review ' + u.handle + '. They won’t know it was you.' } }),
+      onBlock: () => this.setState({ follow: false, toast: { kind: 'info', title: 'Blocked ' + u.handle, body: 'They can’t see your profile or builds. Undo in Settings → Privacy.' } }),
+      privateText: 'Only people ' + u.handle + ' approves can see their builds, collections and activity. Send a follow request with the button above.',
+      stats: stats.map((x) => ({ label: x[0], value: isNew ? '0' : x[1], accent: x[2], state: 'ready' })),
+      hasSig: !isNew, noSig: isNew,
+      sig: {
+        prof: sig.prof, pos: Math.round(sig.pos * 100), layout: sig.layout, layoutNote: sig.layoutNote,
+        meterLabel: 'Sound signature: ' + sig.prof + ', ' + Math.round(sig.pos * 100) + ' on a scale from deep (0) to bright (100)',
+        ticks: Array.from({ length: n }, (_, i) => ({ h: i === on ? 30 : 8 + Math.round(i / (n - 1) * 12), c: i === on ? '#F16B53' : i < on ? '#2C2A5A' : '#FFFFFF' })),
+        zones: ZONES.map((z) => ({ label: z[0].toUpperCase(), bg: z[0] === sig.prof ? '#FFD24D' : 'transparent', border: z[0] === sig.prof ? '#000' : 'transparent' })),
+        top: sig.top.map((id, i) => { const w = SW[id]; return { rank: '0' + (i + 1), name: w.name, stem: w.stem, prof: w.prof, seed: 7 + i * 11, href: L.switch, meta: (w.type + ' · [PLAYS] plays').toUpperCase(), playLabel: 'Play ' + w.name, play: () => klPlay(w.snd) }; })
+      },
+      hasDD: !isNew, noDD: isNew, dd: BLD[cfg.dd], ping: s.ping,
+      playDD: () => this.setState({ ping: s.ping + 1 }),
+      badges: (isNew ? [['first-build', false], ['tried-25', false], ['mod-master', false], ['featured', false]] : cfg.badges).map((b, i) => ({ kind: b[0], earned: b[1], date: b[2] || '', tilt: [-2, 1.5, -1, 2][i % 4] })),
+      tabs: cfg.tabs.map((t) => ({ id: t, label: TAB_LABEL[t], count: t === 'activity' ? '' : isNew ? '0' : '[N]', locked: own && t === 'collections' && cols.some((c) => c.vis === 'private') })),
+      tab: tab, setTab: (t) => this.setState({ tab: t }),
+      hiddenNote: !own, hiddenNoteText: (u.handle + ' keeps their liked builds private').toUpperCase(),
+      tabBuilds: tab === 'builds', tabLiked: tab === 'liked', tabCols: tab === 'collections', tabActivity: tab === 'activity',
+      builds: builds, buildsEmpty: builds.length === 0, canNew: own && !isNew,
+      emptyTitle: own ? 'No builds yet' : 'No public builds', emptyBody: own ? 'Pick a switch, hear it, then save your first keyboard. It shows up here and on your public profile.' : u.handle + ' hasn’t shared a build yet.', emptyCta: own,
+      liked: isNew ? [] : cfg.liked.map((k) => ({ card: bc(k, k === 'coraltkl' ? { author: THEM.handle } : {}), likes: '[N]' })),
+      likedEmpty: isNew || cfg.liked.length === 0,
+      cols: (isNew ? [] : cols).map((c) => ({ name: c.name, on: String(c.id === colId), pick: () => this.setState({ col: c.id === colId ? '' : c.id }), vis: c.vis === 'private' ? 'Private' : 'Public', visBg: c.vis === 'private' ? '#FFFFFF' : '#99D6FF', count: ((c.builds.length ? c.builds.length + ' build' + (c.builds.length > 1 ? 's' : '') + ' · ' : '') + c.sws.length + ' switches').toUpperCase(), swatches: c.sws.map((id) => SW[id].stem).concat(c.builds.map((k) => BLD[k].a)).slice(0, 4) })),
+      colsEmpty: isNew,
+      newCol: () => { const c = { id: 'new' + cols.length, name: 'Untitled collection', desc: 'Empty for now. Add builds and switches from any card.', vis: 'private', sws: [], builds: [] }; this.setState({ cols: cols.concat([c]), col: c.id, toast: { kind: 'success', title: 'Collection created', body: 'Rename it and add builds or switches from any card.' } }); },
+      hasCol: !isNew && !!col,
+      col: col ? { name: col.name, desc: col.desc, vis: col.vis === 'private' ? 'Private' : 'Public', visBg: col.vis === 'private' ? '#FFFFFF' : '#99D6FF', count: (col.builds.length + col.sws.length) + ' ITEMS', hasBuilds: col.builds.length > 0, builds: col.builds.map((k) => ({ name: BLD[k].name, a: BLD[k].a, stem: BLD[k].stem, spec: spec(k) })), sws: col.sws.map((id) => SW[id]) } : { name: '', desc: '', vis: '', visBg: '', count: '', hasBuilds: false, builds: [], sws: [] },
+      activity: isNew ? [] : cfg.activity.map((a, i, arr) => ({ kind: a[0], actor: a[1], target: a[2], href: a[3] ? L[a[3]] : '', time: a[4], last: i === arr.length - 1 })),
+      actEmpty: isNew, actMore: !isNew,
+      toastBottom: 98
+    }, toastVals(this, toast));
+  }
+}
+
+</script>
+</body>
+</html>

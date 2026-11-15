@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Keycaps studio (desktop)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Nunito:wght@700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.kl{--bg:#FFFDF5;--surface:#FFFFFF;--surface2:#FFF1C7;--text:#000000;--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--indigo:#2C2A5A;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.kl[data-theme="dark"]{--bg:#1E1C3F;--surface:#2C2A5A;--surface2:#3A3870;--text:#FFFDF5}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc[aria-pressed="true"],.kc[aria-checked="true"],.kc.on{background:var(--acc)}
+.kc.primary{background:var(--lime);min-height:54px;font-size:16px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc.sm{padding:0 10px;font-size:13px}
+.kc:focus-visible,.sl:focus-visible,.tile:focus-visible,.sw:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.tile{appearance:none;margin:0;font:inherit;color:#000;text-align:left;cursor:pointer;background:#FFFFFF;border:2.5px solid #000;border-radius:0;padding:10px;display:flex;flex-direction:column;gap:6px;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.tile:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.tile[aria-pressed="true"],.tile[aria-checked="true"]{background:var(--acc);transform:translate(-2px,-2px);box-shadow:6px 6px 0 #000}
+.sw{appearance:none;margin:0;padding:0;cursor:pointer;min-height:44px;border:2.5px solid #000;border-radius:0;box-shadow:3px 3px 0 #000;transition:transform 70ms}
+.sw:active{transform:translate(3px,3px);box-shadow:none}
+.sw[aria-pressed="true"]{outline:3px solid #000;outline-offset:3px}
+.stage{background:var(--sky);color:#000;border:3px solid #000;box-shadow:7px 7px 0 #000}
+.padctl{position:absolute;top:16px;right:16px;z-index:3;display:flex;align-items:center;gap:8px}
+.padtray{display:flex;gap:6px;padding:5px;border:2.5px solid #000;background:#FFFDF5;box-shadow:3px 3px 0 #000;animation:padin 170ms cubic-bezier(.3,1.3,.5,1)}
+@keyframes padin{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.padtray{animation:none}.padtog svg{transition:none}}
+.padsw{width:36px;height:36px;margin:0;padding:0;cursor:pointer;border:2.5px solid #000;border-radius:0;box-shadow:2px 2px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.padsw[aria-checked="true"]{transform:translate(2px,2px);box-shadow:0 0 0 #000;outline:3px solid #000;outline-offset:2px}
+.padsw:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.padtog{appearance:none;margin:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 10px 0 6px;border:2.5px solid #000;border-radius:0;background:#FFFDF5;color:#000;font:inherit;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.padtog:hover{background:#FFF1C7}
+.padtog:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.padtog[aria-expanded="true"]{background:var(--acc)}
+.padtog:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.padtog-sw{width:28px;height:28px;border:2px solid #000}
+.padtog svg{transition:transform 170ms ease}
+.orbit{cursor:grab;touch-action:none;user-select:none}
+.orbit.dragging{cursor:grabbing}
+.ctl{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;border:2.5px solid #000;background:#FFFDF5;color:#000;box-shadow:3px 3px 0 #000}
+.rng{-webkit-appearance:none;appearance:none;width:170px;height:30px;margin:0;background:transparent;color:#000}
+.rng::-webkit-slider-runnable-track{height:4px;background:#000}
+.rng::-moz-range-track{height:4px;background:#000}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-9px;border-radius:50%;background:var(--coral);border:3px solid #000}
+.rng::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--coral);border:3px solid #000}
+.rng:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.card{border:3px solid #000;background:#FFFFFF;color:#000;padding:18px;display:flex;flex-direction:column;gap:18px;box-shadow:6px 6px 0 #000}
+.lbl{font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;margin:0}
+.h1{font-size:52px;line-height:46px;font-weight:900;letter-spacing:-.055em;margin:0}
+.sq{border:2px solid #000}
+.side{background:#FFFFFF;color:#000;border-right:3px solid #000}
+.sl{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 12px;border:2.5px solid transparent;color:#000;text-decoration:none;font-size:15px;font-weight:800;flex:1 1 180px}
+.sl:hover{border-color:#000;background:var(--surface2)}
+.sl.on{background:var(--acc);border-color:#000;box-shadow:3px 3px 0 #000}
+.mel{display:flex;align-items:center;gap:10px;min-height:54px;padding:6px 8px;border:2.5px solid #000;background:#FFFFFF;color:#000;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.mel:hover{background:#FFF1C7}
+.mel:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.mel:focus-visible{outline:3px solid #F16B53;outline-offset:3px}
+</style>
+</helmet>
+<div class="kl" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-wrap: wrap">
+  <aside class="side" style="flex: 1 1 236px; padding: 20px 16px; display: flex; flex-direction: column; gap: 24px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span aria-hidden="true" style="width: 36px; height: 36px; border: 3px solid #000; background: var(--acc); box-shadow: 3px 3px 0 #000; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 17px">K</span>
+      <span style="font-weight: 900; font-size: 24px; letter-spacing: -0.05em">KEYLAB</span>
+    </div>
+    <nav aria-label="Primary" style="display: flex; flex-wrap: wrap; gap: 6px">
+      <a class="sl" href="HomeDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M6 10h1M10 10h1M14 10h1M18 10h1M7 14h10"></path></svg>Build</a>
+      <a class="sl" href="SwitchesDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M12 2.5v7M8.5 6h7"></path><rect x="4.5" y="11" width="15" height="9.5"></rect></svg>Switches</a>
+      <a class="sl" href="ModsDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"></path><rect x="13" y="5" width="4" height="4"></rect><rect x="7" y="15" width="4" height="4"></rect></svg>Mods</a>
+      <a class="sl on" href="KeycapsDesktop.dc.html" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M3.5 19.5h17L18 6H6z"></path><path d="M9 10.5h6"></path></svg>Keycaps</a>
+      <a class="sl" href="CaseDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><rect x="2.5" y="7" width="19" height="10"></rect><path d="M2.5 12.5h19"></path></svg>Case &amp; plate</a>
+      <a class="sl" href="PlaygroundDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M3 12h2l2-6 3 12 3-9 2 5 2-2h4"></path></svg>Playground</a>
+      <a class="sl" href="BuildsDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6.5 3.5h11v17l-5.5-3.8-5.5 3.8z"></path></svg>My builds</a>
+    </nav>
+    <div style="margin-top: auto; border: 3px solid #000; background: var(--indigo); color: #FFFDF5; padding: 12px; display: flex; flex-direction: column; gap: 4px; box-shadow: 4px 4px 0 #000">
+      <span class="lbl" style="color: var(--acc)">Current build</span>
+      <span style="font-size: 16px; font-weight: 900; letter-spacing: -0.02em">Night Thock 65</span>
+      <span class="mono" style="font-size: 11px">{{summary}}</span>
+    </div>
+      <div style="margin-top: 0; padding-top: 16px; border-top: 3px solid #000; display: flex; flex-direction: column; gap: 8px">
+      <a class="mel" href="ProfileDesktop.dc.html" aria-label="Your profile, Thockwise, @thockwise"><span aria-hidden="true" style="flex: none; width: 38px; height: 38px; border: 2.5px solid #000; background: #FFD24D; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; letter-spacing: -0.03em">TW</span><span style="display: flex; flex-direction: column; min-width: 0"><span style="font-weight: 900; font-size: 15px">Thockwise</span><span class="mono" style="font-size: 11px; font-weight: 700">@thockwise</span></span></a>
+      <a class="sl" href="AccountDesktop.dc.html" style="flex: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><rect x="9" y="9" width="6" height="6"></rect><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"></path></svg> Settings</a>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 30px 34px 40px; display: flex; flex-direction: column; gap: 26px">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; padding-bottom: 18px; border-bottom: 3px solid #000">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <h1 class="h1">Keycaps studio</h1>
+        <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700">{{summary}}</p>
+      </div>
+      <a class="kc primary" href="BuildsDesktop.dc.html">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6.5 3.5h11v17l-5.5-3.8-5.5 3.8z"></path></svg>
+        Save build
+      </a>
+    </div>
+
+    <section aria-label="3D keyboard preview on desk pad" class="stage {{orbitCls}}" onPointerDown="{{dragStart}}" onPointerMove="{{dragMove}}" onPointerUp="{{dragEnd}}" onPointerCancel="{{dragEnd}}" style="position: relative; padding: 16px 28px 24px; display: flex; flex-direction: column; align-items: center; gap: 14px; background: {{pad.bg}}">
+      <span aria-hidden="true" style="position: absolute; inset: 9px; border: 2px dashed {{pad.stitch}}; pointer-events: none"></span>
+      <div class="padctl">
+        <sc-if value="{{padOpen}}" hint-placeholder-val="{{ false }}">
+          <div class="padtray" role="radiogroup" aria-label="Desk pad">
+            <sc-for list="{{pads}}" as="d" hint-placeholder-count="7">
+              <button type="button" role="radio" class="padsw" aria-checked="{{d.on}}" aria-label="{{d.name}}" title="{{d.name}}" onClick="{{d.pick}}" style="background: {{d.bg}}"></button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <button type="button" class="padtog" aria-expanded="{{padOpenAttr}}" aria-label="Desk pad: {{pad.name}}" title="Desk pad · {{pad.name}}" onClick="{{togglePad}}">
+          <span aria-hidden="true" class="padtog-sw" style="background: {{pad.bg}}"></span>
+          <span class="lbl">Pad</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true" style="transform: {{padChev}}"><path d="M15 5l-7 7 7 7"></path></svg>
+        </button>
+      </div>
+      <div style="position: relative; width: 100%; min-height: 52px; padding-right: 150px; display: flex; align-items: center">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <p style="margin: 0; padding: 4px 10px; border: 2.5px solid #000; background: #FFFDF5; color: #000; font-size: 13px; font-weight: 800">{{painterHint}}</p>
+          <p class="mono" style="margin: 0; align-self: flex-start; padding: 2px 8px; border: 2px solid #000; background: #FFFDF5; color: #000; font-size: 11px; font-weight: 700">{{orbitHint}}</p>
+        </div>
+      </div>
+      <div style="position: relative; max-width: 100%; overflow-x: auto"><dc-import name="Keyboard" layout="65" width="720" view3d="{{v3}}" rx="{{rx}}" rz="{{rz}}" instant="{{instant}}" alpha="{{c.alpha}}" mod="{{c.mod}}" accent="{{c.accent}}" overrides="{{over}}" profile="{{profile}}" material="{{material}}" legend="{{legend}}" font="{{font}}" shine="{{shine}}" artisan-esc="{{artEsc}}" artisan-enter="{{artEnter}}" selected="{{selKeys}}" on-key-tap="{{tapKey}}" sound="{{snd}}" swap-seq="{{swap}}" ping-seq="{{ping}}" hint-size="720px,418px"></dc-import></div>
+      <div style="position: relative; width: 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+        <div class="ctl" style="padding: 6px 6px 6px 12px">
+          <span id="view-h" class="lbl">View</span>
+          <div role="radiogroup" aria-labelledby="view-h" style="display: flex; gap: 6px">
+            <sc-for list="{{views}}" as="v" hint-placeholder-count="5">
+              <button type="button" role="radio" class="kc sm" aria-checked="{{v.on}}" onClick="{{v.pick}}" style="min-height: 44px; padding: 0 10px">{{v.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div class="ctl">
+          <label for="orbit-rz" class="lbl">360°</label>
+          <input id="orbit-rz" class="rng" type="range" min="-180" max="180" step="1" value="{{rz}}" onChange="{{setRz}}">
+          <span class="mono" style="width: 46px; text-align: right; font-size: 12px; font-weight: 700">{{rzLabel}}</span>
+          <button type="button" class="kc sm" aria-pressed="{{spinAttr}}" onClick="{{toggleSpin}}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"></path></svg>
+            {{spinLabel}}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 24px; align-items: start">
+      <div class="card">
+        <section aria-labelledby="pf-h" style="display: flex; flex-direction: column; gap: 10px">
+          <h2 id="pf-h" class="lbl">Profile</h2>
+          <div role="radiogroup" aria-labelledby="pf-h" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px">
+            <sc-for list="{{profiles}}" as="p" hint-placeholder-count="5">
+              <button type="button" role="radio" class="tile" aria-checked="{{p.on}}" onClick="{{p.pick}}" style="align-items: center; padding: 8px 2px">
+                <svg width="56" height="30" viewBox="0 0 120 48" aria-hidden="true">
+                  <line x1="0" y1="45.5" x2="120" y2="45.5" stroke="#000" stroke-width="4"></line>
+                  <sc-for list="{{p.caps}}" as="cap" hint-placeholder-count="3"><path d="{{cap}}" fill="#99D6FF" stroke="#000" stroke-width="3" stroke-linejoin="miter"></path></sc-for>
+                </svg>
+                <span style="font-size: 13px; font-weight: 900">{{p.name}}</span>
+              </button>
+            </sc-for>
+          </div>
+          <p class="mono" style="margin: 0; font-size: 11px; font-weight: 700">{{profileSpec}}</p>
+        </section>
+        <section aria-labelledby="mt-h" style="display: flex; flex-direction: column; gap: 10px">
+          <h2 id="mt-h" class="lbl">Material</h2>
+          <div role="radiogroup" aria-labelledby="mt-h" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <sc-for list="{{materials}}" as="m" hint-placeholder-count="2">
+              <button type="button" role="radio" class="tile" aria-checked="{{m.on}}" onClick="{{m.pick}}">
+                <span style="display: flex; align-items: center; justify-content: space-between"><span style="font-size: 20px; font-weight: 900; letter-spacing: -0.03em">{{m.name}}</span><span class="mono" style="font-size: 10px; font-weight: 700; padding: 0 5px; border: 2px solid #000; background: #FFFDF5">{{m.sound}}</span></span>
+                <span style="font-size: 12px; line-height: 17px; font-weight: 500">{{m.desc}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+
+      <div class="card">
+        <section aria-labelledby="th-h" style="display: flex; flex-direction: column; gap: 10px">
+          <h2 id="th-h" class="lbl">Colorways</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px">
+            <sc-for list="{{themes}}" as="t" hint-placeholder-count="6">
+              <button type="button" class="tile" aria-pressed="{{t.on}}" onClick="{{t.pick}}">
+                <span aria-hidden="true" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px">
+                  <span class="sq" style="height: 16px; background: {{t.x}}"></span>
+                  <span class="sq" style="height: 16px; background: {{t.a}}"></span>
+                  <span class="sq" style="height: 16px; background: {{t.a}}"></span>
+                  <span class="sq" style="height: 16px; background: {{t.m}}"></span>
+                </span>
+                <span style="font-size: 12px; font-weight: 900">{{t.name}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </section>
+        <section aria-labelledby="pt-h" style="display: flex; flex-direction: column; gap: 10px">
+          <h2 id="pt-h" class="lbl">Custom painter</h2>
+          <div role="radiogroup" aria-labelledby="pt-h" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+            <sc-for list="{{targets}}" as="g" hint-placeholder-count="4">
+              <button type="button" role="radio" class="kc sm" aria-checked="{{g.on}}" onClick="{{g.pick}}" style="padding: 0; font-size: 12px; gap: 5px">
+                <span aria-hidden="true" class="sq" style="width: 11px; height: 11px; background: {{g.col}}"></span>{{g.label}}
+              </button>
+            </sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px">
+            <sc-for list="{{swatches}}" as="w" hint-placeholder-count="12">
+              <button type="button" class="sw" aria-label="{{w.name}}" aria-pressed="{{w.on}}" onClick="{{w.pick}}" style="background: {{w.hex}}"></button>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+
+      <div class="card">
+        <section aria-labelledby="lg-h" style="display: flex; flex-direction: column; gap: 10px">
+          <h2 id="lg-h" class="lbl">Legends</h2>
+          <div role="radiogroup" aria-label="Legend font" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+            <sc-for list="{{fonts}}" as="f" hint-placeholder-count="3">
+              <button type="button" role="radio" class="kc sm" aria-checked="{{f.on}}" onClick="{{f.pick}}" style="font-family: {{f.fam}}">{{f.label}}</button>
+            </sc-for>
+          </div>
+          <div role="radiogroup" aria-label="Legend position" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+            <sc-for list="{{positions}}" as="o" hint-placeholder-count="4">
+              <button type="button" role="radio" class="kc sm" aria-checked="{{o.on}}" onClick="{{o.pick}}" style="padding: 0; font-size: 12px">{{o.label}}</button>
+            </sc-for>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+            <span style="font-size: 15px; font-weight: 900">Shine-through</span>
+            <button type="button" role="switch" class="kc sm" aria-checked="{{shineAttr}}" onClick="{{toggleShine}}" aria-label="Shine-through legends">{{shineWord}}</button>
+          </div>
+        </section>
+        <sc-for list="{{artisanRows}}" as="r" hint-placeholder-count="2">
+          <section style="display: flex; flex-direction: column; gap: 8px">
+            <h2 class="lbl">{{r.label}}</h2>
+            <div role="radiogroup" aria-label="{{r.label}}" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+              <sc-for list="{{r.opts}}" as="o" hint-placeholder-count="4">
+                <button type="button" role="radio" class="tile" aria-checked="{{o.on}}" onClick="{{o.pick}}" style="align-items: center; padding: 8px 2px">
+                  <span aria-hidden="true" style="width: 34px; height: 34px; border: 2.5px solid #000; background: {{o.bg}}; display: flex; align-items: center; justify-content: center"><span style="width: 62%; height: 50%; margin-bottom: 3px; background: {{o.screen}}; box-shadow: {{o.scrRing}}"></span></span>
+                  <span style="font-size: 11px; font-weight: 900">{{o.label}}</span>
+                </button>
+              </sc-for>
+            </div>
+          </section>
+        </sc-for>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;},&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1300}}">
+const THEMES = [
+  { name: 'Navy Mustard', a: '#3D6A8C', m: '#1F2B45', x: '#F2C14E' },
+  { name: 'Cream & Ink', a: '#ECE6D8', m: '#2A2E38', x: '#D9573B' },
+  { name: 'Arctic', a: '#F2F5F9', m: '#B9C6D8', x: '#3F72AF' },
+  { name: 'Terracotta', a: '#E9D8C4', m: '#B4654A', x: '#2F4858' },
+  { name: 'Mono Slate', a: '#3B4458', m: '#2A3142', x: '#9AA7BD' },
+  { name: 'Retro Grey', a: '#8B867E', m: '#6B675F', x: '#4A4741' }
+];
+const SWATCH = [['Navy', '#1F2B45'], ['Steel blue', '#3D6A8C'], ['Mustard', '#F2C14E'], ['Cream', '#ECE6D8'], ['Ink', '#2A2E38'], ['Coral', '#F16B53'], ['Ice', '#F2F5F9'], ['Sky', '#99D6FF'], ['Lime', '#C6F079'], ['Clay', '#B4654A'], ['Indigo', '#2C2A5A'], ['Graphite', '#4A5160']];
+const PROFILES = [
+  { id: 'cherry', name: 'Cherry', spec: 'CHERRY · SCULPTED, LOW', H: 15, dd: 2, tilt: 2, sc: true },
+  { id: 'oem', name: 'OEM', spec: 'OEM · SCULPTED, MEDIUM HEIGHT', H: 19, dd: 1.6, tilt: 2.2, sc: true },
+  { id: 'sa', name: 'SA', spec: 'SA · SCULPTED, TALL AND SPHERICAL', H: 27, dd: 3.4, tilt: 2.6, sc: true },
+  { id: 'xda', name: 'XDA', spec: 'XDA · UNIFORM, LOW WITH A FLAT TOP', H: 15, dd: 1.2, tilt: 0, sc: false },
+  { id: 'mt3', name: 'MT3', spec: 'MT3 · SCULPTED, TALL WITH A DEEP DISH', H: 24, dd: 4.4, tilt: 2.4, sc: true }
+];
+const ART = {
+  none: { bg: '#FFFDF5', scr: '' },
+  arcade: { bg: '#D6453A', scr: 'linear-gradient(#F2C14E,#F2C14E) 26% 64%/18% 24% no-repeat, linear-gradient(#5BD3C7,#5BD3C7) 70% 34%/18% 24% no-repeat, linear-gradient(#E86AA6,#E86AA6) 52% 84%/12% 14% no-repeat, #0B1020' },
+  handheld: { bg: '#E86AA6', scr: 'linear-gradient(180deg, #9ED8F2 0 52%, #5DB86C 52% 78%, #3E8F4E 78%)' },
+  resin: { bg: 'radial-gradient(circle at 34% 34%, #FFD24D 0 20%, #000 20% 26%, #5BD3C7 26%)', scr: '' }
+};
+const SND = { pitch: 470, bright: .2, decay: 62, thump: 1, vol: .7 };
+const PADS = [
+  { id: 'sky', name: 'Sky', fg: '#000', stitch: 'rgba(0,0,0,.35)', bg: '#99D6FF' },
+  { id: 'splash', name: 'Splash', fg: '#FFFDF5', stitch: 'rgba(255,253,245,.55)', bg: 'radial-gradient(circle at 10% 20%, #F16B53 0 30px, transparent 31px) 0 0/100% 100%, radial-gradient(circle at 88% 78%, #F16B53 0 46px, transparent 47px) 0 0/100% 100%, radial-gradient(circle at 72% 14%, #FFD24D 0 12px, transparent 13px) 0 0/100% 100%, linear-gradient(115deg, transparent 0 60%, #3A3870 60% 76%, transparent 76%) 0 0/100% 100%, #2C2A5A' },
+  { id: 'grid', name: 'Grid', fg: '#000', stitch: 'rgba(0,0,0,.35)', bg: 'linear-gradient(transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/28px 28px, linear-gradient(90deg, transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/28px 28px, #FFFDF5' },
+  { id: 'dots', name: 'Dots', fg: '#000', stitch: 'rgba(0,0,0,.35)', bg: 'radial-gradient(circle, #000 0 2.5px, transparent 3px) 0 0/22px 22px, #FFD24D' },
+  { id: 'stripes', name: 'Stripes', fg: '#000', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-linear-gradient(135deg, #C6F079 0 20px, #B2DE63 20px 40px)' },
+  { id: 'checker', name: 'Checker', fg: '#000', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-conic-gradient(#FFFDF5 0 25%, #EFE6CD 0 50%) 0 0/36px 36px' },
+  { id: 'walnut', name: 'Walnut desk', fg: '#FFFDF5', stitch: 'rgba(255,253,245,.45)', bg: 'repeating-linear-gradient(92deg, #8A5E3C 0 9px, #7A5233 9px 20px, #93663F 20px 27px)' }
+];
+function padList(self, cur) {
+  return PADS.map((d) => ({ name: d.name, bg: d.bg, on: String(d.id === cur), sh: d.id === cur ? '0 0 0 #000' : '3px 3px 0 #000', tf: d.id === cur ? 'translate(3px, 3px)' : 'translate(0, 0)', pick: () => self.setState({ pad: d.id }) }));
+}
+const VIEWS = [
+  { id: 'flat', label: 'Flat' },
+  { id: 'top', label: 'Top', rx: 0, rz: 0 },
+  { id: 'tilt', label: 'Tilt', rx: 34, rz: 0 },
+  { id: 'diag', label: 'Diagonal', rx: 52, rz: -32 },
+  { id: 'low', label: 'Low angle', rx: 72, rz: -14 }
+];
+const wrapDeg = (d) => Math.round(((d + 180) % 360 + 360) % 360 - 180);
+function orbitVals(self, s, desktop) {
+  const flat = s.view === 'flat';
+  const from3d = () => (self.state.view === 'flat' ? { rx: 52, rz: -32 } : { rx: self.state.rx, rz: self.state.rz });
+  return {
+    v3: !flat, rx: s.rx, rz: s.rz, instant: !!(s.drag || s.spin),
+    rzLabel: (flat ? 0 : s.rz) + '°',
+    orbitCls: flat ? '' : (s.drag ? 'orbit dragging' : 'orbit'),
+    orbitHint: flat ? 'FLAT VIEW · PICK A 3D VIEW OR DRAG THE PAD' : (desktop ? 'DRAG THE PAD TO ORBIT · TILT ' + s.rx + '° · SPIN ' + s.rz + '°' : 'DRAG TO ORBIT · ' + s.rx + '° / ' + s.rz + '°'),
+    spinAttr: String(s.spin), spinLabel: s.spin ? 'Stop' : 'Spin',
+    views: VIEWS.map((v) => ({
+      label: desktop ? v.label : ({ flat: 'Flat', top: 'Top', tilt: 'Tilt', diag: '3/4', low: 'Low' })[v.id], aria: v.label, on: String(s.view === v.id),
+      pick: () => { self.stopSpin(); self.setState(v.id === 'flat' ? { view: 'flat', spin: false } : { view: v.id, rx: v.rx, rz: v.rz, spin: false }); }
+    })),
+    setRz: (e) => { self.stopSpin(); self.setState(Object.assign(from3d(), { rz: wrapDeg(+e.target.value), spin: false, view: 'custom' })); },
+    toggleSpin: () => {
+      if (self.state.spin) { self.stopSpin(); self.setState({ spin: false }); return; }
+      self.setState(Object.assign(from3d(), { spin: true, view: self.state.view === 'flat' ? 'diag' : self.state.view }));
+      self.startSpin();
+    },
+    dragStart: (e) => {
+      if (e.button > 0 || (e.target && e.target.closest && e.target.closest('button, input, label, a, [role="radiogroup"]'))) return;
+      self.stopSpin();
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch (x) {}
+      const o = from3d();
+      self.setState({ spin: false, view: 'custom', rx: o.rx, rz: o.rz, drag: { x: e.clientX, y: e.clientY, rx: o.rx, rz: o.rz } });
+    },
+    dragMove: (e) => {
+      const d = self.state.drag; if (!d) return;
+      self.setState({ rz: wrapDeg(d.rz + (e.clientX - d.x) * .45), rx: Math.round(Math.max(0, Math.min(80, d.rx - (e.clientY - d.y) * .35))) });
+    },
+    dragEnd: () => { if (self.state.drag) self.setState({ drag: null }); }
+  };
+}
+function capPath(x0, H, dd, tilt) {
+  const b = 45, tl = b - H - tilt, tr = b - H + tilt;
+  return 'M' + x0 + ' ' + b + ' L' + (x0 + 4) + ' ' + tl + ' Q' + (x0 + 15) + ' ' + ((tl + tr) / 2 + dd) + ' ' + (x0 + 28) + ' ' + tr + ' L' + (x0 + 32) + ' ' + b + ' Z';
+}
+
+class Component extends DCLogic {
+  state = { theme: 0, cols: { alpha: '#3D6A8C', mod: '#1F2B45', accent: '#F2C14E' }, over: {}, target: 'alpha', selKeys: [], profile: 'cherry', material: 'pbt', legend: 'top-left', font: 'grotesk', shine: false, artEsc: 'arcade', artEnter: 'handheld', swap: 0, ping: 0, pad: 'sky', view: 'diag', rx: 52, rz: -32, spin: false, drag: null, padOpen: false };
+  stopSpin() { clearInterval(this.spinT); this.spinT = null; }
+  startSpin() { this.stopSpin(); this.spinT = setInterval(() => this.setState({ rz: wrapDeg(this.state.rz + 2) }), 40); }
+  bump(extra) { this.setState(Object.assign({ swap: this.state.swap + 1 }, extra)); clearTimeout(this.tm); this.tm = setTimeout(() => this.setState({ ping: this.state.ping + 1 }), 1000); }
+  componentWillUnmount() { clearTimeout(this.tm); this.stopSpin(); }
+
+  renderVals() {
+    const s = this.state;
+    const picking = s.target === 'keys';
+    const prof = PROFILES.find((x) => x.id === s.profile);
+    const themeName = s.theme >= 0 ? THEMES[s.theme].name : 'Custom colors';
+    const snd = s.material === 'abs' ? Object.assign({}, SND, { pitch: SND.pitch * 1.07, bright: SND.bright + .08 }) : SND;
+    return Object.assign(orbitVals(this, s, true), {
+      padOpen: s.padOpen, padOpenAttr: String(s.padOpen), padChev: s.padOpen ? 'rotate(180deg)' : 'none',
+      togglePad: () => this.setState({ padOpen: !this.state.padOpen }),
+      pad: PADS.find((d) => d.id === s.pad) || PADS[0],
+      pads: padList(this, s.pad),
+      theme: this.props.theme || 'light',
+      summary: (prof.name + ' · ' + s.material + ' · ' + themeName).toUpperCase(),
+      profileSpec: prof.spec,
+      c: s.cols, over: s.over, profile: s.profile, material: s.material, legend: s.legend, font: s.font, shine: s.shine,
+      artEsc: s.artEsc, artEnter: s.artEnter, snd: snd, swap: s.swap, ping: s.ping,
+      selKeys: picking ? s.selKeys : [],
+      tapKey: (id) => {
+        if (this.state.target !== 'keys') return;
+        const k = this.state.selKeys.slice(); const i = k.indexOf(id);
+        if (i >= 0) k.splice(i, 1); else k.push(id);
+        this.setState({ selKeys: k });
+      },
+      painterHint: picking ? (s.selKeys.length ? s.selKeys.length + ' keys selected. Pick a swatch to paint them.' : 'Click keys to select them, then pick a swatch.') : 'Click any key to hear it. Choose Keys in the painter to color single keys.',
+      profiles: PROFILES.map((x) => ({
+        name: x.name, on: String(x.id === s.profile),
+        caps: [0, 1, 2].map((i) => capPath(4 + i * 38, x.sc ? x.H * [1.12, 1, .92][i] : x.H, x.dd, x.sc ? x.tilt * [1.4, .4, -.8][i] : 0)),
+        pick: () => this.bump({ profile: x.id })
+      })),
+      materials: [
+        { id: 'pbt', name: 'PBT', sound: 'DEEPER', desc: 'Textured, matte, resists shine. A drier, deeper sound.' },
+        { id: 'abs', name: 'ABS', sound: 'HIGHER', desc: 'Smooth with rich color. A touch higher; can shine.' }
+      ].map((m) => Object.assign(m, { on: String(m.id === s.material), pick: () => this.bump({ material: m.id }) })),
+      themes: THEMES.map((t, i) => ({ name: t.name, a: t.a, m: t.m, x: t.x, on: String(i === s.theme), pick: () => this.bump({ theme: i, cols: { alpha: t.a, mod: t.m, accent: t.x }, over: {} }) })),
+      targets: [['alpha', 'Alphas'], ['mod', 'Mods'], ['accent', 'Accents'], ['keys', 'Keys']].map((g) => ({
+        label: g[1], on: String(s.target === g[0]), col: g[0] === 'keys' ? '#FFFFFF' : s.cols[g[0]],
+        pick: () => this.setState({ target: g[0], selKeys: [] })
+      })),
+      swatches: SWATCH.map((w) => {
+        const on = !picking && s.cols[s.target] === w[1];
+        return {
+          name: w[0], hex: w[1], on: String(on),
+          pick: () => {
+            if (picking) {
+              if (!s.selKeys.length) return;
+              const o = Object.assign({}, s.over); s.selKeys.forEach((id) => { o[id] = w[1]; });
+              this.setState({ over: o, theme: -1 });
+            } else {
+              const c = Object.assign({}, s.cols); c[s.target] = w[1];
+              this.setState({ cols: c, theme: -1 });
+            }
+          }
+        };
+      }),
+      fonts: [['grotesk', 'Grotesk', "'Archivo', sans-serif"], ['mono', 'Mono', "'Space Mono', monospace"], ['rounded', 'Rounded', "'Nunito', sans-serif"]].map((f) => ({ label: f[1], fam: f[2], on: String(s.font === f[0]), pick: () => this.setState({ font: f[0] }) })),
+      positions: [['top-left', 'Top-left'], ['center', 'Center'], ['front', 'Front'], ['blank', 'Blank']].map((o) => ({ label: o[1], on: String(s.legend === o[0]), pick: () => this.setState({ legend: o[0] }) })),
+      shineAttr: String(s.shine), shineWord: s.shine ? 'On' : 'Off',
+      toggleShine: () => this.setState({ shine: !s.shine }),
+      artisanRows: [['artEsc', 'Artisan · Escape'], ['artEnter', 'Artisan · Enter']].map((r) => ({
+        label: r[1],
+        opts: [['none', 'Standard'], ['arcade', 'Arcade'], ['handheld', 'Handheld'], ['resin', 'Resin']].map((o) => ({
+          label: o[1], bg: ART[o[0]].bg, screen: ART[o[0]].scr || 'transparent', scrRing: ART[o[0]].scr ? 'inset 0 0 0 2px #000' : 'none', on: String(s[r[0]] === o[0]),
+          pick: () => { const u = {}; u[r[0]] = o[0]; this.setState(u); }
+        }))
+      }))
+    });
+  }
+}
+</script>
+</body>
+</html>

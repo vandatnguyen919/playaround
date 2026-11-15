@@ -58,7 +58,7 @@ are shown; on macOS/Linux use `./gradlew` and `cp`.
    cd ..
    ```
 
-2. Start Keycloak, Redis, Mailpit, and the dev-only LGTM and Vault containers. The
+2. Start Keycloak, Redis, Mailpit, KeyLab's Postgres, and the dev-only LGTM and Vault containers. The
    first start can take a few minutes:
 
    ```
@@ -75,6 +75,15 @@ are shown; on macOS/Linux use `./gradlew` and `cp`.
    Ready when they log `Tomcat started on port 8182` and
    `Netty started on port 8181`.
 
+   For KeyLab, also start keylab-api (port 8183). It creates its Postgres
+   schemas with Flyway at startup:
+
+   ```
+   .\gradlew.bat :keylab-api:bootRun
+   ```
+
+   `curl http://localhost:8183/v1/health` answers `{"status":"ok",...}`.
+
 4. Start the SPA:
 
    ```
@@ -83,7 +92,7 @@ are shown; on macOS/Linux use `./gradlew` and `cp`.
    npm run dev
    ```
 
-5. Open http://localhost:5174 and sign in as `alice@example.com` / `alice1234`
+5. Open http://localhost:5174 (KeyLab: http://localhost:5174/keylab) and sign in as `alice@example.com` / `alice1234`
    (user) or `admin@example.com` / `admin1234` (user and admin). Mail lands in
    Mailpit at http://localhost:8025. Keycloak admin console:
    http://localhost:8080 (`admin` / `admin` in dev). Traces, metrics and logs:

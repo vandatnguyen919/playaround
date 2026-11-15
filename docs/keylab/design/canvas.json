@@ -1,0 +1,731 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "TrialStyle.dc.html": {
+      "h": 1720,
+      "is_interactive": true,
+      "title": "Restyle trial · Pop Y2K style tile",
+      "w": 1440,
+      "x": 0,
+      "y": 6900
+    },
+    "TrialSwitches.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Restyle trial · Switch library — mobile",
+      "w": 390,
+      "x": 1520,
+      "y": 6900
+    },
+    "BuildCard.dc.html": {
+      "h": 460,
+      "title": "Build summary card",
+      "w": 360,
+      "x": 3884,
+      "y": 4420
+    },
+    "BuildsDesktop.dc.html": {
+      "expand": "fill",
+      "h": 1120,
+      "is_interactive": true,
+      "title": "5 · My builds & share — desktop",
+      "w": 1440,
+      "x": 0,
+      "y": 2910
+    },
+    "BuildsMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "5 · My builds & share — mobile",
+      "w": 390,
+      "x": 1880,
+      "y": 0
+    },
+    "CaseDesktop.dc.html": {
+      "expand": "fill",
+      "h": 1030,
+      "is_interactive": true,
+      "title": "6 · Case & plate — desktop",
+      "w": 1440,
+      "x": 1520,
+      "y": 2910
+    },
+    "CaseMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "6 · Case & plate — mobile",
+      "w": 390,
+      "x": 2350,
+      "y": 0
+    },
+    "Components.dc.html": {
+      "h": 1900,
+      "is_interactive": true,
+      "title": "Component sheet · states · tokens",
+      "w": 1440,
+      "x": 0,
+      "y": 4420
+    },
+    "ForceCurve.dc.html": {
+      "h": 200,
+      "title": "Force curve",
+      "w": 340,
+      "x": 2624,
+      "y": 4420
+    },
+    "HomeDesktop.dc.html": {
+      "expand": "fill",
+      "h": 1110,
+      "is_interactive": true,
+      "title": "1 · Build / Home — desktop",
+      "w": 1440,
+      "x": 0,
+      "y": 1250
+    },
+    "HomeLight.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Ink (dark) variant · Home",
+      "w": 390,
+      "x": 3410,
+      "y": 0
+    },
+    "Keyboard.dc.html": {
+      "h": 330,
+      "is_interactive": true,
+      "title": "Keyboard preview",
+      "w": 760,
+      "x": 1520,
+      "y": 4420
+    },
+    "KeycapsDesktop.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "4 · Keycaps studio — desktop",
+      "w": 1440,
+      "x": 4560,
+      "y": 1250
+    },
+    "KeycapsMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "4 · Keycaps studio — mobile",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "1 · Build / Home — mobile",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "ModsDesktop.dc.html": {
+      "expand": "fill",
+      "h": 1190,
+      "is_interactive": true,
+      "title": "3 · Mods workshop — desktop",
+      "w": 1440,
+      "x": 3040,
+      "y": 1250
+    },
+    "ModsMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "3 · Mods workshop — mobile",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "PlaygroundDesktop.dc.html": {
+      "expand": "fill",
+      "h": 1080,
+      "is_interactive": true,
+      "title": "7 · Sound playground — desktop",
+      "w": 1440,
+      "x": 3040,
+      "y": 2910
+    },
+    "PlaygroundMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "7 · Sound playground — mobile",
+      "w": 390,
+      "x": 2820,
+      "y": 0
+    },
+    "SwitchCard.dc.html": {
+      "h": 236,
+      "is_interactive": true,
+      "title": "Switch card",
+      "w": 184,
+      "x": 2360,
+      "y": 4420
+    },
+    "SwitchesDesktop.dc.html": {
+      "expand": "fill",
+      "h": 1440,
+      "is_interactive": true,
+      "title": "2 · Switch library — desktop",
+      "w": 1440,
+      "x": 1520,
+      "y": 1250
+    },
+    "SwitchesLight.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Ink (dark) variant · Switch detail sheet",
+      "w": 390,
+      "x": 3880,
+      "y": 0
+    },
+    "SwitchesMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "2 · Switch library — mobile",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "ToggleCard.dc.html": {
+      "h": 196,
+      "is_interactive": true,
+      "title": "Mod toggle card",
+      "w": 340,
+      "x": 3464,
+      "y": 4420
+    },
+    "Waveform.dc.html": {
+      "h": 96,
+      "title": "Sound waveform",
+      "w": 340,
+      "x": 3044,
+      "y": 4420
+    },
+    "MktNav.dc.html": {
+      "x": 1520,
+      "y": 5000,
+      "w": 1440,
+      "h": 78,
+      "title": "Marketing nav",
+      "is_interactive": true
+    },
+    "MktFooter.dc.html": {
+      "x": 1520,
+      "y": 5180,
+      "w": 1440,
+      "h": 320,
+      "title": "Marketing footer",
+      "is_interactive": true
+    },
+    "AdminTopbar.dc.html": {
+      "x": 1520,
+      "y": 5600,
+      "w": 1208,
+      "h": 66,
+      "title": "Admin top bar",
+      "is_interactive": true
+    },
+    "AdminSidebar.dc.html": {
+      "x": 1520,
+      "y": 5780,
+      "w": 232,
+      "h": 900,
+      "title": "Admin sidebar",
+      "is_interactive": true
+    },
+    "SidebarItem.dc.html": {
+      "x": 1832,
+      "y": 5780,
+      "w": 220,
+      "h": 44,
+      "title": "Sidebar item",
+      "is_interactive": true
+    },
+    "StatusBadge.dc.html": {
+      "x": 2132,
+      "y": 5780,
+      "w": 120,
+      "h": 24,
+      "title": "Status badge"
+    },
+    "KpiTile.dc.html": {
+      "x": 2332,
+      "y": 5780,
+      "w": 280,
+      "h": 136,
+      "title": "KPI tile",
+      "is_interactive": true
+    },
+    "Toast.dc.html": {
+      "x": 2692,
+      "y": 5780,
+      "w": 440,
+      "h": 72,
+      "title": "Toast",
+      "is_interactive": true
+    },
+    "PricingCard.dc.html": {
+      "x": 3212,
+      "y": 5780,
+      "w": 380,
+      "h": 520,
+      "title": "Pricing card",
+      "is_interactive": true
+    },
+    "TestimonialCard.dc.html": {
+      "x": 3672,
+      "y": 5780,
+      "w": 380,
+      "h": 230,
+      "title": "Testimonial card"
+    },
+    "DataTableRow.dc.html": {
+      "x": 1832,
+      "y": 6000,
+      "w": 1000,
+      "h": 56,
+      "title": "Data table row"
+    },
+    "FaqItem.dc.html": {
+      "x": 1832,
+      "y": 6140,
+      "w": 720,
+      "h": 150,
+      "title": "FAQ item",
+      "is_interactive": true
+    },
+    "UploadDropZone.dc.html": {
+      "x": 1832,
+      "y": 6380,
+      "w": 520,
+      "h": 140,
+      "title": "Upload drop zone",
+      "is_interactive": true
+    },
+    "MktLanding.dc.html": {
+      "x": 0,
+      "y": 9200,
+      "w": 1440,
+      "h": 7300,
+      "title": "M1 · Landing — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "MktLandingMobile.dc.html": {
+      "x": 1520,
+      "y": 9200,
+      "w": 390,
+      "h": 8200,
+      "title": "M1 · Landing — mobile",
+      "is_interactive": true
+    },
+    "MktAuth.dc.html": {
+      "x": 2070,
+      "y": 9200,
+      "w": 1440,
+      "h": 1000,
+      "title": "M2 · Sign up / Log in — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "MktAuthMobile.dc.html": {
+      "x": 3590,
+      "y": 9200,
+      "w": 390,
+      "h": 900,
+      "title": "M2 · Sign up / Log in — mobile",
+      "is_interactive": true
+    },
+    "MktOnboarding.dc.html": {
+      "x": 4140,
+      "y": 9200,
+      "w": 1440,
+      "h": 1000,
+      "title": "M3 · Onboarding (3 steps) — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "MktOnboardingMobile.dc.html": {
+      "x": 5660,
+      "y": 9200,
+      "w": 390,
+      "h": 844,
+      "title": "M3 · Onboarding (3 steps) — mobile",
+      "is_interactive": true
+    },
+    "MktPricing.dc.html": {
+      "x": 6210,
+      "y": 9200,
+      "w": 1440,
+      "h": 2280,
+      "title": "M4 · Pricing — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "MktPricingMobile.dc.html": {
+      "x": 7730,
+      "y": 9200,
+      "w": 390,
+      "h": 2900,
+      "title": "M4 · Pricing — mobile",
+      "is_interactive": true
+    },
+    "MktLibrary.dc.html": {
+      "x": 8280,
+      "y": 9200,
+      "w": 1440,
+      "h": 2400,
+      "title": "M5 · Switch library (public) — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "MktLibraryMobile.dc.html": {
+      "x": 9800,
+      "y": 9200,
+      "w": 390,
+      "h": 2700,
+      "title": "M5 · Switch library (public) — mobile",
+      "is_interactive": true
+    },
+    "MktSwitch.dc.html": {
+      "x": 10350,
+      "y": 9200,
+      "w": 1440,
+      "h": 2150,
+      "title": "M6 · Switch detail — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "MktSwitchMobile.dc.html": {
+      "x": 11870,
+      "y": 9200,
+      "w": 390,
+      "h": 2350,
+      "title": "M6 · Switch detail — mobile",
+      "is_interactive": true
+    },
+    "ComponentsKit.dc.html": {
+      "x": 4320,
+      "y": 4420,
+      "w": 1440,
+      "h": 2900,
+      "title": "Component sheet 2 · marketing & admin states",
+      "is_interactive": true
+    },
+    "AdminOverview.dc.html": {
+      "x": 12700,
+      "y": 9200,
+      "w": 1440,
+      "h": 1400,
+      "title": "A1 · Overview — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AdminSwitches.dc.html": {
+      "x": 14220,
+      "y": 9200,
+      "w": 1440,
+      "h": 1100,
+      "title": "A2 · Switches — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AdminSwitchEdit.dc.html": {
+      "x": 15740,
+      "y": 9200,
+      "w": 1440,
+      "h": 1500,
+      "title": "A3 · Add / edit switch — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AdminSounds.dc.html": {
+      "x": 12700,
+      "y": 10860,
+      "w": 1440,
+      "h": 1250,
+      "title": "A4 · Sound library — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AdminCatalog.dc.html": {
+      "x": 14220,
+      "y": 10860,
+      "w": 1440,
+      "h": 1250,
+      "title": "A5 · Keycap sets & mods — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AdminUsers.dc.html": {
+      "x": 15740,
+      "y": 10860,
+      "w": 1440,
+      "h": 1100,
+      "title": "A6 · Users — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AdminCommunity.dc.html": {
+      "x": 12700,
+      "y": 12270,
+      "w": 1440,
+      "h": 1200,
+      "title": "A7 · Community moderation — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AdminSettings.dc.html": {
+      "x": 14220,
+      "y": 12270,
+      "w": 1440,
+      "h": 1350,
+      "title": "A8 · Settings, roles & audit log — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AdminOverviewTablet.dc.html": {
+      "x": 15740,
+      "y": 12270,
+      "w": 1024,
+      "h": 1700,
+      "title": "A1 · Overview — tablet check 1024",
+      "is_interactive": true
+    },
+    "ComponentsProfile.dc.html": {
+      "x": 5840,
+      "y": 4420,
+      "w": 1440,
+      "h": 2100,
+      "title": "Component sheet 3 · user profile",
+      "is_interactive": true
+    },
+    "ProfileDesktop.dc.html": {
+      "x": 0,
+      "y": 17800,
+      "w": 1440,
+      "h": 2400,
+      "title": "P1 · My profile — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ProfileMobile.dc.html": {
+      "x": 1520,
+      "y": 17800,
+      "w": 390,
+      "h": 844,
+      "title": "P1 · My profile — mobile",
+      "is_interactive": true
+    },
+    "PublicProfileDesktop.dc.html": {
+      "x": 1990,
+      "y": 17800,
+      "w": 1440,
+      "h": 2300,
+      "title": "P2 · Public profile — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "PublicProfileMobile.dc.html": {
+      "x": 3510,
+      "y": 17800,
+      "w": 390,
+      "h": 844,
+      "title": "P2 · Public profile — mobile",
+      "is_interactive": true
+    },
+    "EditProfileDesktop.dc.html": {
+      "x": 3980,
+      "y": 17800,
+      "w": 1440,
+      "h": 2050,
+      "title": "P3 · Edit profile — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "EditProfileMobile.dc.html": {
+      "x": 5500,
+      "y": 17800,
+      "w": 390,
+      "h": 844,
+      "title": "P3 · Edit profile — mobile",
+      "is_interactive": true
+    },
+    "AccountDesktop.dc.html": {
+      "x": 5970,
+      "y": 17800,
+      "w": 1440,
+      "h": 1150,
+      "title": "P4 · Account settings — desktop",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AccountMobile.dc.html": {
+      "x": 7490,
+      "y": 17800,
+      "w": 390,
+      "h": 844,
+      "title": "P4 · Account settings — mobile",
+      "is_interactive": true
+    },
+    "ProfileStates.dc.html": {
+      "x": 7960,
+      "y": 17800,
+      "w": 3920,
+      "h": 1000,
+      "title": "P5 · Profile states — mobile",
+      "is_interactive": true
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-31T11:00:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "noteOrder": [
+    "tMobile",
+    "tDesktop",
+    "tComponents",
+    "tTrial",
+    "tMarketing",
+    "tAdmin",
+    "tProfile"
+  ],
+  "notes": {
+    "tTrial": {
+      "kind": "title1",
+      "maxW": 1910,
+      "text": "Restyle trial · Neo-Brutalism × Y2K × Pop Art",
+      "w": 240,
+      "x": 0,
+      "y": 6620
+    },
+    "tComponents": {
+      "kind": "title1",
+      "maxW": 7280,
+      "text": "Components, states & tokens",
+      "w": 240,
+      "x": 0,
+      "y": 4150
+    },
+    "tDesktop": {
+      "kind": "title1",
+      "maxW": 6000,
+      "text": "Desktop · 1440 — sidebar + central preview",
+      "w": 240,
+      "x": 0,
+      "y": 980
+    },
+    "tMobile": {
+      "kind": "title1",
+      "maxW": 4270,
+      "text": "Mobile · 390 — prototype: Build → Switches → Mods → Keycaps → My builds",
+      "w": 240,
+      "x": 0,
+      "y": -270
+    },
+    "tMarketing": {
+      "x": 0,
+      "y": 8920,
+      "text": "Marketing site · prototype: Landing → Try the sound → Start building → Sign up → Onboarding → Build",
+      "kind": "title1",
+      "maxW": 12260
+    },
+    "tAdmin": {
+      "x": 12700,
+      "y": 8920,
+      "text": "Admin dashboard · prototype: Overview → Switches → Add switch → upload sounds → publish → public switch library",
+      "kind": "title1",
+      "maxW": 4480
+    },
+    "tProfile": {
+      "x": 0,
+      "y": 17520,
+      "text": "User profile · prototype: avatar in nav → My profile → Edit profile → Save → My profile + toast · BuildCard author → Public profile · Settings → Plan & billing → Pricing",
+      "kind": "title1",
+      "maxW": 11880
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "SwitchesMobile.dc.html",
+    "ModsMobile.dc.html",
+    "KeycapsMobile.dc.html",
+    "BuildsMobile.dc.html",
+    "CaseMobile.dc.html",
+    "PlaygroundMobile.dc.html",
+    "HomeLight.dc.html",
+    "SwitchesLight.dc.html",
+    "HomeDesktop.dc.html",
+    "SwitchesDesktop.dc.html",
+    "ModsDesktop.dc.html",
+    "KeycapsDesktop.dc.html",
+    "BuildsDesktop.dc.html",
+    "CaseDesktop.dc.html",
+    "PlaygroundDesktop.dc.html",
+    "Components.dc.html",
+    "Keyboard.dc.html",
+    "SwitchCard.dc.html",
+    "ForceCurve.dc.html",
+    "Waveform.dc.html",
+    "ToggleCard.dc.html",
+    "BuildCard.dc.html",
+    "TrialStyle.dc.html",
+    "TrialSwitches.dc.html",
+    "MktNav.dc.html",
+    "MktFooter.dc.html",
+    "AdminTopbar.dc.html",
+    "AdminSidebar.dc.html",
+    "SidebarItem.dc.html",
+    "StatusBadge.dc.html",
+    "KpiTile.dc.html",
+    "Toast.dc.html",
+    "PricingCard.dc.html",
+    "TestimonialCard.dc.html",
+    "DataTableRow.dc.html",
+    "FaqItem.dc.html",
+    "UploadDropZone.dc.html",
+    "MktLanding.dc.html",
+    "MktLandingMobile.dc.html",
+    "MktAuth.dc.html",
+    "MktAuthMobile.dc.html",
+    "MktOnboarding.dc.html",
+    "MktOnboardingMobile.dc.html",
+    "MktPricing.dc.html",
+    "MktPricingMobile.dc.html",
+    "MktLibrary.dc.html",
+    "MktLibraryMobile.dc.html",
+    "MktSwitch.dc.html",
+    "MktSwitchMobile.dc.html",
+    "ComponentsKit.dc.html",
+    "AdminOverview.dc.html",
+    "AdminSwitches.dc.html",
+    "AdminSwitchEdit.dc.html",
+    "AdminSounds.dc.html",
+    "AdminCatalog.dc.html",
+    "AdminUsers.dc.html",
+    "AdminCommunity.dc.html",
+    "AdminSettings.dc.html",
+    "AdminOverviewTablet.dc.html",
+    "ComponentsProfile.dc.html",
+    "ProfileDesktop.dc.html",
+    "ProfileMobile.dc.html",
+    "PublicProfileDesktop.dc.html",
+    "PublicProfileMobile.dc.html",
+    "EditProfileDesktop.dc.html",
+    "EditProfileMobile.dc.html",
+    "AccountDesktop.dc.html",
+    "AccountMobile.dc.html",
+    "ProfileStates.dc.html"
+  ],
+  "pages": [],
+  "title": "KeyLab"
+}

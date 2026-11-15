@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin sidebar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.asb-site{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 10px;border:2px solid #FFFDF5;color:#FFFDF5;text-decoration:none;font-family:'Archivo',system-ui,sans-serif;font-size:13px;font-weight:800}
+.asb-site:hover{background:#3A3870}
+.asb-site:focus-visible{outline:3px solid #FFD24D;outline-offset:2px}
+</style>
+</helmet>
+<nav aria-label="Admin" style="width: 100%; min-height: {{minH}}px; box-sizing: border-box; background: #2C2A5A; color: #FFFDF5; padding: 16px {{padX}}px; display: flex; flex-direction: column; gap: 18px; font-family: 'Archivo', system-ui, sans-serif">
+  <a href="AdminOverview.dc.html" aria-label="KeyLab admin, overview" style="display: flex; align-items: center; gap: 10px; color: #FFFDF5; text-decoration: none; justify-content: {{justify}}">
+    <span aria-hidden="true" style="flex: none; width: 34px; height: 34px; border: 2.5px solid #000; background: #FFD24D; color: #000; box-shadow: 3px 3px 0 #000; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px">K</span>
+    <sc-if value="{{full}}" hint-placeholder-val="{{ true }}">
+      <span style="font-weight: 900; font-size: 20px; letter-spacing: -0.05em">KEYLAB</span>
+      <span style="padding: 1px 6px; border: 2px solid #000; background: #C6F079; color: #000; font-size: 10px; line-height: 14px; font-weight: 900; letter-spacing: .08em">ADMIN</span>
+    </sc-if>
+  </a>
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="9">
+      <dc-import name="SidebarItem" label="{{it.label}}" icon="{{it.icon}}" href="{{it.href}}" active="{{it.on}}" compact="{{compact}}" badge="{{it.badge}}" hint-size="100%,40px"></dc-import>
+    </sc-for>
+  </div>
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+    <sc-if value="{{full}}" hint-placeholder-val="{{ true }}">
+      <div style="border: 2px solid #000; background: #1E1C3F; padding: 10px; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 10px; line-height: 13px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: #FFD24D">Catalog</span>
+        <span style="font-family: 'Space Mono', ui-monospace, monospace; font-size: 11px; line-height: 15px">Last publish [DATE]</span>
+      </div>
+    </sc-if>
+    <a class="asb-site" href="MktLanding.dc.html" title="View public site" style="justify-content: {{justify}}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"></path></svg>
+      <sc-if value="{{full}}" hint-placeholder-val="{{ true }}"><span>View public site</span></sc-if>
+    </a>
+  </div>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["overview","switches","sounds","keycaps","mods","users","community","reports","settings"],"default":"overview"},"compact":{"editor":"boolean","default":false},"minHeight":{"editor":"int","default":900},"$preview":{"width":232,"height":900}}'>
+const ASB = [
+  ['overview', 'Overview', 'overview', 'AdminOverview.dc.html', ''],
+  ['switches', 'Switches', 'switches', 'AdminSwitches.dc.html', ''],
+  ['sounds', 'Sound library', 'sounds', 'AdminSounds.dc.html', '2'],
+  ['keycaps', 'Keycap sets', 'keycaps', 'AdminCatalog.dc.html', ''],
+  ['mods', 'Mods', 'mods', 'AdminCatalog.dc.html', ''],
+  ['users', 'Users', 'users', 'AdminUsers.dc.html', ''],
+  ['community', 'Community builds', 'community', 'AdminCommunity.dc.html', '3'],
+  ['reports', 'Reports', 'reports', 'AdminOverview.dc.html', ''],
+  ['settings', 'Settings', 'settings', 'AdminSettings.dc.html', '']
+];
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, compact = !!p.compact, act = p.active || 'overview';
+    return {
+      compact: compact, full: !compact, padX: compact ? 12 : 14, justify: compact ? 'center' : 'flex-start',
+      minH: p.minHeight || 900,
+      items: ASB.map((a) => ({ label: a[1], icon: a[2], href: a[3], badge: a[4], on: a[0] === act }))
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin sidebar item</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.sbi{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 10px;border:2px solid transparent;color:#FFFDF5;text-decoration:none;font-family:'Archivo',system-ui,sans-serif;font-size:14px;font-weight:800;transition:transform 70ms ease,box-shadow 70ms ease}
+.sbi:hover,.sbi.hov{background:#3A3870;border-color:#000}
+.sbi:focus-visible,.sbi.foc{outline:3px solid #FFD24D;outline-offset:2px}
+.sbi.on{background:#FFD24D;color:#000;border-color:#000;box-shadow:3px 3px 0 #000}
+.sbi.on:active,.sbi:active{transform:translate(2px,2px);box-shadow:0 0 0 #000}
+</style>
+</helmet>
+<a class="{{cls}}" href="{{href}}" aria-current="{{current}}" aria-label="{{aria}}" title="{{label}}" style="justify-content: {{justify}}">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true" style="flex: none"><path d="{{icon}}"></path></svg>
+  <sc-if value="{{full}}" hint-placeholder-val="{{ true }}">
+    <span style="flex: 1; white-space: nowrap">{{label}}</span>
+    <sc-if value="{{hasBadge}}" hint-placeholder-val="{{ false }}">
+      <span style="font-family: 'Space Mono', ui-monospace, monospace; font-size: 10px; line-height: 14px; font-weight: 700; padding: 0 5px; border: 2px solid #000; background: #F16B53; color: #000">{{badge}}</span>
+    </sc-if>
+  </sc-if>
+</a>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"label":{"editor":"text","default":"Switches"},"icon":{"editor":"enum","options":["overview","switches","sounds","keycaps","mods","users","community","reports","settings","site"],"default":"switches"},"href":{"editor":null},"active":{"editor":"boolean","default":false},"compact":{"editor":"boolean","default":false},"badge":{"editor":"text","default":""},"demo":{"editor":"enum","options":["none","hover","focus"],"default":"none"},"$preview":{"width":220,"height":44}}'>
+const SBI = {
+  overview: 'M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z',
+  switches: 'M12 2.5v7M8.5 6h7M4.5 11h15v9.5h-15z',
+  sounds: 'M3 12h2l2-6 3 12 3-9 2 5 2-2h4',
+  keycaps: 'M3.5 19.5h17L18 6H6zM9 10.5h6',
+  mods: 'M4 7h9M17 7h3M4 17h3M11 17h9M13 5h4v4h-4zM7 15h4v4H7z',
+  users: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20c.5-4 3.2-6 6.5-6s6 2 6.5 6M16 4.5a3.3 3.3 0 0 1 0 6.3M18 14c2.2.6 3.4 2.6 3.6 6',
+  community: 'M4 5h16v11H9l-5 4zM8 9h8M8 12.5h5',
+  reports: 'M5 20V10M10 20V4M15 20v-7M20 20v-11',
+  settings: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1',
+  site: 'M4 4h16v16H4zM4 9h16M8 6.5h.5'
+};
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const label = p.label || 'Switches';
+    const compact = !!p.compact;
+    const cls = 'sbi' + (p.active ? ' on' : '') + (p.demo === 'hover' ? ' hov' : '') + (p.demo === 'focus' ? ' foc' : '');
+    return {
+      cls: cls, href: p.href || 'AdminSwitches.dc.html', current: p.active ? 'page' : 'false',
+      label: label, icon: SBI[p.icon] || SBI.switches, full: !compact,
+      justify: compact ? 'center' : 'flex-start',
+      aria: compact ? label + (p.badge ? ', ' + p.badge + ' new' : '') : null,
+      hasBadge: !!p.badge, badge: p.badge
+    };
+  }
+}
+</script>
+</body>
+</html>

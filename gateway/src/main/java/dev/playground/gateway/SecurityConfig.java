@@ -100,6 +100,11 @@ public class SecurityConfig {
                 // The SPA shell and its assets are public; its data is not.
                 .pathMatchers("/", "/me", "/admin", "/forbidden", "/index.html", "/assets/**",
                         "/favicon.ico", "/favicon.svg", "/bff/csrf").permitAll()
+                // KeyLab's pages are public too, and so is its API route here:
+                // keylab-api decides per endpoint (guests may read, it answers
+                // 401 where a login is needed). A guest has no session, so no
+                // token is relayed. CSRF still covers the unsafe methods.
+                .pathMatchers("/keylab", "/keylab/**", "/bff/keylab/v1/**").permitAll()
                 // Only on the management port (application.yml).
                 .pathMatchers("/actuator/health/**", "/actuator/info").permitAll()
                 .pathMatchers("/oauth2/authorization/**", "/login/oauth2/code/**",

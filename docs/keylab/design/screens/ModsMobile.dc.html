@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Mods workshop</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Nunito:wght@700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.kl{--bg:#FFFDF5;--surface:#FFFFFF;--surface2:#FFF1C7;--text:#000000;--muted:#3A3A3A;--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--indigo:#2C2A5A;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.kl[data-theme="dark"]{--bg:#1E1C3F;--surface:#2C2A5A;--surface2:#3A3870;--text:#FFFDF5;--muted:#D6D3F5}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc.primary{background:var(--lime);min-height:56px;font-size:16px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc.coral{background:var(--coral)}
+.kc.sm{padding:0 12px;font-size:13px}
+.kc.icon{width:44px;padding:0}
+.kc:focus-visible,.nv:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.stage{background:var(--sky);color:#000;border:3px solid #000;box-shadow:6px 6px 0 #000}
+.padsq{appearance:none;flex:none;position:relative;width:44px;height:44px;margin:0;padding:0;cursor:pointer;border:2.5px solid #000;border-radius:0;box-shadow:2px 2px 0 #000;display:flex;align-items:flex-end;justify-content:center;transition:transform 70ms ease,box-shadow 70ms ease;-webkit-tap-highlight-color:transparent}
+.padsq span{margin-bottom:-2px;padding:0 3px;background:#000;color:#FFFDF5;font-size:9px;line-height:12px;font-weight:700}
+.padsq:active{transform:translate(2px,2px);box-shadow:0 0 0 #000}
+.padsq:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.lbl{font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;margin:0}
+.h1{font-size:36px;line-height:34px;font-weight:900;letter-spacing:-.05em;margin:0}
+.sticker{display:inline-flex;align-items:center;padding:1px 6px;border:2px solid #000;background:var(--acc);color:#000;font-size:10px;line-height:14px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.nav{flex:none;display:flex;gap:2px;padding:8px 8px 22px;background:#FFFFFF;border-top:3px solid #000}
+.nv{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px;flex:1;color:#000;text-decoration:none;font-size:11px;font-weight:800}
+.nv .ic{width:46px;height:32px;display:flex;align-items:center;justify-content:center;border:2.5px solid transparent;transition:transform 70ms}
+.nv:active .ic{transform:translate(2px,2px)}
+.nv.on .ic{background:var(--acc);border-color:#000;box-shadow:3px 3px 0 #000}
+.noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="kl" data-theme="{{theme}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <header style="flex: none; padding: 14px 16px 12px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <h1 class="h1">Mods workshop</h1>
+      <p style="margin: 0; font-size: 13px; line-height: 17px; font-weight: 600">Hear every mod before you buy it.</p>
+    </div>
+    <button type="button" class="kc sm" onClick="{{reset}}">Reset</button>
+  </header>
+
+  <section aria-label="Preview and sound meter on desk pad" class="stage" style="position: relative; flex: none; margin: 0 16px 6px; padding: 14px 10px 10px; display: flex; flex-direction: column; gap: 10px; background: {{pad.bg}}">
+    <span aria-hidden="true" style="position: absolute; inset: 5px; border: 2px dashed {{pad.stitch}}; pointer-events: none"></span>
+    <div style="position: relative; display: flex; justify-content: center">
+      <dc-import name="Keyboard" layout="65" width="326" sound="{{snd}}" ping-seq="{{ping}}" plate="brass" hint-size="326px,150px"></dc-import>
+    </div>
+    <div style="position: relative; display: flex; align-items: center; gap: 8px; padding: 8px 8px 6px 10px; border: 2.5px solid #000; background: var(--sky); color: #000">
+      <button type="button" class="padsq" onClick="{{cyclePad}}" aria-label="Desk pad: {{pad.name}}. Tap for the next pad" title="Desk pad · {{pad.name}}" style="background: {{pad.bg}}"><span class="mono">PAD</span></button>
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px">
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <span class="lbl">Sound meter</span>
+          <span class="sticker" style="background: #FFFDF5">{{word}}</span>
+        </div>
+        <div role="meter" aria-label="Sound profile, from bright to deep" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{posN}}" style="position: relative; height: 22px; display: flex; align-items: flex-end; gap: 3px">
+          <sc-for list="{{ticks}}" as="t" hint-placeholder-count="24">
+            <span style="flex: 1; height: {{t.h}}px; background: {{t.c}}; border: 1.5px solid #000"></span>
+          </sc-for>
+          <span aria-hidden="true" style="position: absolute; top: -4px; bottom: -4px; left: {{stockL}}; width: 4px; margin-left: -2px; background: #000"></span>
+        </div>
+        <div class="mono" style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700"><span>BRIGHT</span><span>| = STOCK</span><span>DEEP</span></div>
+      </div>
+      <button type="button" class="kc icon coral" aria-label="Play current sound" onClick="{{play}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg></button>
+    </div>
+  </section>
+
+  <main class="noscroll" style="flex: 1; overflow-y: auto; padding: 16px 16px 26px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <h2 class="lbl">{{countLabel}}</h2>
+      <span class="mono" style="font-size: 11px; font-weight: 700">MILK YELLOW · 65%</span>
+    </div>
+    <sc-for list="{{mods}}" as="m" hint-placeholder-count="6">
+      <dc-import name="ToggleCard" title="{{m.title}}" desc="{{m.desc}}" impact="{{m.impact}}" on="{{m.on}}" has-toggle="{{m.hasToggle}}" levels="{{m.levels}}" level="{{m.level}}" on-toggle="{{m.toggle}}" on-level="{{m.setLevel}}" on-before="{{m.before}}" on-after="{{m.after}}" hint-size="100%,170px"></dc-import>
+    </sc-for>
+    <a class="kc primary" href="KeycapsMobile.dc.html" style="margin-top: 6px">Next: customize keycaps
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"></path></svg>
+    </a>
+  </main>
+
+  <nav class="nav" aria-label="Primary">
+    <a class="nv" href="Main.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M6 10h1M10 10h1M14 10h1M18 10h1M7 14h10"></path></svg></span>Build</a>
+    <a class="nv" href="SwitchesMobile.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><path d="M12 2.5v7M8.5 6h7"></path><rect x="4.5" y="11" width="15" height="9.5"></rect></svg></span>Switches</a>
+    <a class="nv on" href="ModsMobile.dc.html" aria-current="page"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"></path><rect x="13" y="5" width="4" height="4"></rect><rect x="7" y="15" width="4" height="4"></rect></svg></span>Mods</a>
+    <a class="nv" href="KeycapsMobile.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M3.5 19.5h17L18 6H6z"></path><path d="M9 10.5h6"></path></svg></span>Keycaps</a>
+    <a class="nv" href="BuildsMobile.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6.5 3.5h11v17l-5.5-3.8-5.5 3.8z"></path></svg></span>My builds</a>
+    <a class="nv" href="ProfileMobile.dc.html"><span class="ic"><span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border: 2.5px solid #000; background: #FFD24D; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; letter-spacing: -0.03em">TW</span></span>Profile</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":844}}'>
+const BASE = { pitch: 520, bright: .25, decay: 70, thump: .9, vol: .7 };
+const PADS = [
+  { id: 'sky', name: 'Sky', stitch: 'rgba(0,0,0,.35)', bg: '#99D6FF' },
+  { id: 'splash', name: 'Splash', stitch: 'rgba(255,253,245,.55)', bg: 'radial-gradient(circle at 10% 20%, #F16B53 0 22px, transparent 23px) 0 0/100% 100%, radial-gradient(circle at 88% 78%, #F16B53 0 34px, transparent 35px) 0 0/100% 100%, radial-gradient(circle at 72% 14%, #FFD24D 0 9px, transparent 10px) 0 0/100% 100%, linear-gradient(115deg, transparent 0 60%, #3A3870 60% 76%, transparent 76%) 0 0/100% 100%, #2C2A5A' },
+  { id: 'grid', name: 'Grid', stitch: 'rgba(0,0,0,.35)', bg: 'linear-gradient(transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/22px 22px, linear-gradient(90deg, transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/22px 22px, #FFFDF5' },
+  { id: 'dots', name: 'Dots', stitch: 'rgba(0,0,0,.35)', bg: 'radial-gradient(circle, #000 0 2px, transparent 2.5px) 0 0/18px 18px, #FFD24D' },
+  { id: 'stripes', name: 'Stripes', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-linear-gradient(135deg, #C6F079 0 16px, #B2DE63 16px 32px)' },
+  { id: 'checker', name: 'Checker', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-conic-gradient(#FFFDF5 0 25%, #EFE6CD 0 50%) 0 0/28px 28px' },
+  { id: 'walnut', name: 'Walnut', stitch: 'rgba(255,253,245,.45)', bg: 'repeating-linear-gradient(92deg, #8A5E3C 0 9px, #7A5233 9px 20px, #93663F 20px 27px)' }
+];
+const STOCK = { lube: 0, foam: false, pe: false, stabs: false, orings: false, spring: 0 };
+const START = { lube: 1, foam: true, pe: false, stabs: true, orings: false, spring: 0 };
+function modSound(m) {
+  let p = BASE.pitch, b = BASE.bright, d = BASE.decay, t = BASE.thump, v = BASE.vol;
+  p *= [1, .9, .82][m.lube]; b -= [0, .08, .15][m.lube]; d *= [1, .92, .85][m.lube];
+  if (m.foam) { d *= .72; p *= .94; t *= 1.15; }
+  if (m.pe) { p *= 1.28; b += .18; t *= .8; d *= .85; }
+  if (m.stabs) { b -= .05; }
+  if (m.orings) { v *= .7; d *= .65; p *= .88; }
+  p *= [1, .97, 1.04][m.spring];
+  return { pitch: p, bright: Math.max(0, Math.min(1, b)), decay: d, thump: Math.min(1.2, t), vol: v };
+}
+function meterPos(s) {
+  const x = .15 + .85 * (1 - Math.log(s.pitch / 300) / Math.log(6)) - s.bright * .25 + (1 - s.vol) * .3;
+  return Math.max(0, Math.min(1, x));
+}
+const MODS = [
+  { key: 'lube', title: 'Lube', levels: ['None', 'Light', 'Heavy'], impact: 'smoother · deeper', desc: 'Lubing stems and springs smooths the stroke and rounds off scratchy, high-pitched noise.' },
+  { key: 'foam', title: 'Case foam', impact: 'deeper · less echo', desc: 'Fills the hollow under the PCB. Cuts ping and echo for a tighter, deeper sound.' },
+  { key: 'pe', title: 'PE foam / tape mod', impact: 'poppier · brighter', desc: 'A thin layer between PCB and switches. Makes the sound poppier and more marbly.' },
+  { key: 'stabs', title: 'Stabilizer tuning', impact: 'no rattle', desc: 'Clipped, lubed stabilizers stop rattle on the spacebar, shift and enter.' },
+  { key: 'orings', title: 'O-rings', impact: 'quieter · shorter', desc: 'Rubber rings under the keycaps shorten travel and soften the bottom-out.' },
+  { key: 'spring', title: 'Spring swap', levels: ['Stock', 'Lighter', 'Heavier'], impact: 'feel · weight', desc: 'Change the weight of every press. Lighter is faster; heavier gives a fuller return.' }
+];
+
+class Component extends DCLogic {
+  state = { m: Object.assign({}, START), prev: null, ping: 0, pad: 'sky' };
+  cyclePad() { const i = PADS.findIndex((d) => d.id === this.state.pad); this.setState({ pad: PADS[(i + 1) % PADS.length].id }); }
+
+  preview(snd) {
+    clearTimeout(this.tm);
+    this.setState({ prev: snd, ping: this.state.ping + 1 });
+    this.tm = setTimeout(() => this.setState({ prev: null }), 380);
+  }
+  componentWillUnmount() { clearTimeout(this.tm); clearTimeout(this.pt); }
+
+  set(key, val) { const m = Object.assign({}, this.state.m); m[key] = val; this.setState({ m: m }); clearTimeout(this.pt); this.pt = setTimeout(() => this.setState({ ping: this.state.ping + 1 }), 60); }
+
+  renderVals() {
+    const s = this.state, m = s.m;
+    const cur = modSound(m);
+    const pos = meterPos(cur), stock = meterPos(modSound(STOCK));
+    const n = 24, on = Math.round(pos * (n - 1));
+    const applied = MODS.filter((x) => x.levels ? m[x.key] > 0 : m[x.key]).length;
+    const word = pos < .3 ? 'Bright & poppy' : pos < .5 ? 'Balanced' : pos < .72 ? 'Deep & rounded' : 'Deep & muted';
+    return {
+      pad: PADS.find((d) => d.id === s.pad) || PADS[0], cyclePad: () => this.cyclePad(),
+      padShort: (PADS.find((d) => d.id === s.pad) || PADS[0]).name.toUpperCase(),
+      theme: this.props.theme || 'light',
+      snd: s.prev || cur, ping: s.ping,
+      word: word, posN: Math.round(pos * 100),
+      stockL: (stock * 100).toFixed(1) + '%',
+      ticks: Array.from({ length: n }, (_, i) => ({ h: i === on ? 22 : 8 + Math.round(i / (n - 1) * 8), c: i === on ? '#F16B53' : i < on ? '#FFFDF5' : 'transparent' })),
+      countLabel: applied + ' of 6 mods applied',
+      play: () => this.setState({ ping: s.ping + 1 }),
+      reset: () => this.setState({ m: Object.assign({}, STOCK) }),
+      mods: MODS.map((x) => {
+        const isOn = x.levels ? m[x.key] > 0 : !!m[x.key];
+        const off = Object.assign({}, m); off[x.key] = x.levels ? 0 : false;
+        const onM = Object.assign({}, m); onM[x.key] = x.levels ? Math.max(1, m[x.key]) : true;
+        return {
+          title: x.title, desc: x.desc, impact: x.impact, on: isOn,
+          hasToggle: !x.levels, levels: x.levels || null, level: x.levels ? m[x.key] : 0,
+          toggle: (v) => this.set(x.key, v),
+          setLevel: (i) => this.set(x.key, i),
+          before: () => this.preview(modSound(off)),
+          after: () => this.preview(modSound(onM))
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

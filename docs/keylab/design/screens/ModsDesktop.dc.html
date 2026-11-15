@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Mods workshop (desktop)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Nunito:wght@700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.kl{--bg:#FFFDF5;--surface:#FFFFFF;--surface2:#FFF1C7;--text:#000000;--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--indigo:#2C2A5A;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.kl[data-theme="dark"]{--bg:#1E1C3F;--surface:#2C2A5A;--surface2:#3A3870;--text:#FFFDF5}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc.primary{background:var(--lime);min-height:54px;font-size:16px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc.coral{background:var(--coral)}
+.kc:focus-visible,.sl:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.stage{background:var(--sky);color:#000;border:3px solid #000;box-shadow:7px 7px 0 #000}
+.padctl{position:absolute;top:16px;right:16px;z-index:3;display:flex;align-items:center;gap:8px}
+.padtray{display:flex;gap:6px;padding:5px;border:2.5px solid #000;background:#FFFDF5;box-shadow:3px 3px 0 #000;animation:padin 170ms cubic-bezier(.3,1.3,.5,1)}
+@keyframes padin{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.padtray{animation:none}.padtog svg{transition:none}}
+.padsw{width:36px;height:36px;margin:0;padding:0;cursor:pointer;border:2.5px solid #000;border-radius:0;box-shadow:2px 2px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.padsw[aria-checked="true"]{transform:translate(2px,2px);box-shadow:0 0 0 #000;outline:3px solid #000;outline-offset:2px}
+.padsw:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.padtog{appearance:none;margin:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 10px 0 6px;border:2.5px solid #000;border-radius:0;background:#FFFDF5;color:#000;font:inherit;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.padtog:hover{background:#FFF1C7}
+.padtog:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.padtog[aria-expanded="true"]{background:var(--acc)}
+.padtog:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.padtog-sw{width:28px;height:28px;border:2px solid #000}
+.padtog svg{transition:transform 170ms ease}
+.lbl{font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;margin:0}
+.h1{font-size:52px;line-height:46px;font-weight:900;letter-spacing:-.055em;margin:0}
+.sticker{display:inline-flex;align-items:center;padding:1px 6px;border:2px solid #000;background:var(--acc);color:#000;font-size:10px;line-height:14px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.side{background:#FFFFFF;color:#000;border-right:3px solid #000}
+.sl{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 12px;border:2.5px solid transparent;color:#000;text-decoration:none;font-size:15px;font-weight:800;flex:1 1 180px}
+.sl:hover{border-color:#000;background:var(--surface2)}
+.sl.on{background:var(--acc);border-color:#000;box-shadow:3px 3px 0 #000}
+.mel{display:flex;align-items:center;gap:10px;min-height:54px;padding:6px 8px;border:2.5px solid #000;background:#FFFFFF;color:#000;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.mel:hover{background:#FFF1C7}
+.mel:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.mel:focus-visible{outline:3px solid #F16B53;outline-offset:3px}
+</style>
+</helmet>
+<div class="kl" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-wrap: wrap">
+  <aside class="side" style="flex: 1 1 236px; padding: 20px 16px; display: flex; flex-direction: column; gap: 24px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span aria-hidden="true" style="width: 36px; height: 36px; border: 3px solid #000; background: var(--acc); box-shadow: 3px 3px 0 #000; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 17px">K</span>
+      <span style="font-weight: 900; font-size: 24px; letter-spacing: -0.05em">KEYLAB</span>
+    </div>
+    <nav aria-label="Primary" style="display: flex; flex-wrap: wrap; gap: 6px">
+      <a class="sl" href="HomeDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M6 10h1M10 10h1M14 10h1M18 10h1M7 14h10"></path></svg>Build</a>
+      <a class="sl" href="SwitchesDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M12 2.5v7M8.5 6h7"></path><rect x="4.5" y="11" width="15" height="9.5"></rect></svg>Switches</a>
+      <a class="sl on" href="ModsDesktop.dc.html" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"></path><rect x="13" y="5" width="4" height="4"></rect><rect x="7" y="15" width="4" height="4"></rect></svg>Mods</a>
+      <a class="sl" href="KeycapsDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M3.5 19.5h17L18 6H6z"></path><path d="M9 10.5h6"></path></svg>Keycaps</a>
+      <a class="sl" href="CaseDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><rect x="2.5" y="7" width="19" height="10"></rect><path d="M2.5 12.5h19"></path></svg>Case &amp; plate</a>
+      <a class="sl" href="PlaygroundDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M3 12h2l2-6 3 12 3-9 2 5 2-2h4"></path></svg>Playground</a>
+      <a class="sl" href="BuildsDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6.5 3.5h11v17l-5.5-3.8-5.5 3.8z"></path></svg>My builds</a>
+    </nav>
+    <div style="margin-top: auto; border: 3px solid #000; background: var(--indigo); color: #FFFDF5; padding: 12px; display: flex; flex-direction: column; gap: 4px; box-shadow: 4px 4px 0 #000">
+      <span class="lbl" style="color: var(--acc)">Current build</span>
+      <span style="font-size: 16px; font-weight: 900; letter-spacing: -0.02em">Night Thock 65</span>
+      <span class="mono" style="font-size: 11px">65% · MILK YELLOW · {{applied}} MODS</span>
+    </div>
+      <div style="margin-top: 0; padding-top: 16px; border-top: 3px solid #000; display: flex; flex-direction: column; gap: 8px">
+      <a class="mel" href="ProfileDesktop.dc.html" aria-label="Your profile, Thockwise, @thockwise"><span aria-hidden="true" style="flex: none; width: 38px; height: 38px; border: 2.5px solid #000; background: #FFD24D; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; letter-spacing: -0.03em">TW</span><span style="display: flex; flex-direction: column; min-width: 0"><span style="font-weight: 900; font-size: 15px">Thockwise</span><span class="mono" style="font-size: 11px; font-weight: 700">@thockwise</span></span></a>
+      <a class="sl" href="AccountDesktop.dc.html" style="flex: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><rect x="9" y="9" width="6" height="6"></rect><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"></path></svg> Settings</a>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 30px 34px 40px; display: flex; flex-direction: column; gap: 28px">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; padding-bottom: 18px; border-bottom: 3px solid #000">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <h1 class="h1">Mods workshop</h1>
+        <p style="margin: 0; font-size: 15px; font-weight: 600">Toggle a mod and every key you press uses the new sound. Before / After plays one key each way.</p>
+      </div>
+      <div style="display: flex; gap: 14px">
+        <button type="button" class="kc" style="min-height: 54px" onClick="{{reset}}">Reset to stock</button>
+        <a class="kc primary" href="KeycapsDesktop.dc.html">Next: keycaps
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"></path></svg>
+        </a>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 28px">
+      <section aria-label="Preview on desk pad" class="stage" style="position: relative; flex: 999 1 620px; min-width: 0; padding: 76px 24px 24px; display: flex; flex-direction: column; gap: 16px; background: {{pad.bg}}">
+        <span aria-hidden="true" style="position: absolute; inset: 9px; border: 2px dashed {{pad.stitch}}; pointer-events: none"></span>
+        <div class="padctl">
+          <sc-if value="{{padOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="padtray" role="radiogroup" aria-label="Desk pad">
+              <sc-for list="{{pads}}" as="d" hint-placeholder-count="7">
+                <button type="button" role="radio" class="padsw" aria-checked="{{d.on}}" aria-label="{{d.name}}" title="{{d.name}}" onClick="{{d.pick}}" style="background: {{d.bg}}"></button>
+              </sc-for>
+            </div>
+          </sc-if>
+          <button type="button" class="padtog" aria-expanded="{{padOpenAttr}}" aria-label="Desk pad: {{pad.name}}" title="Desk pad · {{pad.name}}" onClick="{{togglePad}}">
+            <span aria-hidden="true" class="padtog-sw" style="background: {{pad.bg}}"></span>
+            <span class="lbl">Pad</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true" style="transform: {{padChev}}"><path d="M15 5l-7 7 7 7"></path></svg>
+          </button>
+        </div>
+        <div style="position: relative; overflow-x: auto; display: flex; justify-content: center">
+          <dc-import name="Keyboard" layout="65" width="660" sound="{{snd}}" ping-seq="{{ping}}" plate="brass" hint-size="660px,290px"></dc-import>
+        </div>
+        <div style="position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px 14px 10px; border: 3px solid #000; background: var(--sky); color: #000">
+          <div style="display: flex; align-items: center; justify-content: space-between">
+            <span class="lbl">Sound meter</span>
+            <span class="sticker" style="background: #FFFDF5; font-size: 12px">{{word}}</span>
+          </div>
+          <div role="meter" aria-label="Sound profile, from bright to deep" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{posN}}" style="position: relative; height: 32px; display: flex; align-items: flex-end; gap: 4px">
+            <sc-for list="{{ticks}}" as="t" hint-placeholder-count="40">
+              <span style="flex: 1; height: {{t.h}}px; background: {{t.c}}; border: 2px solid #000"></span>
+            </sc-for>
+            <span aria-hidden="true" style="position: absolute; top: -5px; bottom: -5px; left: {{stockL}}; width: 5px; margin-left: -2.5px; background: #000"></span>
+          </div>
+          <div class="mono" style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700"><span>HIGHER · BRIGHTER</span><span>| = STOCK</span><span>DEEPER · MUTED</span></div>
+        </div>
+      </section>
+
+      <section aria-labelledby="shift-h" style="flex: 1 1 300px; min-width: 0; border: 3px solid #000; background: #FFFFFF; color: #000; padding: 18px; display: flex; flex-direction: column; gap: 14px; box-shadow: 7px 7px 0 #000">
+        <h2 id="shift-h" style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.045em">Sound shift</h2>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+          <button type="button" class="kc" style="min-height: 66px; flex-direction: column; gap: 2px" onClick="{{playStock}}"><span class="lbl">Stock</span><span style="display: flex; align-items: center; gap: 6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg>Play</span></button>
+          <button type="button" class="kc coral" style="min-height: 66px; flex-direction: column; gap: 2px" onClick="{{play}}"><span class="lbl">With mods</span><span style="display: flex; align-items: center; gap: 6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg>Play</span></button>
+        </div>
+        <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border: 2.5px solid #000">
+          <sc-for list="{{shifts}}" as="x" hint-placeholder-count="3">
+            <li style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-bottom: 2px solid #000">
+              <span style="font-size: 14px; font-weight: 800">{{x.name}}</span>
+              <span class="mono" style="font-size: 11px; font-weight: 700; padding: 1px 6px; background: var(--lime); border: 2px solid #000">{{x.impact}}</span>
+            </li>
+          </sc-for>
+        </ul>
+        <sc-if value="{{none}}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; font-size: 14px; font-weight: 600">No mods yet. This is how the switch sounds out of the box.</p>
+        </sc-if>
+      </section>
+    </div>
+
+    <section aria-labelledby="mods-h" style="display: flex; flex-direction: column; gap: 14px">
+      <h2 id="mods-h" class="lbl">{{countLabel}}</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 20px; align-items: start">
+        <sc-for list="{{mods}}" as="m" hint-placeholder-count="6">
+          <dc-import name="ToggleCard" title="{{m.title}}" desc="{{m.desc}}" impact="{{m.impact}}" on="{{m.on}}" has-toggle="{{m.hasToggle}}" levels="{{m.levels}}" level="{{m.level}}" on-toggle="{{m.toggle}}" on-level="{{m.setLevel}}" on-before="{{m.before}}" on-after="{{m.after}}" hint-size="100%,190px"></dc-import>
+        </sc-for>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1190}}'>
+const BASE = { pitch: 520, bright: .25, decay: 70, thump: .9, vol: .7 };
+const PADS = [
+  { id: 'sky', name: 'Sky', stitch: 'rgba(0,0,0,.35)', bg: '#99D6FF' },
+  { id: 'splash', name: 'Splash', stitch: 'rgba(255,253,245,.55)', bg: 'radial-gradient(circle at 10% 20%, #F16B53 0 30px, transparent 31px) 0 0/100% 100%, radial-gradient(circle at 88% 78%, #F16B53 0 46px, transparent 47px) 0 0/100% 100%, radial-gradient(circle at 72% 14%, #FFD24D 0 12px, transparent 13px) 0 0/100% 100%, linear-gradient(115deg, transparent 0 60%, #3A3870 60% 76%, transparent 76%) 0 0/100% 100%, #2C2A5A' },
+  { id: 'grid', name: 'Grid', stitch: 'rgba(0,0,0,.35)', bg: 'linear-gradient(transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/28px 28px, linear-gradient(90deg, transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/28px 28px, #FFFDF5' },
+  { id: 'dots', name: 'Dots', stitch: 'rgba(0,0,0,.35)', bg: 'radial-gradient(circle, #000 0 2.5px, transparent 3px) 0 0/22px 22px, #FFD24D' },
+  { id: 'stripes', name: 'Stripes', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-linear-gradient(135deg, #C6F079 0 20px, #B2DE63 20px 40px)' },
+  { id: 'checker', name: 'Checker', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-conic-gradient(#FFFDF5 0 25%, #EFE6CD 0 50%) 0 0/36px 36px' },
+  { id: 'walnut', name: 'Walnut desk', stitch: 'rgba(255,253,245,.45)', bg: 'repeating-linear-gradient(92deg, #8A5E3C 0 9px, #7A5233 9px 20px, #93663F 20px 27px)' }
+];
+const STOCK = { lube: 0, foam: false, pe: false, stabs: false, orings: false, spring: 0 };
+const START = { lube: 1, foam: true, pe: false, stabs: true, orings: false, spring: 0 };
+function modSound(m) {
+  let p = BASE.pitch, b = BASE.bright, d = BASE.decay, t = BASE.thump, v = BASE.vol;
+  p *= [1, .9, .82][m.lube]; b -= [0, .08, .15][m.lube]; d *= [1, .92, .85][m.lube];
+  if (m.foam) { d *= .72; p *= .94; t *= 1.15; }
+  if (m.pe) { p *= 1.28; b += .18; t *= .8; d *= .85; }
+  if (m.stabs) { b -= .05; }
+  if (m.orings) { v *= .7; d *= .65; p *= .88; }
+  p *= [1, .97, 1.04][m.spring];
+  return { pitch: p, bright: Math.max(0, Math.min(1, b)), decay: d, thump: Math.min(1.2, t), vol: v };
+}
+function meterPos(s) {
+  const x = .15 + .85 * (1 - Math.log(s.pitch / 300) / Math.log(6)) - s.bright * .25 + (1 - s.vol) * .3;
+  return Math.max(0, Math.min(1, x));
+}
+const MODS = [
+  { key: 'lube', title: 'Lube', levels: ['None', 'Light', 'Heavy'], impact: 'smoother · deeper', desc: 'Lubing stems and springs smooths the stroke and rounds off scratchy, high-pitched noise.' },
+  { key: 'foam', title: 'Case foam', impact: 'deeper · less echo', desc: 'Fills the hollow under the PCB. Cuts ping and echo for a tighter, deeper sound.' },
+  { key: 'pe', title: 'PE foam / tape mod', impact: 'poppier · brighter', desc: 'A thin layer between PCB and switches. Makes the sound poppier and more marbly.' },
+  { key: 'stabs', title: 'Stabilizer tuning', impact: 'no rattle', desc: 'Clipped, lubed stabilizers stop rattle on the spacebar, shift and enter.' },
+  { key: 'orings', title: 'O-rings', impact: 'quieter · shorter', desc: 'Rubber rings under the keycaps shorten travel and soften the bottom-out.' },
+  { key: 'spring', title: 'Spring swap', levels: ['Stock', 'Lighter', 'Heavier'], impact: 'feel · weight', desc: 'Change the weight of every press. Lighter is faster; heavier gives a fuller return.' }
+];
+
+class Component extends DCLogic {
+  state = { m: Object.assign({}, START), prev: null, ping: 0, pad: 'sky', padOpen: false };
+  preview(snd) {
+    clearTimeout(this.tm);
+    this.setState({ prev: snd, ping: this.state.ping + 1 });
+    this.tm = setTimeout(() => this.setState({ prev: null }), 380);
+  }
+  componentWillUnmount() { clearTimeout(this.tm); clearTimeout(this.pt); }
+  set(key, val) { const m = Object.assign({}, this.state.m); m[key] = val; this.setState({ m: m }); clearTimeout(this.pt); this.pt = setTimeout(() => this.setState({ ping: this.state.ping + 1 }), 60); }
+
+  renderVals() {
+    const s = this.state, m = s.m;
+    const cur = modSound(m);
+    const pos = meterPos(cur), stock = meterPos(modSound(STOCK));
+    const n = 40, on = Math.round(pos * (n - 1));
+    const active = MODS.filter((x) => x.levels ? m[x.key] > 0 : m[x.key]);
+    return {
+      padOpen: s.padOpen, padOpenAttr: String(s.padOpen), padChev: s.padOpen ? 'rotate(180deg)' : 'none',
+      togglePad: () => this.setState({ padOpen: !this.state.padOpen }),
+      pad: PADS.find((d) => d.id === s.pad) || PADS[0],
+      pads: PADS.map((d) => ({ name: d.name, bg: d.bg, on: String(d.id === s.pad), pick: () => this.setState({ pad: d.id }) })),
+      theme: this.props.theme || 'light',
+      snd: s.prev || cur, ping: s.ping, applied: active.length,
+      word: pos < .3 ? 'Bright & poppy' : pos < .5 ? 'Balanced' : pos < .72 ? 'Deep & rounded' : 'Deep & muted',
+      posN: Math.round(pos * 100), stockL: (stock * 100).toFixed(1) + '%',
+      ticks: Array.from({ length: n }, (_, i) => ({ h: i === on ? 32 : 10 + Math.round(i / (n - 1) * 12), c: i === on ? '#F16B53' : i < on ? '#FFFDF5' : 'transparent' })),
+      countLabel: active.length + ' of 6 mods applied',
+      shifts: active.map((x) => ({ name: x.levels ? x.levels[m[x.key]] + ' ' + x.title.toLowerCase() : x.title, impact: x.impact })),
+      none: active.length === 0,
+      play: () => this.setState({ ping: s.ping + 1 }),
+      playStock: () => this.preview(modSound(STOCK)),
+      reset: () => this.setState({ m: Object.assign({}, STOCK) }),
+      mods: MODS.map((x) => {
+        const isOn = x.levels ? m[x.key] > 0 : !!m[x.key];
+        const off = Object.assign({}, m); off[x.key] = x.levels ? 0 : false;
+        const onM = Object.assign({}, m); onM[x.key] = x.levels ? Math.max(1, m[x.key]) : true;
+        return {
+          title: x.title, desc: x.desc, impact: x.impact, on: isOn,
+          hasToggle: !x.levels, levels: x.levels || null, level: x.levels ? m[x.key] : 0,
+          toggle: (v) => this.set(x.key, v), setLevel: (i) => this.set(x.key, i),
+          before: () => this.preview(modSound(off)), after: () => this.preview(modSound(onM))
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

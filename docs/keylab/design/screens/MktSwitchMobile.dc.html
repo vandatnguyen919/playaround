@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Milk Yellow switch (mobile)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+.kl{--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--ink:#2C2A5A;--sun:#FFF1C7;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:#000;background:#FFFDF5;-webkit-font-smoothing:antialiased}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.wrap{padding:0 16px}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc[aria-checked="true"]{background:var(--acc)}
+.kc.primary{background:var(--lime);min-height:56px;font-size:17px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.play{background:var(--coral);min-height:56px;font-size:17px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active,.kc.play:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc.sm{padding:0 10px;font-size:13px}
+.kc:focus-visible,.dl:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.lbl{margin:0;font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900}
+.tag{display:inline-flex;align-items:center;padding:2px 7px;border:2px solid #000;font-size:10px;line-height:14px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.h1{margin:0;font-size:48px;line-height:44px;font-weight:900;letter-spacing:-.06em}
+.h2{margin:0;font-size:24px;line-height:26px;font-weight:900;letter-spacing:-.045em}
+.specs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin:0;border:2.5px solid #000}
+.specs dt,.specs dd{margin:0;padding:10px;border-bottom:2px solid #000}
+.specs dt{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;background:#FFFDF5;border-right:2px solid #000}
+.specs dd{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;background:#FFFFFF}
+.rail{display:flex;gap:14px;overflow-x:auto;padding:2px 16px 12px;margin:0 -16px;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.rail>*{flex:none}
+.dl{display:flex;align-items:center;justify-content:space-between;min-height:44px;padding:0 10px;border:2.5px solid #000;border-top:0;background:#FFFDF5;font-size:13px;font-weight:900;text-decoration:none}
+</style>
+</helmet>
+<div class="kl" style="width: 390px">
+  <dc-import name="MktNav" mobile="{{ true }}" active="switches" hint-size="390px,70px"></dc-import>
+  <main>
+    <section aria-labelledby="sw-h" style="border-bottom: 3px solid #000">
+      <div class="wrap" style="padding-top: 18px; padding-bottom: 32px; display: flex; flex-direction: column; gap: 14px">
+        <a href="MktLibraryMobile.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 800">← Switch library</a>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="tag" style="background: var(--ink); color: #FFFFFF">Linear</span><span class="tag" style="background: var(--sky)">Deep</span><dc-import name="StatusBadge" status="recorded" hint-size="96px,22px"></dc-import></div>
+        <h1 id="sw-h" class="h1">MILK YELLOW</h1>
+        <p style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 500">A smooth, full-bodied linear with a low, rounded thock.</p>
+        <div style="border: 3px solid #000; background: var(--sky); box-shadow: 5px 5px 0 #000; padding: 14px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; gap: 12px; align-items: flex-start">
+            <div style="width: 150px; flex: none"><dc-import name="SwitchCard" sw="{{sw}}" play-seq="{{seq}}" hint-size="150px,236px"></dc-import></div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 8px">
+              <span id="mvm-h" class="lbl">Mod variant</span>
+              <div role="radiogroup" aria-labelledby="mvm-h" style="display: flex; flex-direction: column; gap: 8px"><sc-for list="{{variants}}" as="o" hint-placeholder-count="3"><button type="button" role="radio" class="kc sm" aria-checked="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</button></sc-for></div>
+            </div>
+          </div>
+          <div style="border: 2.5px solid #000; background: #FFFDF5; padding: 8px 10px"><dc-import name="Waveform" profile="{{prof}}" height="48" seed="{{seed}}" hint-size="100%,66px"></dc-import></div>
+          <button type="button" class="kc play" onClick="{{play}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg>Play press + release</button>
+        </div>
+        <a class="kc primary" href="Main.dc.html">Use in a build</a>
+      </div>
+    </section>
+    <section aria-labelledby="spec-h" style="border-bottom: 3px solid #000; background: var(--sun)">
+      <div class="wrap" style="padding-top: 32px; padding-bottom: 36px; display: flex; flex-direction: column; gap: 14px">
+        <h2 class="h2">Force curve</h2>
+        <div style="border: 3px solid #000; background: #FFFFFF; box-shadow: 5px 5px 0 #000; padding: 12px"><dc-import name="ForceCurve" curve="linear" force="50" act="2" total="4" height="170" hint-size="100%,200px"></dc-import></div>
+        <h2 id="spec-h" class="h2">Specs</h2>
+        <dl class="specs">
+          <dt>Type</dt><dd>Linear</dd>
+          <dt>Actuation</dt><dd>50 g · 2.0 mm</dd>
+          <dt>Total travel</dt><dd>4.0 mm</dd>
+          <dt>Spring</dt><dd>18 mm</dd>
+          <dt>Housing</dt><dd>Milky</dd>
+          <dt style="border-bottom: 0">Recordings</dt><dd style="border-bottom: 0">Stock · lubed · foam</dd>
+        </dl>
+      </div>
+    </section>
+    <section aria-labelledby="rel-h" style="border-bottom: 3px solid #000">
+      <div class="wrap" style="padding-top: 32px; padding-bottom: 40px; display: flex; flex-direction: column; gap: 14px">
+        <h2 id="rel-h" class="h2">SOUNDS SIMILAR</h2>
+        <ul class="rail" style="list-style: none">
+          <sc-for list="{{related}}" as="r" hint-placeholder-count="4"><li style="width: 170px; display: flex; flex-direction: column"><dc-import name="SwitchCard" sw="{{r}}" hint-size="100%,236px"></dc-import><a class="dl" href="MktSwitchMobile.dc.html">Details<span aria-hidden="true">→</span></a></li></sc-for>
+        </ul>
+      </div>
+    </section>
+  </main>
+  <dc-import name="MktFooter" mobile="{{ true }}" hint-size="390px,560px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2350}}'>
+const MILK = { id: 'milk', name: 'Milk Yellow', type: 'Linear', stem: '#E9C46A', housing: 'milky', force: 50, act: 2.0, total: 4.0, prof: 'Deep', snd: { pitch: 520, bright: .25, decay: 70, thump: .9, vol: .7 } };
+const VARIANTS = [
+  { id: 'stock', label: 'Stock', prof: 'Deep', seed: 5, snd: { pitch: 520, bright: .25, decay: 70, thump: .9, vol: .7 } },
+  { id: 'lubed', label: 'Lubed', prof: 'Deep', seed: 13, snd: { pitch: 470, bright: .18, decay: 64, thump: .95, vol: .68 } },
+  { id: 'foam', label: 'Foam', prof: 'Muted', seed: 21, snd: { pitch: 440, bright: .14, decay: 48, thump: 1, vol: .64 } }
+];
+const RELATED = [
+  { id: 'ink', name: 'Ink Black', type: 'Linear', stem: '#2A2E38', housing: 'smoke', force: 60, act: 2.0, total: 4.0, prof: 'Deep', snd: { pitch: 430, bright: .18, decay: 82, thump: 1, vol: .72 } },
+  { id: 'red', name: 'Classic Red', type: 'Linear', stem: '#D64545', housing: 'clear', box: true, force: 45, act: 2.0, total: 4.0, prof: 'Poppy', snd: { pitch: 880, bright: .45, decay: 55, thump: .55, vol: .65 } },
+  { id: 'brown', name: 'Bump Brown', type: 'Tactile', stem: '#7A4E2D', housing: 'amber', force: 55, act: 2.0, total: 4.0, prof: 'Muted', snd: { pitch: 640, bright: .3, decay: 58, thump: .6, vol: .55 } },
+  { id: 'hushr', name: 'Hush Red', type: 'Silent', stem: '#E07A7A', housing: 'smoke', force: 45, act: 1.9, total: 3.7, prof: 'Muted', snd: { pitch: 380, bright: .08, decay: 34, thump: .4, vol: .28 } }
+];
+class Component extends DCLogic {
+  state = { variant: 'stock', seq: 0 };
+  renderVals() {
+    const s = this.state, v = VARIANTS.find((x) => x.id === s.variant) || VARIANTS[0];
+    return {
+      sw: Object.assign({}, MILK, { snd: v.snd }), seq: s.seq, prof: v.prof, seed: v.seed,
+      variants: VARIANTS.map((o) => ({ label: o.label, on: String(o.id === s.variant), pick: () => this.setState({ variant: o.id, seq: this.state.seq + 1 }) })),
+      play: () => this.setState({ seq: this.state.seq + 1 }),
+      related: RELATED
+    };
+  }
+}
+</script>
+</body>
+</html>

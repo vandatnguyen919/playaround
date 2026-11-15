@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Switch card</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<sc-if value="{{loading}}" hint-placeholder-val="{{ false }}">
+  <div aria-label="Loading switch" style="width: 100%; height: 236px; box-sizing: border-box; border: 3px solid #000; background: #FFFFFF; box-shadow: 4px 4px 0 #000; display: flex; flex-direction: column; font-family: 'Archivo', system-ui, sans-serif">
+    <div style="height: 128px; flex: none; background: #FFFDF5; border-bottom: 3px solid #000; display: flex; align-items: center; justify-content: center">
+      <div style="width: 72px; height: 72px; border: 3px dashed #000; background: repeating-linear-gradient(45deg, #FFF1C7 0 8px, #FFFDF5 8px 16px)"></div>
+    </div>
+    <div style="padding: 12px; display: flex; flex-direction: column; gap: 8px">
+      <div style="width: 70%; height: 14px; background: #000"></div>
+      <div style="width: 45%; height: 10px; background: #C9C4B4"></div>
+      <div style="width: 55%; height: 10px; background: #C9C4B4"></div>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
+  <button type="button" aria-pressed="{{pressedAttr}}" aria-label="{{aria}}" onPointerDown="{{down}}" onPointerUp="{{up}}" onPointerLeave="{{leave}}" onClick="{{click}}" style="width: 100%; height: 236px; box-sizing: border-box; appearance: none; border: 3px solid #000; border-radius: 0; padding: 0; margin: 0; cursor: pointer; text-align: left; overflow: hidden; background: #FFFFFF; color: #000; box-shadow: {{shadow}}; transform: {{tf}}; transition: transform 70ms ease, box-shadow 70ms ease; display: flex; flex-direction: column; font-family: 'Archivo', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; touch-action: manipulation">
+    <span style="position: relative; flex: none; display: flex; align-items: center; justify-content: center; height: 128px; width: 100%; box-sizing: border-box; background: #FFFDF5; border-bottom: 3px solid #000">
+      <svg width="100" height="100" viewBox="0 0 120 120" aria-hidden="true">
+        <rect x="18" y="18" width="96" height="96" rx="10" fill="#000"></rect>
+        <rect x="7" y="46" width="8" height="28" rx="1" fill="{{hEdge}}" stroke="#000" stroke-width="1.5"></rect>
+        <rect x="105" y="46" width="8" height="28" rx="1" fill="{{hEdge}}" stroke="#000" stroke-width="1.5"></rect>
+        <rect x="12" y="12" width="96" height="96" rx="10" fill="{{hBot}}" stroke="#000" stroke-width="2.5"></rect>
+        <rect x="19" y="17" width="82" height="84" rx="7" fill="{{hTop}}" stroke="{{hStroke}}" stroke-width="1.2"></rect>
+        <rect x="54" y="18.5" width="12" height="5" rx="1" fill="#C98A55" stroke="#000" stroke-width="1"></rect>
+        <rect x="33" y="88" width="22" height="6" rx="1" fill="{{slot}}"></rect>
+        <rect x="65" y="88" width="22" height="6" rx="1" fill="{{slot}}"></rect>
+        <rect x="{{sqX}}" y="{{sqX}}" width="{{sqS}}" height="{{sqS}}" rx="{{sqR}}" fill="{{stem}}" stroke="#000" stroke-width="2"></rect>
+        <rect x="56" y="{{crA}}" width="8" height="{{crL}}" rx="1" fill="{{cross}}"></rect>
+        <rect x="{{crA}}" y="56" width="{{crL}}" height="8" rx="1" fill="{{cross}}"></rect>
+      </svg>
+      <span style="position: absolute; left: 6px; top: 6px; padding: 2px 6px; border: 2px solid #000; font-size: 10px; line-height: 13px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; background: {{tagBg}}; color: {{tagFg}}">{{type}}</span>
+      <sc-if value="{{compare}}" hint-placeholder-val="{{ false }}">
+        <span aria-hidden="true" style="position: absolute; right: 6px; top: 6px; width: 26px; height: 26px; box-sizing: border-box; border: 2.5px solid #000; display: flex; align-items: center; justify-content: center; background: {{chkBg}}; box-shadow: 2px 2px 0 #000; color: #000">
+          <sc-if value="{{checked}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="square"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+        </span>
+      </sc-if>
+      <sc-if value="{{playing}}" hint-placeholder-val="{{ false }}">
+        <span aria-hidden="true" style="position: absolute; right: 6px; bottom: 6px; height: 24px; padding: 0 7px; background: #000; display: flex; align-items: center; gap: 2px">
+          <span style="width: 3px; height: 8px; background: #FFD24D"></span>
+          <span style="width: 3px; height: 14px; background: #FFD24D"></span>
+          <span style="width: 3px; height: 6px; background: #FFD24D"></span>
+          <span style="width: 3px; height: 11px; background: #FFD24D"></span>
+        </span>
+      </sc-if>
+      <sc-if value="{{nosound}}" hint-placeholder-val="{{ false }}">
+        <span style="position: absolute; left: 0; right: 0; bottom: 0; height: 26px; background: #000; color: #FFFDF5; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"></path><path d="M17 9l4 6M21 9l-4 6"></path></svg>
+          No sound yet
+        </span>
+      </sc-if>
+    </span>
+    <span style="flex: 1; padding: 9px 11px 10px; display: flex; flex-direction: column; gap: 3px; width: 100%; box-sizing: border-box; background: {{bodyBg}}">
+      <span style="display: flex; align-items: center; justify-content: space-between; gap: 6px">
+        <span style="font-size: 15px; line-height: 19px; font-weight: 900; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{name}}</span>
+        <span aria-hidden="true" style="flex: none; width: 12px; height: 12px; box-sizing: border-box; background: {{stem}}; border: 2px solid #000"></span>
+      </span>
+      <span style="font-family: 'Space Mono', ui-monospace, monospace; font-size: 11px; line-height: 15px">{{spec}}</span>
+      <span style="font-size: 12px; line-height: 16px; font-weight: 600; color: #333">{{hint}}</span>
+    </span>
+  </button>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"sw":{"editor":null},"selected":{"editor":"boolean","default":false},"compare":{"editor":"boolean","default":false},"checked":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["default","loading"],"default":"default"},"playSeq":{"editor":null},"onPick":{"editor":null},"$preview":{"width":184,"height":236}}'>
+function scShade(hex, amt) {
+  let h = String(hex || '#888888').replace('#', '');
+  return '#' + [0, 2, 4].map(function (i) {
+    const c = parseInt(h.slice(i, i + 2), 16);
+    const v = Math.round(amt < 0 ? c * (1 + amt) : c + (255 - c) * amt);
+    return Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0');
+  }).join('');
+}
+const SC_HOUSING = {
+  clear: { top: 'rgba(236,241,247,.78)', bot: 'rgba(205,214,226,.95)', stroke: '#7E8A9B', edge: '#8E9AAB' },
+  milky: { top: '#F3F0EA', bot: '#E4DED2', stroke: '#9E9583', edge: '#B8AF9E' },
+  smoke: { top: 'rgba(74,80,92,.85)', bot: '#3B404B', stroke: '#1A1C21', edge: '#23262D' },
+  amber: { top: 'rgba(150,104,60,.82)', bot: '#6E4D30', stroke: '#3A2716', edge: '#4A3220' },
+  ice: { top: 'rgba(196,214,244,.85)', bot: '#AFC3E6', stroke: '#5F79A6', edge: '#7F95BD' },
+  teal: { top: 'rgba(86,196,204,.85)', bot: '#3FA5B1', stroke: '#1E6A73', edge: '#2A7781' }
+};
+const SC_TAG = {
+  Linear: { bg: '#2C2A5A', fg: '#FFFFFF' },
+  Tactile: { bg: '#FFD24D', fg: '#000000' },
+  Clicky: { bg: '#99D6FF', fg: '#000000' },
+  Silent: { bg: '#FFFFFF', fg: '#000000' }
+};
+const SC_DEFAULT = { id: 'milk', name: 'Milk Yellow', type: 'Linear', stem: '#E9C46A', housing: 'milky', force: 50, act: 2.0, total: 4.0, prof: 'Deep', snd: { pitch: 520, bright: .25, decay: 70, thump: .9, vol: .7 } };
+
+class Component extends DCLogic {
+  state = { down: false, playing: false };
+
+  play(up) {
+    const sw = this.props.sw || SC_DEFAULT;
+    const s = sw.snd || {};
+    if (s.none || sw.nosound) return;
+    try {
+      if (!this.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; this.ctx = new AC(); }
+      const ctx = this.ctx; if (ctx.state === 'suspended') ctx.resume();
+      const t = ctx.currentTime + .002, vol = (s.vol == null ? .65 : s.vol) * (up ? .42 : 1) * .8;
+      const n = Math.floor(ctx.sampleRate * .08), buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 4);
+      const src = ctx.createBufferSource(); src.buffer = buf;
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = s.pitch * (up ? 1.5 : 1); bp.Q.value = .8 + (s.bright || 0) * 3;
+      const g = ctx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0008, t + (s.decay || 60) / 1000 * (up ? .7 : 1));
+      src.connect(bp); bp.connect(g); g.connect(ctx.destination); src.start(t); src.stop(t + .09);
+      const o = ctx.createOscillator(); o.frequency.setValueAtTime(s.pitch * .32 * (up ? 1.3 : 1), t); o.frequency.exponentialRampToValueAtTime(Math.max(40, s.pitch * .18), t + .06);
+      const og = ctx.createGain(); og.gain.setValueAtTime(vol * (s.thump == null ? .5 : s.thump) * .9, t); og.gain.exponentialRampToValueAtTime(.0008, t + .08);
+      o.connect(og); og.connect(ctx.destination); o.start(t); o.stop(t + .09);
+      if (s.click && !up) {
+        const c = ctx.createOscillator(); c.type = 'square'; c.frequency.value = 2900;
+        const cg = ctx.createGain(); cg.gain.setValueAtTime(vol * .22, t + .003); cg.gain.exponentialRampToValueAtTime(.0005, t + .018);
+        c.connect(cg); cg.connect(ctx.destination); c.start(t); c.stop(t + .03);
+      }
+    } catch (e) {}
+    this.setState({ playing: true });
+    clearTimeout(this.pt); this.pt = setTimeout(() => this.setState({ playing: false }), 520);
+  }
+
+  componentDidUpdate(prev) {
+    if (this.props.playSeq !== prev.playSeq && this.props.playSeq) {
+      this.play(false);
+      clearTimeout(this.rt); this.rt = setTimeout(() => this.play(true), 160);
+    }
+  }
+  componentWillUnmount() { clearTimeout(this.pt); clearTimeout(this.rt); }
+
+  renderVals() {
+    const p = this.props, sw = p.sw || SC_DEFAULT;
+    const H = SC_HOUSING[sw.housing] || SC_HOUSING.clear;
+    const T = SC_TAG[sw.type] || SC_TAG.Linear;
+    const sel = !!p.selected;
+    const nos = !!(sw.nosound || (sw.snd && sw.snd.none));
+    const hx = String(sw.stem || '#888888').replace('#', '');
+    const lightStem = (parseInt(hx.slice(0, 2), 16) + parseInt(hx.slice(2, 4), 16) + parseInt(hx.slice(4, 6), 16)) / 3 > 170;
+    const box = !!sw.box;
+    const down = this.state.down;
+    return {
+      loading: p.state === 'loading', ready: p.state !== 'loading',
+      name: sw.name, type: sw.type, stem: sw.stem,
+      hTop: H.top, hBot: H.bot, hStroke: H.stroke, hEdge: H.edge,
+      slot: (sw.housing === 'smoke' || sw.housing === 'amber') ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.3)',
+      sqX: box ? 42 : 45, sqS: box ? 36 : 30, sqR: box ? 3 : 2, crA: box ? 48 : 49, crL: box ? 24 : 22,
+      cross: lightStem ? scShade(sw.stem, -.25) : scShade(sw.stem, box ? .5 : .32),
+      tagBg: T.bg, tagFg: T.fg,
+      spec: sw.force + 'g · ' + Number(sw.act).toFixed(1) + 'mm · ' + sw.prof,
+      hint: nos ? 'Specs only' : down ? 'Let go: upstroke' : 'Tap or hold to hear',
+      aria: sw.name + ', ' + sw.type + ', ' + sw.force + ' grams' + (nos ? ', no sound available' : ''),
+      pressedAttr: String(sel || !!p.checked),
+      bodyBg: sel ? '#FFD24D' : '#FFFFFF',
+      shadow: down ? '0 0 0 #000' : sel ? '7px 7px 0 #000' : '4px 4px 0 #000',
+      tf: down ? 'translate(4px, 4px)' : sel ? 'translate(-2px, -2px)' : 'translate(0, 0)',
+      compare: !!p.compare, checked: !!p.checked,
+      chkBg: p.checked ? '#FFD24D' : '#FFFFFF',
+      playing: this.state.playing && !nos, nosound: nos,
+      down: (e) => { if (e && e.button > 0) return; this.setState({ down: true }); this.play(false); try { if (navigator.vibrate) navigator.vibrate(8); } catch (x) {} if (p.onPick) p.onPick(sw); },
+      up: () => { if (!this.state.down) return; this.setState({ down: false }); this.play(true); },
+      leave: () => { if (this.state.down) this.setState({ down: false }); },
+      click: (e) => { if (e && e.detail === 0) { this.play(false); setTimeout(() => this.play(true), 150); if (p.onPick) p.onPick(sw); } }
+    };
+  }
+}
+</script>
+</body>
+</html>

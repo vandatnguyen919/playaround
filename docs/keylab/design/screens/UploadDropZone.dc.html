@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Upload drop zone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.udz-btn{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:13px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:40px;padding:0 12px;box-shadow:3px 3px 0 #000;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.udz-btn:hover{background:#FFF1C7}
+.udz-btn:active{transform:translate(3px,3px);box-shadow:none}
+.udz-btn:focus-visible,.udz-pick:focus-within{outline:3px solid #F16B53;outline-offset:3px}
+.udz-btn.coral{background:#F16B53}
+.udz-pick{position:relative}
+.udz-pick input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+@keyframes udzMove{to{background-position:28px 0}}
+</style>
+</helmet>
+<div style="width: 100%; box-sizing: border-box; font-family: 'Archivo', system-ui, sans-serif; color: #000; display: flex; flex-direction: column; gap: 6px">
+  <span style="font-size: 11px; line-height: 14px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase">{{label}}</span>
+  <sc-if value="{{idle}}" hint-placeholder-val="{{ true }}">
+    <div onDragOver="{{over}}" onDragLeave="{{leave}}" onDrop="{{drop}}" style="min-height: 112px; box-sizing: border-box; border: 2.5px dashed #000; background: {{zoneBg}}; padding: 14px; display: flex; align-items: center; gap: 14px; transition: background 100ms ease">
+      <span aria-hidden="true" style="flex: none; width: 44px; height: 44px; border: 2.5px solid #000; background: #FFD24D; box-shadow: 3px 3px 0 #000; display: flex; align-items: center; justify-content: center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.6" stroke-linecap="square"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"></path></svg>
+      </span>
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+        <span style="font-size: 14px; line-height: 18px; font-weight: 900">{{dropText}}</span>
+        <span style="font-family: 'Space Mono', ui-monospace, monospace; font-size: 11px; line-height: 15px; font-weight: 700">{{accept}}</span>
+      </div>
+      <label class="udz-btn udz-pick">Choose file<input type="file" accept="{{acceptAttr}}" aria-label="{{inputLabel}}" onChange="{{pick}}"></label>
+    </div>
+  </sc-if>
+  <sc-if value="{{uploading}}" hint-placeholder-val="{{ false }}">
+    <div aria-busy="true" style="min-height: 112px; box-sizing: border-box; border: 2.5px solid #000; background: #FFFFFF; padding: 14px; display: flex; flex-direction: column; justify-content: center; gap: 10px">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+        <span style="font-family: 'Space Mono', ui-monospace, monospace; font-size: 12px; font-weight: 700">{{file}}</span>
+        <span style="font-size: 12px; font-weight: 900">Uploading and checking levels…</span>
+      </div>
+      <div role="progressbar" aria-label="Upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{pct}}" style="height: 16px; border: 2.5px solid #000; background: #FFFDF5; display: flex">
+        <span style="width: {{pctW}}; background: repeating-linear-gradient(45deg, #000 0 4px, #FFD24D 4px 10px); background-size: 28px 100%; animation: udzMove .8s linear infinite"></span>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{done}}" hint-placeholder-val="{{ false }}">
+    <div style="box-sizing: border-box; border: 2.5px solid #000; background: #FFFFFF; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <button type="button" class="udz-btn coral" aria-label="{{playLabel}}" onClick="{{play}}" style="width: 40px; padding: 0; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="#000" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg></button>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span style="font-family: 'Space Mono', ui-monospace, monospace; font-size: 12px; line-height: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{file}}</span>
+          <span style="font-size: 11px; line-height: 14px; font-weight: 700">Levels OK · ready to publish</span>
+        </div>
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 2px 7px; border: 2px solid #000; background: #C6F079; font-size: 10px; line-height: 14px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase">Uploaded</span>
+        <button type="button" class="udz-btn" onClick="{{reset}}">Replace</button>
+      </div>
+      <dc-import name="Waveform" profile="{{profile}}" height="44" labels="{{ false }}" seed="{{seed}}" hint-size="100%,44px"></dc-import>
+    </div>
+  </sc-if>
+  <sc-if value="{{error}}" hint-placeholder-val="{{ false }}">
+    <div role="alert" style="min-height: 112px; box-sizing: border-box; border: 2.5px solid #000; border-left-width: 8px; border-left-color: #F16B53; background: #FFF1C7; padding: 14px; display: flex; align-items: center; gap: 12px">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 3px">
+        <span style="font-size: 14px; line-height: 18px; font-weight: 900">That file can’t be used</span>
+        <span style="font-size: 12px; line-height: 17px; font-weight: 500">It clips above 0 dBFS. Re-record a little quieter, or upload a WAV under 10 MB.</span>
+      </div>
+      <button type="button" class="udz-btn" onClick="{{reset}}">Try again</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"label":{"editor":"text","default":"Press sound"},"state":{"editor":"enum","options":["idle","dragover","uploading","done","error"],"default":"idle"},"profile":{"editor":"enum","options":["Deep","Poppy","Clacky","Muted"],"default":"Poppy"},"seed":{"editor":"int","default":11},"fileName":{"editor":null},"onDone":{"editor":null},"$preview":{"width":520,"height":140}}'>
+class Component extends DCLogic {
+  state = { st: null, file: null, pct: 0, over: false };
+  run(name) {
+    clearInterval(this.iv);
+    this.setState({ st: 'uploading', file: name, pct: 8 });
+    this.iv = setInterval(() => {
+      const n = Math.min(100, this.state.pct + 18);
+      if (n >= 100) { clearInterval(this.iv); this.setState({ st: 'done', pct: 100 }); if (this.props.onDone) this.props.onDone(this.state.file); }
+      else this.setState({ pct: n });
+    }, 220);
+  }
+  play() {
+    try {
+      if (!this.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; this.ctx = new AC(); }
+      const ctx = this.ctx, t = ctx.currentTime + .01;
+      const n = Math.floor(ctx.sampleRate * .08), buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 4);
+      const s = ctx.createBufferSource(); s.buffer = buf; const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 900; const g = ctx.createGain(); g.gain.value = .5;
+      s.connect(f); f.connect(g); g.connect(ctx.destination); s.start(t);
+    } catch (e) {}
+  }
+  componentWillUnmount() { clearInterval(this.iv); }
+  renderVals() {
+    const p = this.props, s = this.state;
+    const st = s.st || (p.state === 'dragover' ? 'idle' : p.state) || 'idle';
+    const over = s.over || (!s.st && p.state === 'dragover');
+    const label = p.label || 'Press sound';
+    const pct = s.st ? s.pct : 56;
+    return {
+      label: label, idle: st === 'idle', uploading: st === 'uploading', done: st === 'done', error: st === 'error',
+      zoneBg: over ? '#FFD24D' : '#FFFDF5',
+      dropText: over ? 'Drop to upload' : 'Drag a WAV or FLAC here',
+      accept: '48 kHz · 24-bit · mono · under 10 MB', acceptAttr: '.wav,.flac,audio/wav,audio/flac',
+      inputLabel: 'Choose a ' + label.toLowerCase() + ' file',
+      file: s.file || p.fileName || 'proto-orange_press.wav',
+      pct: pct, pctW: pct + '%',
+      profile: p.profile || 'Poppy', seed: p.seed || 11,
+      playLabel: 'Play ' + label.toLowerCase(),
+      over: (e) => { e.preventDefault(); if (!this.state.over) this.setState({ over: true }); },
+      leave: () => this.setState({ over: false }),
+      drop: (e) => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; this.setState({ over: false }); this.run(f ? f.name : 'dropped-file.wav'); },
+      pick: (e) => { const f = e.target.files && e.target.files[0]; this.run(f ? f.name : 'chosen-file.wav'); },
+      play: () => this.play(),
+      reset: () => { clearInterval(this.iv); this.setState({ st: 'idle', file: null, pct: 0, over: false }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Switch library (public)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+.kl{--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--ink:#2C2A5A;--sun:#FFF1C7;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:#000;background:#FFFDF5;-webkit-font-smoothing:antialiased}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.wrap{max-width:1280px;margin:0 auto;padding:0 40px}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc[aria-pressed="true"]{background:var(--acc)}
+.kc.ghost{background:transparent;box-shadow:none}
+.kc.ghost[aria-pressed="true"]{background:var(--acc);box-shadow:3px 3px 0 #000}
+.kc.primary{background:var(--lime);min-height:56px;font-size:17px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc.sm{padding:0 12px;font-size:13px}
+.kc:focus-visible,.dl:focus-visible,.crumb a:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.lbl{margin:0;font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900}
+.sticker{display:inline-flex;align-items:center;padding:3px 8px;border:2.5px solid #000;background:var(--acc);font-size:12px;line-height:16px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.h1{margin:0;font-size:64px;line-height:60px;font-weight:900;letter-spacing:-.06em}
+.h2{margin:0;font-size:32px;line-height:34px;font-weight:900;letter-spacing:-.05em}
+.body{margin:0;font-size:17px;line-height:26px;font-weight:500}
+.field{height:46px;border:2.5px solid #000;border-radius:0;background:#FFFFFF;font:inherit;font-size:15px;font-weight:600;padding:0 12px 0 40px;width:100%}
+.field:focus{outline:3px solid var(--coral);outline-offset:1px}
+.dl{display:flex;align-items:center;justify-content:space-between;min-height:40px;padding:0 10px;border:2.5px solid #000;border-top:0;background:#FFFDF5;font-size:13px;font-weight:900;text-decoration:none}
+.dl:hover{background:var(--acc)}
+.crumb{display:flex;gap:8px;font-size:13px;font-weight:700}
+.crumb a{text-decoration:underline;text-underline-offset:3px}
+</style>
+</helmet>
+<div class="kl" style="min-height: 100vh">
+  <dc-import name="MktNav" mobile="{{ false }}" active="switches" hint-size="100%,78px"></dc-import>
+  <main>
+    <section aria-labelledby="lib-h" style="border-bottom: 3px solid #000; background: var(--sun)">
+      <div class="wrap" style="padding-top: 40px; padding-bottom: 48px; display: flex; flex-direction: column; gap: 18px">
+        <nav aria-label="Breadcrumb" class="crumb"><a href="MktLanding.dc.html">Home</a><span aria-hidden="true">/</span><span aria-current="page">Switch library</span></nav>
+        <h1 id="lib-h" class="h1">MECHANICAL KEYBOARD SWITCHES, BY SOUND</h1>
+        <p class="body" style="max-width: 760px">Compare linear, tactile, clicky and silent switches side by side. Every recorded switch plays its real press and release, with force, travel and a force curve.</p>
+      </div>
+    </section>
+
+    <section aria-label="Filters" style="border-bottom: 3px solid #000">
+      <div class="wrap" style="padding-top: 22px; padding-bottom: 22px; display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: flex-end">
+        <div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 6px">
+          <label for="lib-q" class="lbl">Search</label>
+          <div style="position: relative"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.8" stroke-linecap="square" aria-hidden="true" style="position: absolute; left: 13px; top: 15px"><path d="M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM15.5 15.5L20 20"></path></svg><input id="lib-q" class="field" type="search" placeholder="Name or brand" value="{{q}}" onChange="{{setQ}}"></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span id="ty-h" class="lbl">Type</span>
+          <div role="group" aria-labelledby="ty-h" style="display: flex; gap: 8px"><sc-for list="{{types}}" as="t" hint-placeholder-count="5"><button type="button" class="kc sm" aria-pressed="{{t.on}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span id="pf-h" class="lbl">Sound</span>
+          <div role="group" aria-labelledby="pf-h" style="display: flex; gap: 8px"><sc-for list="{{profs}}" as="t" hint-placeholder-count="4"><button type="button" class="kc sm ghost" aria-pressed="{{t.on}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span id="fo-h" class="lbl">Force</span>
+          <div role="group" aria-labelledby="fo-h" style="display: flex; gap: 8px"><sc-for list="{{forces}}" as="t" hint-placeholder-count="3"><button type="button" class="kc sm ghost" aria-pressed="{{t.on}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="res-h" style="border-bottom: 3px solid #000">
+      <div class="wrap" style="padding-top: 32px; padding-bottom: 72px; display: flex; flex-direction: column; gap: 22px">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+          <h2 id="res-h" class="h2" aria-live="polite">{{countLabel}}</h2>
+          <sc-if value="{{filtered}}" hint-placeholder-val="{{ false }}"><button type="button" class="kc sm" onClick="{{clear}}">Clear filters</button></sc-if>
+        </div>
+        <sc-if value="{{hasResults}}" hint-placeholder-val="{{ true }}">
+          <ul style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px 24px">
+            <sc-for list="{{cards}}" as="c" hint-placeholder-count="11">
+              <li style="position: relative; display: flex; flex-direction: column">
+                <dc-import name="SwitchCard" sw="{{c.sw}}" hint-size="100%,236px"></dc-import>
+                <a class="dl" href="MktSwitch.dc.html" aria-label="{{c.detailLabel}}">Details<span aria-hidden="true">→</span></a>
+                <sc-if value="{{c.isNew}}" hint-placeholder-val="{{ false }}"><span class="sticker" style="position: absolute; right: -8px; top: -12px; background: var(--lime); transform: rotate(4deg)">New</span></sc-if>
+              </li>
+            </sc-for>
+          </ul>
+        </sc-if>
+        <sc-if value="{{noResults}}" hint-placeholder-val="{{ false }}">
+          <div style="border: 3px solid #000; background: #FFFFFF; box-shadow: 6px 6px 0 #000; padding: 28px; display: flex; align-items: center; gap: 20px">
+            <span aria-hidden="true" style="flex: none; width: 64px; height: 64px; border: 3px dashed #000; background: var(--sun)"></span>
+            <div style="flex: 1"><p style="margin: 0; font-size: 22px; font-weight: 900">No switches match these filters</p><p style="margin: 4px 0 0; font-size: 15px; font-weight: 500">Try another sound profile or force range.</p></div>
+            <button type="button" class="kc" onClick="{{clear}}">Clear filters</button>
+          </div>
+        </sc-if>
+      </div>
+    </section>
+
+    <section aria-labelledby="types-h" style="border-bottom: 3px solid #000; background: var(--sky)">
+      <div class="wrap" style="padding-top: 64px; padding-bottom: 72px; display: flex; flex-direction: column; gap: 24px">
+        <h2 id="types-h" class="h2">SWITCH TYPES, EXPLAINED</h2>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px">
+          <sc-for list="{{explain}}" as="e" hint-placeholder-count="4">
+            <article style="border: 3px solid #000; background: #FFFFFF; box-shadow: 5px 5px 0 #000; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+              <span style="align-self: flex-start; padding: 2px 7px; border: 2px solid #000; background: {{e.bg}}; color: {{e.fg}}; font-size: 10px; line-height: 14px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase">{{e.t}}</span>
+              <h3 style="margin: 0; font-size: 19px; line-height: 22px; font-weight: 900; letter-spacing: -0.03em">{{e.h}}</h3>
+              <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">{{e.d}}</p>
+            </article>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="cta-h" style="background: var(--acc); border-bottom: 3px solid #000">
+      <div class="wrap" style="padding-top: 56px; padding-bottom: 56px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px">
+        <h2 id="cta-h" class="h2" style="font-size: 44px; line-height: 44px">FOUND ONE YOU LIKE? PUT IT IN A BUILD.</h2>
+        <a class="kc primary" href="MktAuth.dc.html">Start building</a>
+      </div>
+    </section>
+  </main>
+  <dc-import name="MktFooter" mobile="{{ false }}" hint-size="100%,320px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"highlightNew":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":2400}}'>
+const SW = [
+  { id: 'coralpop', name: 'Coral Pop', type: 'Tactile', stem: '#F16B53', housing: 'milky', force: 62, act: 2.0, total: 3.8, prof: 'Poppy', isNew: true, snd: { pitch: 980, bright: .5, decay: 56, thump: .7, vol: .72 } },
+  { id: 'milk', name: 'Milk Yellow', type: 'Linear', stem: '#E9C46A', housing: 'milky', force: 50, act: 2.0, total: 4.0, prof: 'Deep', snd: { pitch: 520, bright: .25, decay: 70, thump: .9, vol: .7 } },
+  { id: 'red', name: 'Classic Red', type: 'Linear', stem: '#D64545', housing: 'clear', box: true, force: 45, act: 2.0, total: 4.0, prof: 'Poppy', snd: { pitch: 880, bright: .45, decay: 55, thump: .55, vol: .65 } },
+  { id: 'ink', name: 'Ink Black', type: 'Linear', stem: '#2A2E38', housing: 'smoke', force: 60, act: 2.0, total: 4.0, prof: 'Deep', snd: { pitch: 430, bright: .18, decay: 82, thump: 1, vol: .72 } },
+  { id: 'silver', name: 'Speed Silver', type: 'Linear', stem: '#B8C0CC', housing: 'clear', force: 45, act: 1.2, total: 3.4, prof: 'Clacky', snd: { pitch: 1500, bright: .7, decay: 42, thump: .3, vol: .62 } },
+  { id: 'brown', name: 'Bump Brown', type: 'Tactile', stem: '#7A4E2D', housing: 'amber', force: 55, act: 2.0, total: 4.0, prof: 'Muted', snd: { pitch: 640, bright: .3, decay: 58, thump: .6, vol: .55 } },
+  { id: 'peak', name: 'Peak Tactile', type: 'Tactile', stem: '#EFEBE0', housing: 'milky', force: 67, act: 2.0, total: 4.0, prof: 'Poppy', snd: { pitch: 1050, bright: .55, decay: 60, thump: .7, vol: .75 } },
+  { id: 'blue', name: 'Click Blue', type: 'Clicky', stem: '#2F6FD6', housing: 'ice', box: true, force: 60, act: 2.2, total: 4.0, prof: 'Clacky', snd: { pitch: 1300, bright: .65, decay: 50, thump: .4, vol: .7, click: true } },
+  { id: 'jade', name: 'Jade Clickbar', type: 'Clicky', stem: '#2E9E7A', housing: 'teal', box: true, force: 70, act: 1.8, total: 3.6, prof: 'Clacky', snd: { pitch: 1700, bright: .8, decay: 38, thump: .35, vol: .75, click: true } },
+  { id: 'hushr', name: 'Hush Red', type: 'Silent', stem: '#E07A7A', housing: 'smoke', force: 45, act: 1.9, total: 3.7, prof: 'Muted', snd: { pitch: 380, bright: .08, decay: 34, thump: .4, vol: .28 } },
+  { id: 'hushb', name: 'Hush Tactile', type: 'Silent', stem: '#8C6BB1', housing: 'milky', force: 62, act: 2.0, total: 3.7, prof: 'Muted', snd: { pitch: 420, bright: .1, decay: 36, thump: .45, vol: .3 } },
+  { id: 'proto', name: 'Proto Orange', type: 'Tactile', stem: '#E58A3A', housing: 'clear', force: 58, act: 2.0, total: 3.8, prof: 'Poppy', snd: { none: true }, nosound: true }
+];
+const EXPLAIN = [
+  { t: 'Linear', bg: '#2C2A5A', fg: '#FFFFFF', h: 'Smooth all the way down', d: 'No bump and no click. Sound comes from the bottom-out, so case and keycaps shape it most.' },
+  { t: 'Tactile', bg: '#FFD24D', fg: '#000000', h: 'A bump you can feel', d: 'A small bump tells your finger the key has fired. Bump size and sound vary a lot by switch.' },
+  { t: 'Clicky', bg: '#99D6FF', fg: '#000000', h: 'A bump and a click', d: 'A click jacket or bar makes a sharp sound on every press. Loud by design.' },
+  { t: 'Silent', bg: '#FFFFFF', fg: '#000000', h: 'Dampened top and bottom', d: 'Rubber dampeners soften both strokes. Good for shared rooms and late nights.' }
+];
+class Component extends DCLogic {
+  state = { q: '', type: 'All', prof: null, force: null };
+  renderVals() {
+    const s = this.state, p = this.props;
+    const q = s.q.trim().toLowerCase();
+    const forceOk = (x) => !s.force || (s.force === 'light' ? x.force <= 50 : s.force === 'medium' ? x.force > 50 && x.force <= 62 : x.force > 62);
+    const list = SW.filter((x) => (s.type === 'All' || x.type === s.type) && (!s.prof || x.prof === s.prof) && forceOk(x) && (!q || x.name.toLowerCase().indexOf(q) >= 0));
+    const filtered = !!(q || s.type !== 'All' || s.prof || s.force);
+    return {
+      q: s.q, setQ: (e) => this.setState({ q: e.target.value }),
+      types: ['All', 'Linear', 'Tactile', 'Clicky', 'Silent'].map((t) => ({ label: t, on: String(t === s.type), pick: () => this.setState({ type: t }) })),
+      profs: ['Deep', 'Poppy', 'Clacky', 'Muted'].map((t) => ({ label: t, on: String(t === s.prof), pick: () => this.setState({ prof: s.prof === t ? null : t }) })),
+      forces: [['light', '≤50g'], ['medium', '51–62g'], ['heavy', '63g+']].map((f) => ({ label: f[1], on: String(f[0] === s.force), pick: () => this.setState({ force: s.force === f[0] ? null : f[0] }) })),
+      countLabel: list.length + (list.length === 1 ? ' switch' : ' switches'),
+      filtered: filtered, hasResults: list.length > 0, noResults: list.length === 0,
+      clear: () => this.setState({ q: '', type: 'All', prof: null, force: null }),
+      cards: list.map((x) => ({ sw: x, isNew: !!x.isNew && p.highlightNew !== false, detailLabel: x.name + ' details' })),
+      explain: EXPLAIN
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · My builds (desktop)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Nunito:wght@700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.kl{--bg:#FFFDF5;--surface:#FFFFFF;--surface2:#FFF1C7;--text:#000000;--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--indigo:#2C2A5A;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.kl[data-theme="dark"]{--bg:#1E1C3F;--surface:#2C2A5A;--surface2:#3A3870;--text:#FFFDF5}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc.primary{background:var(--lime);min-height:54px;font-size:16px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc.coral{background:var(--coral)}
+.kc.sm{padding:0 12px;font-size:13px}
+.kc:focus-visible,.sl:focus-visible,.tile:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.tile{appearance:none;margin:0;font:inherit;color:#000;text-align:left;cursor:pointer;background:#FFFFFF;border:3px solid #000;border-radius:0;padding:12px 14px;display:flex;gap:12px;align-items:center;min-height:66px;box-shadow:4px 4px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.tile:active{transform:translate(4px,4px);box-shadow:0 0 0 #000}
+.tile[aria-pressed="true"]{background:var(--acc);transform:translate(-2px,-2px);box-shadow:7px 7px 0 #000}
+.field{width:100%;min-height:54px;border:3px solid #000;border-radius:0;padding:0 14px;font:inherit;font-size:20px;font-weight:900;letter-spacing:-.02em;color:#000;background:#FFFFFF;box-shadow:4px 4px 0 #000}
+.field:focus{outline:none;background:#FFF1C7}
+.lbl{font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;margin:0}
+.h1{font-size:52px;line-height:46px;font-weight:900;letter-spacing:-.055em;margin:0}
+.side{background:#FFFFFF;color:#000;border-right:3px solid #000}
+.sl{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 12px;border:2.5px solid transparent;color:#000;text-decoration:none;font-size:15px;font-weight:800;flex:1 1 180px}
+.sl:hover{border-color:#000;background:var(--surface2)}
+.sl.on{background:var(--acc);border-color:#000;box-shadow:3px 3px 0 #000}
+.mel{display:flex;align-items:center;gap:10px;min-height:54px;padding:6px 8px;border:2.5px solid #000;background:#FFFFFF;color:#000;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.mel:hover{background:#FFF1C7}
+.mel:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.mel:focus-visible{outline:3px solid #F16B53;outline-offset:3px}
+</style>
+</helmet>
+<div class="kl" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-wrap: wrap">
+  <aside class="side" style="flex: 1 1 236px; padding: 20px 16px; display: flex; flex-direction: column; gap: 24px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span aria-hidden="true" style="width: 36px; height: 36px; border: 3px solid #000; background: var(--acc); box-shadow: 3px 3px 0 #000; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 17px">K</span>
+      <span style="font-weight: 900; font-size: 24px; letter-spacing: -0.05em">KEYLAB</span>
+    </div>
+    <nav aria-label="Primary" style="display: flex; flex-wrap: wrap; gap: 6px">
+      <a class="sl" href="HomeDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M6 10h1M10 10h1M14 10h1M18 10h1M7 14h10"></path></svg>Build</a>
+      <a class="sl" href="SwitchesDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M12 2.5v7M8.5 6h7"></path><rect x="4.5" y="11" width="15" height="9.5"></rect></svg>Switches</a>
+      <a class="sl" href="ModsDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"></path><rect x="13" y="5" width="4" height="4"></rect><rect x="7" y="15" width="4" height="4"></rect></svg>Mods</a>
+      <a class="sl" href="KeycapsDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M3.5 19.5h17L18 6H6z"></path><path d="M9 10.5h6"></path></svg>Keycaps</a>
+      <a class="sl" href="CaseDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><rect x="2.5" y="7" width="19" height="10"></rect><path d="M2.5 12.5h19"></path></svg>Case &amp; plate</a>
+      <a class="sl" href="PlaygroundDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M3 12h2l2-6 3 12 3-9 2 5 2-2h4"></path></svg>Playground</a>
+      <a class="sl on" href="BuildsDesktop.dc.html" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6.5 3.5h11v17l-5.5-3.8-5.5 3.8z"></path></svg>My builds</a>
+    </nav>
+      <div style="margin-top: auto; padding-top: 16px; border-top: 3px solid #000; display: flex; flex-direction: column; gap: 8px">
+      <a class="mel" href="ProfileDesktop.dc.html" aria-label="Your profile, Thockwise, @thockwise"><span aria-hidden="true" style="flex: none; width: 38px; height: 38px; border: 2.5px solid #000; background: #FFD24D; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; letter-spacing: -0.03em">TW</span><span style="display: flex; flex-direction: column; min-width: 0"><span style="font-weight: 900; font-size: 15px">Thockwise</span><span class="mono" style="font-size: 11px; font-weight: 700">@thockwise</span></span></a>
+      <a class="sl" href="AccountDesktop.dc.html" style="flex: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><rect x="9" y="9" width="6" height="6"></rect><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"></path></svg> Settings</a>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 30px 34px 40px; display: flex; flex-direction: column; gap: 26px">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; padding-bottom: 18px; border-bottom: 3px solid #000">
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <h1 class="h1">My builds</h1>
+        <p role="status" style="margin: 0; align-self: flex-start; padding: 6px 12px; border: 3px solid #000; background: var(--lime); color: #000; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 900">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="square" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>{{status}}
+        </p>
+      </div>
+      <a class="kc" href="HomeDesktop.dc.html" style="min-height: 54px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New build</a>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 28px">
+      <section aria-labelledby="saved-h" style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+        <h2 id="saved-h" class="lbl">Saved builds · {{count}}</h2>
+        <sc-for list="{{builds}}" as="b" hint-placeholder-count="3">
+          <button type="button" class="tile" aria-pressed="{{b.on}}" onClick="{{b.pick}}">
+            <span aria-hidden="true" style="flex: none; width: 42px; height: 42px; border: 2.5px solid #000; background: {{b.a}}; display: flex; align-items: flex-end; justify-content: flex-end; padding: 4px"><span style="width: 13px; height: 13px; border: 2px solid #000; background: {{b.stem}}"></span></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 17px; font-weight: 900; letter-spacing: -0.02em">{{b.name}}</span>
+              <span class="mono" style="font-size: 11px; font-weight: 700">{{b.spec}}</span>
+            </span>
+          </button>
+        </sc-for>
+      </section>
+
+      <section aria-label="Build summary" style="flex: 999 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; flex-direction: column; gap: 8px; max-width: 460px">
+          <label for="bname-d" class="lbl">Build name</label>
+          <input id="bname-d" class="field" type="text" value="{{name}}" onChange="{{rename}}" maxlength="32">
+        </div>
+        <dc-import name="BuildCard" build="{{card}}" width="460" hint-size="460px,480px"></dc-import>
+        <div style="max-width: 460px; border: 3px solid #000; background: #FFFFFF; color: #000; box-shadow: 6px 6px 0 #000">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 3px solid #000; background: var(--acc)">
+            <h2 style="margin: 0; font-size: 20px; font-weight: 900; letter-spacing: -0.03em">Parts list</h2>
+            <button type="button" class="kc sm" onClick="{{copy}}">{{copyLabel}}</button>
+          </div>
+          <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+            <sc-for list="{{parts}}" as="r" hint-placeholder-count="7">
+              <li style="display: grid; grid-template-columns: 60px minmax(0, 1fr) auto; align-items: center; border-bottom: 2px solid #000">
+                <span class="mono" style="padding: 9px 8px; font-size: 12px; font-weight: 700; border-right: 2px solid #000; background: #FFFDF5">{{r.q}}</span>
+                <span style="padding: 9px 10px; font-size: 14px; font-weight: 800">{{r.item}}</span>
+                <span class="mono" style="padding: 9px 10px; font-size: 11px">{{r.note}}</span>
+              </li>
+            </sc-for>
+          </ul>
+          <p style="margin: 0; padding: 8px 12px; font-size: 12px; font-weight: 700">Prices and shops: [RETAILER LINKS]</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="share-h" style="flex: 1 1 340px; min-width: 0; border: 3px solid #000; background: var(--sky); color: #000; padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 16px; box-shadow: 7px 7px 0 #000">
+        <h2 id="share-h" style="margin: 0; align-self: flex-start; font-size: 26px; font-weight: 900; letter-spacing: -0.045em">Share card</h2>
+        <dc-import name="BuildCard" build="{{card}}" variant="share" width="296" hint-size="296px,385px"></dc-import>
+        <div style="width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+          <button type="button" class="kc primary">Save image</button>
+          <button type="button" class="kc" style="min-height: 54px" onClick="{{copyLink}}">{{linkLabel}}</button>
+        </div>
+        <p style="margin: 0; font-size: 12px; line-height: 17px; font-weight: 700; text-align: center">The link opens a playable preview, so friends can hear the build too.</p>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1120}}'>
+const BUILDS = [
+  { name: 'Night Thock 65', layout: '65', layoutLabel: '65%', keys: 68, sw: 'Milk Yellow', stem: '#E9C46A', swType: 'Linear · 50g', mods: ['Light lube', 'Case foam', 'Tuned stabs'], caps: 'PBT · Cherry · Navy Mustard', capsShort: 'Navy Mustard', case: 'Aluminum · gasket · brass', caseShort: 'Alu, gasket', caseFull: '65% aluminum case', mount: 'Gasket mount', plateFull: 'Brass plate', a: '#3D6A8C', m: '#1F2B45', x: '#F2C14E', c: '#2B4677', profile: 'cherry', plate: 'brass', stabs: '3× 2u · 1× 6.25u', snd: { pitch: 470, bright: .2, decay: 62, thump: 1, vol: .7 } },
+  { name: 'Studio TKL', layout: 'tkl', layoutLabel: 'TKL', keys: 87, sw: 'Bump Brown', stem: '#7A4E2D', swType: 'Tactile · 55g', mods: ['Case foam', 'O-rings'], caps: 'PBT · OEM · Cream & Ink', capsShort: 'Cream & Ink', case: 'Polycarbonate · tray · FR4', caseShort: 'PC, tray', caseFull: 'TKL polycarbonate case', mount: 'Tray mount', plateFull: 'FR4 plate', a: '#ECE6D8', m: '#2A2E38', x: '#D9573B', c: '#DCE3EC', profile: 'oem', plate: 'fr4', stabs: '4× 2u · 1× 6.25u', snd: { pitch: 600, bright: .26, decay: 44, thump: .7, vol: .45 } },
+  { name: 'Quiet 75', layout: '75', layoutLabel: '75%', keys: 84, sw: 'Hush Red', stem: '#E07A7A', swType: 'Silent · 45g', mods: ['Heavy lube', 'Case foam'], caps: 'PBT · XDA · Mono Slate', capsShort: 'Mono Slate', case: 'Plastic · top mount · POM', caseShort: 'Plastic, top', caseFull: '75% plastic case', mount: 'Top mount', plateFull: 'POM plate', a: '#3B4458', m: '#2A3142', x: '#9AA7BD', c: '#5B657A', profile: 'xda', plate: 'pom', stabs: '3× 2u · 1× 6.25u', snd: { pitch: 330, bright: .05, decay: 26, thump: .4, vol: .24 } }
+];
+
+class Component extends DCLogic {
+  state = { sel: 0, names: BUILDS.map((b) => b.name), copied: false, linked: false };
+  componentWillUnmount() { clearTimeout(this.tm); }
+  flag(k) { const u = {}; u[k] = true; this.setState(u); clearTimeout(this.tm); this.tm = setTimeout(() => { const v = {}; v[k] = false; this.setState(v); }, 1600); }
+
+  renderVals() {
+    const s = this.state;
+    const b = BUILDS[s.sel];
+    const name = s.names[s.sel];
+    const card = Object.assign({}, b, { name: name || 'Untitled build' });
+    const parts = [
+      { q: '1×', item: b.caseFull, note: b.mount },
+      { q: '1×', item: b.plateFull, note: b.layoutLabel },
+      { q: '1×', item: b.layoutLabel + ' hot-swap PCB', note: 'required' },
+      { q: (b.keys + 4) + '×', item: b.sw + ' switches', note: b.keys + ' + 4 spare' },
+      { q: '1 set', item: 'Keycaps · ' + b.capsShort, note: b.caps.split(' · ').slice(0, 2).join(' · ') },
+      { q: '1 set', item: 'Stabilizers', note: b.stabs }
+    ].concat(b.mods.map((m) => ({ q: '1×', item: m, note: 'mod' })));
+    return {
+      theme: this.props.theme || 'light',
+      status: (name || 'Build') + ' saved',
+      count: BUILDS.length,
+      name: name,
+      rename: (e) => { const n = s.names.slice(); n[s.sel] = e.target.value; this.setState({ names: n }); },
+      card: card, parts: parts,
+      copyLabel: s.copied ? 'Copied' : 'Copy list',
+      copy: () => { try { navigator.clipboard.writeText(parts.map((r) => r.q + ' ' + r.item + ' (' + r.note + ')').join('\n')); } catch (e) {} this.flag('copied'); },
+      linkLabel: s.linked ? 'Link copied' : 'Copy link',
+      copyLink: () => this.flag('linked'),
+      builds: BUILDS.map((x, i) => ({ name: s.names[i] || 'Untitled build', a: x.a, stem: x.stem, spec: (x.layoutLabel + ' · ' + x.sw + ' · ' + x.mods.length + ' mods').toUpperCase(), on: String(i === s.sel), pick: () => this.setState({ sel: i }) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

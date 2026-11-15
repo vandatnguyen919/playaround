@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Switch library (desktop)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Nunito:wght@700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.kl{--bg:#FFFDF5;--surface:#FFFFFF;--surface2:#FFF1C7;--text:#000000;--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--indigo:#2C2A5A;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.kl[data-theme="dark"]{--bg:#1E1C3F;--surface:#2C2A5A;--surface2:#3A3870;--text:#FFFDF5}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc[aria-pressed="true"],.kc[aria-checked="true"],.kc.on{background:var(--acc)}
+.kc.primary{background:var(--lime);min-height:54px;font-size:16px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc.coral{background:var(--coral)}
+.kc.ghost{background:transparent;color:var(--text);box-shadow:none}
+.kc.ghost[aria-pressed="true"]{background:var(--acc);color:#000;box-shadow:3px 3px 0 #000}
+.kc.sm{padding:0 12px;font-size:13px}
+.kc.icon{width:44px;padding:0}
+.kc:focus-visible,.sl:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.stage{background:var(--sky);color:#000;border:3px solid #000;box-shadow:7px 7px 0 #000}
+.padctl{position:absolute;top:16px;right:16px;z-index:3;display:flex;align-items:center;gap:8px}
+.padtray{display:flex;gap:6px;padding:5px;border:2.5px solid #000;background:#FFFDF5;box-shadow:3px 3px 0 #000;animation:padin 170ms cubic-bezier(.3,1.3,.5,1)}
+@keyframes padin{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.padtray{animation:none}.padtog svg{transition:none}}
+.padsw{width:36px;height:36px;margin:0;padding:0;cursor:pointer;border:2.5px solid #000;border-radius:0;box-shadow:2px 2px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.padsw[aria-checked="true"]{transform:translate(2px,2px);box-shadow:0 0 0 #000;outline:3px solid #000;outline-offset:2px}
+.padsw:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.padtog{appearance:none;margin:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 10px 0 6px;border:2.5px solid #000;border-radius:0;background:#FFFDF5;color:#000;font:inherit;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.padtog:hover{background:#FFF1C7}
+.padtog:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.padtog[aria-expanded="true"]{background:var(--acc)}
+.padtog:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.padtog-sw{width:28px;height:28px;border:2px solid #000}
+.padtog svg{transition:transform 170ms ease}
+.lbl{font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;margin:0}
+.h1{font-size:52px;line-height:46px;font-weight:900;letter-spacing:-.055em;margin:0}
+.sticker{display:inline-flex;align-items:center;padding:1px 6px;border:2px solid #000;background:var(--acc);color:#000;font-size:10px;line-height:14px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.panel{border:3px solid #000;background:#FFFDF5;color:#000;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.spec{background:var(--acc);color:#000;border:2.5px solid #000;padding:8px 9px;display:flex;flex-direction:column;gap:2px}
+.side{background:#FFFFFF;color:#000;border-right:3px solid #000}
+.sl{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 12px;border:2.5px solid transparent;color:#000;text-decoration:none;font-size:15px;font-weight:800;flex:1 1 180px}
+.sl:hover{border-color:#000;background:var(--surface2)}
+.sl.on{background:var(--acc);border-color:#000;box-shadow:3px 3px 0 #000}
+.mel{display:flex;align-items:center;gap:10px;min-height:54px;padding:6px 8px;border:2.5px solid #000;background:#FFFFFF;color:#000;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.mel:hover{background:#FFF1C7}
+.mel:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.mel:focus-visible{outline:3px solid #F16B53;outline-offset:3px}
+</style>
+</helmet>
+<div class="kl" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-wrap: wrap">
+  <aside class="side" style="flex: 1 1 236px; padding: 20px 16px; display: flex; flex-direction: column; gap: 24px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span aria-hidden="true" style="width: 36px; height: 36px; border: 3px solid #000; background: var(--acc); box-shadow: 3px 3px 0 #000; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 17px">K</span>
+      <span style="font-weight: 900; font-size: 24px; letter-spacing: -0.05em">KEYLAB</span>
+    </div>
+    <nav aria-label="Primary" style="display: flex; flex-wrap: wrap; gap: 6px">
+      <a class="sl" href="HomeDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M6 10h1M10 10h1M14 10h1M18 10h1M7 14h10"></path></svg>Build</a>
+      <a class="sl on" href="SwitchesDesktop.dc.html" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M12 2.5v7M8.5 6h7"></path><rect x="4.5" y="11" width="15" height="9.5"></rect></svg>Switches</a>
+      <a class="sl" href="ModsDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"></path><rect x="13" y="5" width="4" height="4"></rect><rect x="7" y="15" width="4" height="4"></rect></svg>Mods</a>
+      <a class="sl" href="KeycapsDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M3.5 19.5h17L18 6H6z"></path><path d="M9 10.5h6"></path></svg>Keycaps</a>
+      <a class="sl" href="CaseDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><rect x="2.5" y="7" width="19" height="10"></rect><path d="M2.5 12.5h19"></path></svg>Case &amp; plate</a>
+      <a class="sl" href="PlaygroundDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M3 12h2l2-6 3 12 3-9 2 5 2-2h4"></path></svg>Playground</a>
+      <a class="sl" href="BuildsDesktop.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6.5 3.5h11v17l-5.5-3.8-5.5 3.8z"></path></svg>My builds</a>
+    </nav>
+    <div style="margin-top: auto; border: 3px solid #000; background: var(--indigo); color: #FFFDF5; padding: 12px; display: flex; flex-direction: column; gap: 4px; box-shadow: 4px 4px 0 #000">
+      <span class="lbl" style="color: var(--acc)">Current build</span>
+      <span style="font-size: 16px; font-weight: 900; letter-spacing: -0.02em">Night Thock 65</span>
+      <span class="mono" style="font-size: 11px">65% · {{appliedName}}</span>
+    </div>
+      <div style="margin-top: 0; padding-top: 16px; border-top: 3px solid #000; display: flex; flex-direction: column; gap: 8px">
+      <a class="mel" href="ProfileDesktop.dc.html" aria-label="Your profile, Thockwise, @thockwise"><span aria-hidden="true" style="flex: none; width: 38px; height: 38px; border: 2.5px solid #000; background: #FFD24D; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; letter-spacing: -0.03em">TW</span><span style="display: flex; flex-direction: column; min-width: 0"><span style="font-weight: 900; font-size: 15px">Thockwise</span><span class="mono" style="font-size: 11px; font-weight: 700">@thockwise</span></span></a>
+      <a class="sl" href="AccountDesktop.dc.html" style="flex: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><rect x="9" y="9" width="6" height="6"></rect><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"></path></svg> Settings</a>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 30px 34px 40px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 28px">
+    <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 22px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; padding-bottom: 18px; border-bottom: 3px solid #000">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <h1 class="h1">Switch library</h1>
+          <p style="margin: 0; font-size: 15px; font-weight: 600">Click a card to hear it. Hold for the press, let go for the upstroke.</p>
+        </div>
+        <button type="button" class="kc" aria-pressed="{{compareAttr}}" onClick="{{toggleCompare}}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" aria-hidden="true"><rect x="3" y="4" width="7" height="16"></rect><rect x="14" y="4" width="7" height="16"></rect></svg>
+          Compare mode
+        </button>
+      </div>
+
+      <section aria-label="Keyboard preview on desk pad" class="stage" style="position: relative; padding: 76px 28px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; background: {{pad.bg}}">
+        <span aria-hidden="true" style="position: absolute; inset: 9px; border: 2px dashed {{pad.stitch}}; pointer-events: none"></span>
+        <div class="padctl">
+          <sc-if value="{{padOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="padtray" role="radiogroup" aria-label="Desk pad">
+              <sc-for list="{{pads}}" as="d" hint-placeholder-count="7">
+                <button type="button" role="radio" class="padsw" aria-checked="{{d.on}}" aria-label="{{d.name}}" title="{{d.name}}" onClick="{{d.pick}}" style="background: {{d.bg}}"></button>
+              </sc-for>
+            </div>
+          </sc-if>
+          <button type="button" class="padtog" aria-expanded="{{padOpenAttr}}" aria-label="Desk pad: {{pad.name}}" title="Desk pad · {{pad.name}}" onClick="{{togglePad}}">
+            <span aria-hidden="true" class="padtog-sw" style="background: {{pad.bg}}"></span>
+            <span class="lbl">Pad</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true" style="transform: {{padChev}}"><path d="M15 5l-7 7 7 7"></path></svg>
+          </button>
+        </div>
+        <div style="position: relative; max-width: 100%; overflow-x: auto"><dc-import name="Keyboard" layout="65" width="600" sound="{{appliedSnd}}" selected="{{selKeys}}" marks="{{marks}}" on-key-tap="{{tapKey}}" ping-seq="{{ping}}" hint-size="600px,260px"></dc-import></div>
+        <p class="mono" style="position: relative; margin: 0; padding: 4px 10px; border: 2.5px solid #000; background: #FFFDF5; color: #000; font-size: 12px; font-weight: 700">{{stageNote}}</p>
+      </section>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+        <div role="group" aria-label="Switch type" style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{types}}" as="t" hint-placeholder-count="5">
+            <button type="button" class="kc sm" aria-pressed="{{t.on}}" onClick="{{t.pick}}">{{t.label}}</button>
+          </sc-for>
+        </div>
+        <span aria-hidden="true" style="width: 3px; height: 32px; background: var(--text); margin: 0 6px"></span>
+        <div role="group" aria-label="Sound and force" style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{chips}}" as="c" hint-placeholder-count="8">
+            <button type="button" class="kc sm ghost" aria-pressed="{{c.on}}" onClick="{{c.pick}}">{{c.label}}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+        <div style="padding: 40px; border: 3px dashed var(--text); display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+          <p style="margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.03em">No switches match these filters</p>
+          <button type="button" class="kc sm on" onClick="{{clearFilters}}">Clear filters</button>
+        </div>
+      </sc-if>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(172px, 100%), 1fr)); gap: 18px">
+        <sc-for list="{{list}}" as="sw" hint-placeholder-count="8">
+          <dc-import name="SwitchCard" sw="{{sw.data}}" selected="{{sw.sel}}" compare="{{compare}}" checked="{{sw.chk}}" play-seq="{{sw.seq}}" on-pick="{{pick}}" hint-size="100%,236px"></dc-import>
+        </sc-for>
+      </div>
+    </div>
+
+    <aside aria-label="Switch details" style="flex: 1 1 360px; min-width: 0; border: 3px solid #000; background: var(--surface); padding: 18px; display: flex; flex-direction: column; gap: 16px; box-shadow: 7px 7px 0 #000">
+      <sc-if value="{{compare}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <h2 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.045em">Compare <span class="sticker">{{cmpCount}}/3</span></h2>
+          <button type="button" class="kc sm" onClick="{{clearCompare}}">Clear</button>
+        </div>
+        <sc-if value="{{cmpEmpty}}" hint-placeholder-val="{{ true }}">
+          <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 600">Pick up to 3 switches from the library to hear them back to back and compare their curves.</p>
+        </sc-if>
+        <sc-for list="{{cmp}}" as="c" hint-placeholder-count="2">
+          <div class="panel" style="background: {{c.bg}}">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+              <span style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 900"><span aria-hidden="true" style="width: 12px; height: 12px; border: 2px solid #000; background: {{c.stem}}"></span>{{c.name}}</span>
+              <span class="mono" style="font-size: 11px; font-weight: 700">{{c.spec}}</span>
+            </div>
+            <dc-import name="Waveform" profile="{{c.prof}}" height="34" labels="{{ false }}" seed="{{c.seed}}" hint-size="100%,34px"></dc-import>
+            <dc-import name="ForceCurve" curve="{{c.curve}}" force="{{c.force}}" act="{{c.act}}" total="{{c.total}}" height="110" hint-size="100%,130px"></dc-import>
+          </div>
+        </sc-for>
+        <button type="button" class="kc primary" onClick="{{playTurn}}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg>
+          Play in turn
+        </button>
+      </sc-if>
+
+      <sc-if value="{{notCompare}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; align-items: center; gap: 14px">
+          <span aria-hidden="true" style="flex: none; width: 54px; height: 54px; border: 3px solid #000; background: #FFFDF5; display: flex; align-items: center; justify-content: center"><span style="width: 22px; height: 22px; border: 2px solid #000; background: {{cur.stem}}"></span></span>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px">
+            <span style="font-size: 28px; line-height: 26px; font-weight: 900; letter-spacing: -0.05em">{{cur.name}}</span>
+            <span style="display: flex; gap: 6px"><span class="sticker">{{cur.type}}</span><span class="sticker" style="background: var(--sky)">{{cur.prof}}</span></span>
+          </div>
+          <button type="button" class="kc icon coral" aria-label="Play {{cur.name}}" onClick="{{playSel}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg></button>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 21px; font-weight: 500">{{cur.desc}}</p>
+        <div class="panel">
+          <p class="lbl">Sound waveform</p>
+          <sc-if value="{{cur.hasSound}}" hint-placeholder-val="{{ true }}">
+            <dc-import name="Waveform" profile="{{cur.prof}}" height="60" seed="{{cur.seed}}" hint-size="100%,78px"></dc-import>
+          </sc-if>
+          <sc-if value="{{cur.noSound}}" hint-placeholder-val="{{ false }}">
+            <div style="height: 78px; border: 2.5px dashed #000; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800">NO SOUND RECORDING YET</div>
+          </sc-if>
+        </div>
+        <div class="panel">
+          <p class="lbl">Force curve</p>
+          <dc-import name="ForceCurve" curve="{{cur.curve}}" force="{{cur.force}}" act="{{cur.act}}" total="{{cur.total}}" height="160" hint-size="100%,180px"></dc-import>
+        </div>
+        <dl style="margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+          <div class="spec"><dt class="lbl" style="font-size: 9px; letter-spacing: .04em">Actuation</dt><dd class="mono" style="margin: 0; font-size: 15px; font-weight: 700">{{cur.force}}g</dd></div>
+          <div class="spec"><dt class="lbl" style="font-size: 9px; letter-spacing: .04em">Pre-travel</dt><dd class="mono" style="margin: 0; font-size: 15px; font-weight: 700">{{cur.actS}}</dd></div>
+          <div class="spec"><dt class="lbl" style="font-size: 9px; letter-spacing: .04em">Total</dt><dd class="mono" style="margin: 0; font-size: 15px; font-weight: 700">{{cur.totalS}}</dd></div>
+          <div class="spec"><dt class="lbl" style="font-size: 9px; letter-spacing: .04em">Spring</dt><dd class="mono" style="margin: 0; font-size: 15px; font-weight: 700">{{cur.springS}}</dd></div>
+        </dl>
+        <sc-if value="{{appliedNote}}" hint-placeholder-val="{{ false }}">
+          <p role="status" style="margin: 0; padding: 8px 10px; border: 2.5px solid #000; background: var(--lime); color: #000; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="square" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>{{appliedNote}}
+          </p>
+        </sc-if>
+        <sc-if value="{{selecting}}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; font-size: 13px; line-height: 19px; font-weight: 700">Click keys in the preview to select them, for example the spacebar or modifiers.</p>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 12px">
+            <button type="button" class="kc" onClick="{{cancelSelect}}">Cancel</button>
+            <button type="button" class="kc primary" onClick="{{applySelected}}">{{applySelLabel}}</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{notSelecting}}" hint-placeholder-val="{{ true }}">
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+            <button type="button" class="kc primary" onClick="{{applyAll}}">Apply to all</button>
+            <button type="button" class="kc" style="min-height: 54px" onClick="{{startSelect}}">Selected keys</button>
+          </div>
+          <a class="kc coral" href="ModsDesktop.dc.html">Next: add mods
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"></path></svg>
+          </a>
+        </sc-if>
+      </sc-if>
+    </aside>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1440}}'>
+const SW = [
+  { id: 'milk', name: 'Milk Yellow', type: 'Linear', curve: 'linear', stem: '#E9C46A', housing: 'milky', force: 50, act: 2.0, total: 4.0, spring: 18, prof: 'Deep', desc: 'Smooth and full-bodied. A low, rounded thock that gets deeper with case foam and a light lube.', snd: { pitch: 520, bright: .25, decay: 70, thump: .9, vol: .7 } },
+  { id: 'red', name: 'Classic Red', type: 'Linear', curve: 'linear', stem: '#D64545', housing: 'clear', box: true, force: 45, act: 2.0, total: 4.0, spring: 18, prof: 'Poppy', desc: 'Light and quick, with a clean, mid-pitched pop on the way down.', snd: { pitch: 880, bright: .45, decay: 55, thump: .55, vol: .65 } },
+  { id: 'ink', name: 'Ink Black', type: 'Linear', curve: 'linear', stem: '#2A2E38', housing: 'smoke', force: 60, act: 2.0, total: 4.0, spring: 20, prof: 'Deep', desc: 'Heavier and buttery. Bottoms out with a dense, low knock.', snd: { pitch: 430, bright: .18, decay: 82, thump: 1, vol: .72 } },
+  { id: 'silver', name: 'Speed Silver', type: 'Linear', curve: 'linear', stem: '#B8C0CC', housing: 'clear', force: 45, act: 1.2, total: 3.4, spring: 18, prof: 'Clacky', desc: 'Short travel built for speed. Bright, sharp clack.', snd: { pitch: 1500, bright: .7, decay: 42, thump: .3, vol: .62 } },
+  { id: 'brown', name: 'Bump Brown', type: 'Tactile', curve: 'tactile', stem: '#7A4E2D', housing: 'amber', force: 55, act: 2.0, total: 4.0, spring: 18, prof: 'Muted', desc: 'A soft, rounded bump you can feel without hearing much of it.', snd: { pitch: 640, bright: .3, decay: 58, thump: .6, vol: .55 } },
+  { id: 'peak', name: 'Peak Tactile', type: 'Tactile', curve: 'tactile', stem: '#EFEBE0', housing: 'milky', force: 67, act: 2.0, total: 4.0, spring: 20, prof: 'Poppy', desc: 'A sharp, early bump and a loud, poppy bottom-out.', snd: { pitch: 1050, bright: .55, decay: 60, thump: .7, vol: .75 } },
+  { id: 'blue', name: 'Click Blue', type: 'Clicky', curve: 'clicky', stem: '#2F6FD6', housing: 'ice', box: true, force: 60, act: 2.2, total: 4.0, spring: 18, prof: 'Clacky', desc: 'The classic typewriter click on every press. Not for shared rooms.', snd: { pitch: 1300, bright: .65, decay: 50, thump: .4, vol: .7, click: true } },
+  { id: 'jade', name: 'Jade Clickbar', type: 'Clicky', curve: 'clicky', stem: '#2E9E7A', housing: 'teal', box: true, force: 70, act: 1.8, total: 3.6, spring: 20, prof: 'Clacky', desc: 'A click bar instead of a jacket: crisper and heavier than Click Blue.', snd: { pitch: 1700, bright: .8, decay: 38, thump: .35, vol: .75, click: true } },
+  { id: 'hushr', name: 'Hush Red', type: 'Silent', curve: 'linear', stem: '#E07A7A', housing: 'smoke', force: 45, act: 1.9, total: 3.7, spring: 18, prof: 'Muted', desc: 'Dampened stem for quiet, cushioned presses. Office-friendly.', snd: { pitch: 380, bright: .08, decay: 34, thump: .4, vol: .28 } },
+  { id: 'hushb', name: 'Hush Tactile', type: 'Silent', curve: 'tactile', stem: '#8C6BB1', housing: 'milky', force: 62, act: 2.0, total: 3.7, spring: 18, prof: 'Muted', desc: 'A quiet tactile bump with dampened top and bottom.', snd: { pitch: 420, bright: .1, decay: 36, thump: .45, vol: .3 } },
+  { id: 'proto', name: 'Proto Orange', type: 'Tactile', curve: 'tactile', stem: '#E58A3A', housing: 'clear', force: 58, act: 2.0, total: 3.8, spring: 18, prof: 'Poppy', desc: 'New to the library. Sound recording coming soon.', snd: { none: true }, nosound: true }
+];
+const TYPES = ['All', 'Linear', 'Tactile', 'Clicky', 'Silent'];
+const CHIPS = [
+  { id: 'Deep', kind: 'snd' }, { id: 'Poppy', kind: 'snd' }, { id: 'Clacky', kind: 'snd' }, { id: 'Muted', kind: 'snd' },
+  { id: '≤50g', kind: 'force', test: (s) => s.force <= 50 }, { id: '51–60g', kind: 'force', test: (s) => s.force > 50 && s.force <= 60 }, { id: '61g+', kind: 'force', test: (s) => s.force > 60 },
+  { id: 'Short travel', kind: 'travel', test: (s) => s.act < 1.6 }
+];
+const PADS = [
+  { id: 'sky', name: 'Sky', stitch: 'rgba(0,0,0,.35)', bg: '#99D6FF' },
+  { id: 'splash', name: 'Splash', stitch: 'rgba(255,253,245,.55)', bg: 'radial-gradient(circle at 10% 20%, #F16B53 0 30px, transparent 31px) 0 0/100% 100%, radial-gradient(circle at 88% 78%, #F16B53 0 46px, transparent 47px) 0 0/100% 100%, radial-gradient(circle at 72% 14%, #FFD24D 0 12px, transparent 13px) 0 0/100% 100%, linear-gradient(115deg, transparent 0 60%, #3A3870 60% 76%, transparent 76%) 0 0/100% 100%, #2C2A5A' },
+  { id: 'grid', name: 'Grid', stitch: 'rgba(0,0,0,.35)', bg: 'linear-gradient(transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/28px 28px, linear-gradient(90deg, transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/28px 28px, #FFFDF5' },
+  { id: 'dots', name: 'Dots', stitch: 'rgba(0,0,0,.35)', bg: 'radial-gradient(circle, #000 0 2.5px, transparent 3px) 0 0/22px 22px, #FFD24D' },
+  { id: 'stripes', name: 'Stripes', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-linear-gradient(135deg, #C6F079 0 20px, #B2DE63 20px 40px)' },
+  { id: 'checker', name: 'Checker', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-conic-gradient(#FFFDF5 0 25%, #EFE6CD 0 50%) 0 0/36px 36px' },
+  { id: 'walnut', name: 'Walnut desk', stitch: 'rgba(255,253,245,.45)', bg: 'repeating-linear-gradient(92deg, #8A5E3C 0 9px, #7A5233 9px 20px, #93663F 20px 27px)' }
+];
+
+class Component extends DCLogic {
+  state = { type: 'All', on: {}, sel: 'milk', applied: 'milk', compare: false, cmp: [], turn: { id: null, seq: 0 }, note: '', selecting: false, selKeys: [], marks: {}, ping: 0, pad: 'sky', padOpen: false };
+  componentWillUnmount() { (this.tms || []).forEach(clearTimeout); }
+
+  renderVals() {
+    const s = this.state, p = this.props;
+    const chipOn = CHIPS.filter((c) => s.on[c.id]);
+    const list = SW.filter((sw) => {
+      if (s.type !== 'All' && sw.type !== s.type) return false;
+      const snd = chipOn.filter((c) => c.kind === 'snd');
+      if (snd.length && !snd.some((c) => c.id === sw.prof)) return false;
+      const rest = chipOn.filter((c) => c.kind !== 'snd');
+      if (rest.length && !rest.every((c) => c.test(sw))) return false;
+      return true;
+    });
+    const cur = SW.find((x) => x.id === s.sel) || SW[0];
+    const ap = SW.find((x) => x.id === s.applied) || SW[0];
+    const nKeys = s.selKeys.length;
+    return {
+      theme: p.theme || 'light',
+      appliedName: ap.name.toUpperCase(), appliedSnd: ap.snd, ping: s.ping,
+      padOpen: s.padOpen, padOpenAttr: String(s.padOpen), padChev: s.padOpen ? 'rotate(180deg)' : 'none',
+      togglePad: () => this.setState({ padOpen: !this.state.padOpen }),
+      pad: PADS.find((d) => d.id === s.pad) || PADS[0],
+      pads: PADS.map((d) => ({
+        name: d.name, bg: d.bg, on: String(d.id === s.pad),
+        sh: d.id === s.pad ? '0 0 0 #000' : '3px 3px 0 #000',
+        tf: d.id === s.pad ? 'translate(3px, 3px)' : 'translate(0, 0)',
+        pick: () => this.setState({ pad: d.id })
+      })),
+      stageNote: (s.selecting ? 'SELECTING KEYS · ' + nKeys + ' SELECTED' : ap.name + ' on all keys' + (Object.keys(s.marks).length ? ' · ' + Object.keys(s.marks).length + ' keys with ' + cur.name : '')).toUpperCase(),
+      compare: s.compare, notCompare: !s.compare, compareAttr: String(s.compare),
+      toggleCompare: () => this.setState({ compare: !s.compare, cmp: [] }),
+      types: TYPES.map((t) => ({ label: t, on: String(s.type === t), pick: () => this.setState({ type: t }) })),
+      chips: CHIPS.map((c) => ({ label: c.id, on: String(!!s.on[c.id]), pick: () => { const on = Object.assign({}, s.on); on[c.id] = !on[c.id]; this.setState({ on: on }); } })),
+      clearFilters: () => this.setState({ on: {}, type: 'All' }),
+      empty: list.length === 0,
+      list: list.map((sw) => ({ data: sw, sel: !s.compare && sw.id === s.sel, chk: s.cmp.indexOf(sw.id) >= 0, seq: s.turn.id === sw.id ? s.turn.seq : 0 })),
+      pick: (sw) => {
+        if (this.state.compare) {
+          const c = this.state.cmp.slice(); const i = c.indexOf(sw.id);
+          if (i >= 0) c.splice(i, 1); else if (c.length < 3) c.push(sw.id);
+          this.setState({ cmp: c });
+        } else if (sw.id !== this.state.sel) this.setState({ sel: sw.id, note: '', selecting: false, selKeys: [] });
+      },
+      cmpCount: s.cmp.length, cmpEmpty: s.cmp.length === 0,
+      cmp: s.cmp.map((id, i) => { const sw = SW.find((x) => x.id === id); return { name: sw.name, stem: sw.stem, prof: sw.prof, curve: sw.curve, force: sw.force, act: sw.act, total: sw.total, seed: i * 13 + 5, spec: (sw.type + ' · ' + sw.force + 'g').toUpperCase(), bg: s.turn.id === id ? '#FFD24D' : '#FFFDF5' }; }),
+      clearCompare: () => this.setState({ cmp: [] }),
+      playTurn: () => {
+        (this.tms || []).forEach(clearTimeout);
+        this.tms = this.state.cmp.map((id, i) => setTimeout(() => this.setState({ turn: { id: id, seq: this.state.turn.seq + 1 } }), i * 800));
+      },
+      playSel: () => this.setState({ turn: { id: s.sel, seq: s.turn.seq + 1 } }),
+      cur: {
+        name: cur.name, type: cur.type, stem: cur.stem, prof: cur.prof, curve: cur.curve, force: cur.force, act: cur.act, total: cur.total, desc: cur.desc,
+        actS: cur.act.toFixed(1) + 'mm', totalS: cur.total.toFixed(1) + 'mm', springS: cur.spring + 'mm', seed: SW.indexOf(cur) * 7 + 3,
+        hasSound: !cur.nosound, noSound: !!cur.nosound
+      },
+      appliedNote: s.note,
+      applyAll: () => { if (cur.nosound) return; this.setState({ applied: cur.id, marks: {}, note: cur.name + ' on all 68 keys', ping: s.ping + 1 }); },
+      selecting: s.selecting, notSelecting: !s.selecting,
+      startSelect: () => this.setState({ selecting: true, note: '' }),
+      cancelSelect: () => this.setState({ selecting: false, selKeys: [] }),
+      selKeys: s.selKeys, marks: s.marks,
+      tapKey: (id) => { if (!this.state.selecting) return; const k = this.state.selKeys.slice(); const i = k.indexOf(id); if (i >= 0) k.splice(i, 1); else k.push(id); this.setState({ selKeys: k }); },
+      applySelLabel: nKeys ? 'Apply to ' + nKeys + (nKeys === 1 ? ' key' : ' keys') : 'Select keys first',
+      applySelected: () => {
+        if (!nKeys) return;
+        const m = Object.assign({}, s.marks); s.selKeys.forEach((id) => { m[id] = cur.stem; });
+        this.setState({ marks: m, note: cur.name + ' on ' + nKeys + ' keys', selecting: false, selKeys: [] });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

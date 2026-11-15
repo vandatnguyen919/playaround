@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab admin · Community builds</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+.ad{--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--ink:#2C2A5A;--sun:#FFF1C7;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:#000;background:#EFE8D6;font-size:13px;-webkit-font-smoothing:antialiased}
+.ad *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:13px;font-weight:800;color:#000;background:#FFFDF5;border:2px solid #000;border-radius:0;min-height:34px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;box-shadow:2px 2px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(2px,2px);box-shadow:0 0 0 #000}
+.kc[aria-pressed="true"],.kc[aria-selected="true"],.kc[aria-checked="true"]{background:var(--acc)}
+.kc.go{background:var(--lime);min-height:38px;font-weight:900;border-width:2.5px;box-shadow:3px 3px 0 #000}
+.kc.coral{background:var(--coral)}
+.kc.ghost{box-shadow:none;background:transparent}
+.kc:focus-visible,.tg:focus-visible,.chk:focus-visible,.field:focus,.rlink:focus-visible,.pick:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.card{background:#FFFDF5;border:2.5px solid #000;box-shadow:4px 4px 0 #000;min-width:0}
+.pad{padding:16px;display:flex;flex-direction:column;gap:12px}
+.h2{margin:0;font-size:16px;line-height:20px;font-weight:900;letter-spacing:-.02em}
+.lbl{margin:0;font-size:10.5px;line-height:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:900}
+.sub{margin:0;font-size:12.5px;line-height:17px;font-weight:500}
+.field{height:36px;border:2px solid #000;border-radius:0;background:#FFFFFF;font:inherit;font-size:13px;font-weight:600;padding:0 10px;color:#000}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;padding:8px 10px;border-bottom:2.5px solid #000;background:#FFF1C7;white-space:nowrap}
+.tbl td{padding:6px 10px;border-bottom:1.5px solid #000;vertical-align:middle;font-size:13px;height:50px}
+.tbl tbody tr:hover{background:#FFF1C7}
+.tbl tbody tr.sel{background:#FFD24D}
+.chk{width:18px;height:18px;margin:0;accent-color:#000;cursor:pointer}
+.tg{appearance:none;margin:0;cursor:pointer;position:relative;width:46px;height:26px;border:2px solid #000;border-radius:0;background:#FFFFFF;padding:0;box-shadow:2px 2px 0 #000;flex:none}
+.tg[aria-checked="true"]{background:#000}
+.tg span{position:absolute;top:3px;left:3px;width:16px;height:16px;border:2px solid #000;background:#000;transition:left 100ms ease}
+.tg[aria-checked="true"] span{left:23px;background:var(--acc)}
+.rlink{font-weight:800;text-decoration:underline;text-underline-offset:3px}
+.pick{appearance:none;margin:0;cursor:pointer;font:inherit;text-align:left;width:100%;background:#FFFDF5;border:0;border-bottom:1.5px solid #000;padding:10px 12px;display:flex;align-items:center;gap:10px;color:#000}
+.pick:hover{background:#FFF1C7}
+.pick[aria-current="true"]{background:var(--acc)}
+.tabs{display:flex;gap:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skel{background:#E2DAC6;animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.q{display:grid;grid-template-columns:140px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px;border-bottom:2px solid #000;background:#FFFDF5}
+.q:last-child{border-bottom:0}
+.thumb{height:72px;border:2px solid #000;display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:6px}
+.thumb span{border:1.5px solid #000}
+.slot{border:2.5px solid #000;background:#FFFFFF;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:150px}
+.slot.empty{border-style:dashed;background:transparent;align-items:center;justify-content:center;text-align:center}
+</style>
+</helmet>
+<div class="ad" style="min-height: 100vh; display: flex; flex-wrap: wrap">
+  <div style="flex: 0 0 232px; background: #2C2A5A; border-right: 3px solid #000"><dc-import name="AdminSidebar" active="community" min-height="1500" hint-size="100%,1500px"></dc-import></div>
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="AdminTopbar" title="Community builds" crumb="Moderation · reported and new builds" hint-size="100%,66px"></dc-import>
+    <main style="padding: 18px 20px 32px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+        <div role="tablist" aria-label="Queue" class="tabs"><sc-for list="{{tabs}}" as="t" hint-placeholder-count="3"><button type="button" role="tab" class="kc" aria-selected="{{t.on}}" onClick="{{t.pick}}" style="min-height: 40px; font-size: 14px">{{t.label}}</button></sc-for></div>
+        <a href="MktLanding.dc.html#community" class="rlink">See the public gallery</a>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+        <section aria-labelledby="mq-h" class="card" style="flex: 999 1 560px; overflow: hidden">
+          <div style="padding: 12px 14px; border-bottom: 2.5px solid #000; background: #FFF1C7; display: flex; align-items: center; justify-content: space-between; gap: 10px"><h2 id="mq-h" class="h2">{{queueTitle}}</h2><span class="mono" style="font-size: 11px; font-weight: 700">{{queueCount}}</span></div>
+          <sc-if value="{{hasQueue}}" hint-placeholder-val="{{ true }}">
+            <ul style="margin: 0; padding: 0; list-style: none">
+              <sc-for list="{{queue}}" as="b" hint-placeholder-count="5">
+                <li class="q">
+                  <div class="thumb" aria-hidden="true" style="background: {{b.case}}"><span style="background: {{b.cap}}"></span><span style="background: {{b.cap}}"></span><span style="background: {{b.acc}}"></span><span style="background: {{b.cap}}"></span><span style="background: {{b.cap}}"></span><span style="background: {{b.cap}}"></span><span style="background: {{b.mod}}"></span><span style="background: {{b.mod}}"></span><span style="background: {{b.cap}}"></span><span style="background: {{b.cap}}"></span><span style="background: {{b.cap}}"></span><span style="background: {{b.cap}}"></span><span style="background: {{b.cap}}"></span><span style="background: {{b.mod}}"></span></div>
+                  <div style="min-width: 0; display: flex; flex-direction: column; gap: 5px">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><strong style="font-size: 15px; font-weight: 900">{{b.name}}</strong><span style="font-weight: 600">by {{b.author}}</span><dc-import name="StatusBadge" status="{{b.status}}" hint-size="96px,22px"></dc-import></div>
+                    <span class="mono" style="font-size: 11px; font-weight: 700">{{b.spec}}</span>
+                    <sc-if value="{{b.reported}}" hint-placeholder-val="{{ true }}"><span style="font-size: 12.5px; font-weight: 700; color: #8C1D18">{{b.reason}}</span></sc-if>
+                  </div>
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end">
+                    <button type="button" class="kc" onClick="{{b.approve}}" aria-label="{{b.approveLabel}}">Approve</button>
+                    <button type="button" class="kc coral" onClick="{{b.hide}}" aria-label="{{b.hideLabel}}">Hide</button>
+                    <button type="button" class="kc" onClick="{{b.feature}}" aria-label="{{b.featureLabel}}" style="background: #FFD24D">Feature</button>
+                  </div>
+                </li>
+              </sc-for>
+            </ul>
+          </sc-if>
+          <sc-if value="{{noQueue}}" hint-placeholder-val="{{ false }}">
+            <div role="status" style="padding: 48px 24px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.6" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg><strong style="font-size: 18px; font-weight: 900">Queue is clear</strong><span class="sub">New reports and first-time posts land here.</span></div>
+          </sc-if>
+        </section>
+
+        <section aria-labelledby="fs-h" class="card pad" style="flex: 1 1 340px; min-width: 300px">
+          <div><h2 id="fs-h" class="h2">Featured slots</h2><p class="sub">Shown in this order on the landing page gallery. Four slots.</p></div>
+          <ol style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <sc-for list="{{slots}}" as="f" hint-placeholder-count="4">
+              <li>
+                <sc-if value="{{f.filled}}" hint-placeholder-val="{{ true }}">
+                  <div class="slot">
+                    <div style="display: flex; justify-content: space-between; align-items: center"><span class="mono" style="font-size: 11px; font-weight: 700">SLOT {{f.n}}</span><dc-import name="StatusBadge" status="featured" hint-size="90px,22px"></dc-import></div>
+                    <div aria-hidden="true" style="height: 34px; border: 2px solid #000; background: {{f.case}}; display: flex; gap: 3px; padding: 4px"><span style="flex: 1; background: {{f.cap}}; border: 1.5px solid #000"></span><span style="flex: 1; background: {{f.cap}}; border: 1.5px solid #000"></span><span style="flex: 1; background: {{f.acc}}; border: 1.5px solid #000"></span><span style="flex: 1; background: {{f.cap}}; border: 1.5px solid #000"></span></div>
+                    <strong style="font-weight: 900; font-size: 13px">{{f.name}}</strong>
+                    <div style="display: flex; gap: 4px">
+                      <button type="button" class="kc" aria-label="{{f.upLabel}}" onClick="{{f.up}}" style="width: 34px; padding: 0">↑</button>
+                      <button type="button" class="kc" aria-label="{{f.downLabel}}" onClick="{{f.down}}" style="width: 34px; padding: 0">↓</button>
+                      <button type="button" class="kc" aria-label="{{f.rmLabel}}" onClick="{{f.rm}}" style="flex: 1">Remove</button>
+                    </div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{f.empty}}" hint-placeholder-val="{{ false }}">
+                  <div class="slot empty"><span class="mono" style="font-size: 11px; font-weight: 700">SLOT {{f.n}} · EMPTY</span><span class="sub">Press Feature on a build in the queue.</span></div>
+                </sc-if>
+              </li>
+            </sc-for>
+          </ol>
+        </section>
+      </div>
+      <sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
+        <div style="position: fixed; right: 24px; bottom: 24px; width: 440px; max-width: calc(100% - 48px); z-index: 5"><dc-import name="Toast" kind="{{toastKind}}" title="{{toastTitle}}" body="{{toastBody}}" action="{{toastAction}}" href="{{toastHref}}" on-dismiss="{{dismiss}}" hint-size="100%,72px"></dc-import></div>
+      </sc-if>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"queueState": {"editor": "enum", "options": ["ready", "empty"], "default": "ready"}, "$preview": {"width": 1440, "height": 1500}}'>
+const TOASTLESS = { toast: false, toastKind: 'success', toastTitle: '', toastBody: '', toastAction: '', toastHref: '' };
+function toastVals(self, t) {
+  if (!t) return Object.assign({}, TOASTLESS, { dismiss: () => self.setState({ toast: null }) });
+  return { toast: true, toastKind: t.kind || 'success', toastTitle: t.title, toastBody: t.body || '', toastAction: t.action || '', toastHref: t.href || '', dismiss: () => self.setState({ toast: null }) };
+}
+const BUILDS = [
+  { id: 1, name: 'Night shift 65%', author: '@thockwise', status: 'reported', reason: '2 reports · offensive name on a custom keycap', spec: 'MILK YELLOW · CREAM PAPER · TAPE MOD', case: '#2C2A5A', cap: '#FFFDF5', mod: '#2C2A5A', acc: '#F16B53' },
+  { id: 2, name: 'Coral TKL', author: '@tactilefirst', status: 'draft', reason: '', spec: 'CORAL POP · CORAL REEF · CASE FOAM', case: '#F16B53', cap: '#FFF1C7', mod: '#F16B53', acc: '#2C2A5A' },
+  { id: 3, name: 'Free keys giveaway', author: '@spamkeys', status: 'reported', reason: '5 reports · spam link in the description', spec: 'INK BLACK · INK BLANK', case: '#1E1C3F', cap: '#2C2A5A', mod: '#1E1C3F', acc: '#FFD24D' },
+  { id: 4, name: 'Library whisper', author: '@quietdesk', status: 'draft', reason: '', spec: 'JADE HUSH · SKY LAB · LUBED STABS', case: '#99D6FF', cap: '#FFFDF5', mod: '#99D6FF', acc: '#C6F079' },
+  { id: 5, name: 'Lime typewriter', author: '@clackattack', status: 'reported', reason: '1 report · build photo isn’t a keyboard', spec: 'SAPPHIRE CLICK · LIME POP', case: '#C6F079', cap: '#FFFDF5', mod: '#C6F079', acc: '#F16B53' }
+];
+const FEAT0 = [
+  { name: 'Desk 75%', case: '#FFD24D', cap: '#FFFDF5', acc: '#F16B53' },
+  { name: 'Navy thock', case: '#2C2A5A', cap: '#FFFDF5', acc: '#FFD24D' },
+  { name: 'Sky split', case: '#99D6FF', cap: '#FFFDF5', acc: '#C6F079' }
+];
+class Component extends DCLogic {
+  state = { tab: 'all', done: {}, feat: FEAT0.slice(), toast: null };
+  renderVals() {
+    const s = this.state;
+    const empty = this.props.queueState === 'empty';
+    const left = empty ? [] : BUILDS.filter((b) => !s.done[b.id]);
+    const shown = left.filter((b) => s.tab === 'all' || (s.tab === 'reported' ? b.status === 'reported' : b.status === 'draft'));
+    const act = (b, kind) => () => {
+      const done = Object.assign({}, s.done); done[b.id] = kind;
+      let feat = s.feat;
+      if (kind === 'feature') {
+        if (feat.length >= 4) { this.setState({ toast: { kind: 'error', title: 'All four slots are full', body: 'Remove a featured build first.' } }); return; }
+        feat = feat.concat([{ name: b.name, case: b.case, cap: b.cap, acc: b.acc }]);
+      }
+      const msg = { approve: [b.name + ' approved', 'It stays in the public gallery.'], hide: [b.name + ' hidden', 'Only the author can see it now.'], feature: [b.name + ' featured', 'It’s in slot ' + feat.length + ' on the landing page.'] }[kind];
+      this.setState({ done: done, feat: feat, toast: { kind: kind === 'hide' ? 'info' : 'success', title: msg[0], body: msg[1], action: kind === 'feature' ? 'View on landing' : '', href: 'MktLanding.dc.html#community' } });
+    };
+    const move = (i, d) => () => { const f = s.feat.slice(); const j = i + d; if (j < 0 || j >= f.length) return; const t = f[i]; f[i] = f[j]; f[j] = t; this.setState({ feat: f }); };
+    const nRep = left.filter((b) => b.status === 'reported').length, nNew = left.filter((b) => b.status === 'draft').length;
+    return Object.assign({
+      tabs: [['all', 'All · ' + left.length], ['reported', 'Reported · ' + nRep], ['new', 'First posts · ' + nNew]].map((t) => ({ label: t[1], on: String(t[0] === s.tab), pick: () => this.setState({ tab: t[0] }) })),
+      queueTitle: s.tab === 'reported' ? 'Reported builds' : s.tab === 'new' ? 'First-time posts' : 'Moderation queue',
+      queueCount: shown.length + ' WAITING',
+      hasQueue: shown.length > 0, noQueue: shown.length === 0,
+      queue: shown.map((b) => ({ name: b.name, author: b.author, status: b.status, reported: b.status === 'reported', reason: b.reason, spec: b.spec, case: b.case, cap: b.cap, mod: b.mod, acc: b.acc,
+        approve: act(b, 'approve'), hide: act(b, 'hide'), feature: act(b, 'feature'),
+        approveLabel: 'Approve ' + b.name, hideLabel: 'Hide ' + b.name, featureLabel: 'Feature ' + b.name })),
+      slots: [0, 1, 2, 3].map((i) => { const f = s.feat[i]; return f ? { n: i + 1, filled: true, empty: false, name: f.name, case: f.case, cap: f.cap, acc: f.acc, up: move(i, -1), down: move(i, 1), rm: () => { const ff = s.feat.slice(); ff.splice(i, 1); this.setState({ feat: ff }); }, upLabel: 'Move ' + f.name + ' up', downLabel: 'Move ' + f.name + ' down', rmLabel: 'Remove ' + f.name + ' from featured' } : { n: i + 1, filled: false, empty: true, name: '', case: '', cap: '', acc: '', up: null, down: null, rm: null, upLabel: '', downLabel: '', rmLabel: '' }; })
+    }, toastVals(this, s.toast));
+  }
+}
+</script>
+</body>
+</html>

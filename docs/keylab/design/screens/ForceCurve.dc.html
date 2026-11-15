@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Force curve</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 100%; display: flex; flex-direction: column; gap: 6px; font-family: 'Space Mono', ui-monospace, monospace; font-weight: 700; color: inherit">
+  <svg width="100%" viewBox="0 0 340 {{H}}" role="img" aria-label="{{aria}}" style="display: block; overflow: visible">
+    <sc-for list="{{grid}}" as="g" hint-placeholder-count="4">
+      <line x1="34" y1="{{g.y}}" x2="330" y2="{{g.y}}" stroke="currentColor" stroke-opacity=".3" stroke-width="1" stroke-dasharray="2 4"></line>
+      <text x="28" y="{{g.ty}}" text-anchor="end" font-size="9" fill="currentColor">{{g.label}}</text>
+    </sc-for>
+    <line x1="34" y1="{{base}}" x2="330" y2="{{base}}" stroke="currentColor" stroke-width="2.5"></line>
+    <line x1="34" y1="12" x2="34" y2="{{base}}" stroke="currentColor" stroke-width="2.5"></line>
+    <line x1="{{ax}}" y1="12" x2="{{ax}}" y2="{{base}}" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"></line>
+    <path d="{{area}}" fill="{{color}}" fill-opacity=".25"></path>
+    <path d="{{rel}}" fill="none" stroke="#2C2A5A" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="miter"></path>
+    <path d="{{press}}" fill="none" stroke="#000" stroke-width="5" stroke-linejoin="miter"></path>
+    <path d="{{press}}" fill="none" stroke="{{color}}" stroke-width="2.5" stroke-linejoin="miter"></path>
+    <circle cx="{{ax}}" cy="{{ay}}" r="6" fill="{{color}}" stroke="#000" stroke-width="2.5"></circle>
+    <text x="{{lx}}" y="{{ly}}" font-size="10" font-weight="700" fill="currentColor" text-anchor="{{lanchor}}">{{actLabel}}</text>
+    <text x="34" y="{{tickY}}" font-size="9" fill="currentColor">0</text>
+    <text x="{{ax}}" y="{{tickY}}" font-size="9" fill="currentColor" text-anchor="middle">{{actMm}}</text>
+    <text x="330" y="{{tickY}}" font-size="9" fill="currentColor" text-anchor="end">{{totMm}}</text>
+  </svg>
+  <div style="display: flex; gap: 14px; font-size: 10px; line-height: 14px">
+    <span style="display: flex; align-items: center; gap: 6px"><span style="width: 16px; height: 6px; box-sizing: border-box; border: 1.5px solid #000; background: {{color}}"></span>Press</span>
+    <span style="display: flex; align-items: center; gap: 6px"><span style="width: 16px; height: 0; border-top: 2px dashed #2C2A5A"></span>Release</span>
+    <span style="margin-left: auto">force (g) · travel (mm)</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"curve":{"editor":"enum","options":["linear","tactile","clicky"],"default":"linear"},"force":{"editor":"int","min":30,"max":90,"default":50},"act":{"editor":"float","min":1,"max":3,"step":0.1,"default":2},"total":{"editor":"float","min":3,"max":4.5,"step":0.1,"default":4},"color":{"editor":"color","default":"#F16B53"},"height":{"editor":"int","min":120,"max":260,"default":160},"$preview":{"width":340,"height":200}}'>
+function fcG(d, c, w) { return Math.exp(-Math.pow((d - c) / w, 2)); }
+
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const num = (v, d) => { const n = parseFloat(v); return isFinite(n) ? n : d; };
+    const curve = p.curve || 'linear', F = num(p.force, 50), act = num(p.act, 2), tot = num(p.total, 4);
+    const H = num(p.height, 160), top = 12, base = H - 22, x0 = 34, x1 = 330;
+    const s0 = F * .62, k = (F - s0) / act;
+    const fn = (d, rel) => {
+      let y = s0 + k * d;
+      if (curve === 'tactile') y += rel ? F * .1 * fcG(d, .75, .3) : F * .36 * fcG(d, .75, .26) - F * .14 * fcG(d, 1.35, .3);
+      if (curve === 'clicky' && !rel) y += F * .4 * fcG(d, act - .45, .16) - F * .18 * fcG(d, act - .1, .12);
+      if (d > tot - .3) y += Math.pow((d - (tot - .3)) / .3, 3) * 55;
+      if (rel) y -= 7;
+      return Math.min(100, Math.max(0, y));
+    };
+    const X = (d) => x0 + (d / tot) * (x1 - x0);
+    const Y = (g) => base - (g / 100) * (base - top);
+    const path = (rel) => {
+      let s = 'M' + X(0).toFixed(1) + ' ' + Y(0).toFixed(1) + ' L' + X(.03).toFixed(1) + ' ' + Y(fn(.03, rel)).toFixed(1);
+      for (let i = 1; i <= 90; i++) { const d = .03 + (tot - .03) * i / 90; s += ' L' + X(d).toFixed(1) + ' ' + Y(fn(d, rel)).toFixed(1); }
+      return s;
+    };
+    const press = path(false);
+    const ay = Y(fn(act, false));
+    const ax = X(act);
+    const right = ax > 230;
+    return {
+      H: H, base: base,
+      grid: [25, 50, 75, 100].map((g) => ({ y: Y(g).toFixed(1), ty: (Y(g) + 3).toFixed(1), label: g })),
+      press: press,
+      area: press + ' L' + X(tot).toFixed(1) + ' ' + base + ' L' + X(0).toFixed(1) + ' ' + base + ' Z',
+      rel: path(true),
+      ax: ax.toFixed(1), ay: ay.toFixed(1),
+      lx: (right ? ax - 8 : ax + 8).toFixed(1), ly: (ay - 9).toFixed(1), lanchor: right ? 'end' : 'start',
+      actLabel: 'Actuation ' + F + 'g',
+      actMm: act.toFixed(1), totMm: tot.toFixed(1) + ' mm', tickY: base + 14,
+      color: p.color || '#F16B53',
+      aria: curve + ' force curve: actuates at ' + F + ' grams after ' + act.toFixed(1) + ' millimetres, ' + tot.toFixed(1) + ' millimetres total travel'
+    };
+  }
+}
+</script>
+</body>
+</html>

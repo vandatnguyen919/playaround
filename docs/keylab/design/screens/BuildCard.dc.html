@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Build summary card</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Nunito:wght@700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}
+.bc-au{display:flex;align-items:center;gap:8px;min-height:44px;margin:-4px 0 -6px;padding:0 6px;border:2.5px solid transparent;color:#000;text-decoration:none;font-size:14px;font-weight:800}
+.bc-au:hover{border-color:#000;background:#FFF1C7}
+.bc-au:active{transform:translate(2px,2px)}
+.bc-au:focus-visible{outline:3px solid #F16B53;outline-offset:2px}
+</style>
+</helmet>
+<sc-if value="{{isSummary}}" hint-placeholder-val="{{ true }}">
+  <article style="width: {{W}}px; box-sizing: border-box; border: 3px solid #000; padding: 14px; background: #FFFFFF; color: #000; box-shadow: 6px 6px 0 #000; display: flex; flex-direction: column; gap: 14px; font-family: 'Archivo', system-ui, sans-serif">
+    <div style="border: 3px solid #000; background: #99D6FF; padding: 14px 0 10px; display: flex; justify-content: center">
+      <dc-import name="Keyboard" layout="{{b.layout}}" width="{{kbW}}" alpha="{{b.a}}" mod="{{b.m}}" accent="{{b.x}}" case-color="{{b.c}}" profile="{{b.profile}}" plate="{{b.plate}}" legend="{{b.legend}}" sound="{{b.snd}}" hint-size="300px,130px"></dc-import>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+      <h3 style="margin: 0; font-size: 22px; line-height: 24px; font-weight: 900; letter-spacing: -0.035em">{{b.name}}</h3>
+      <span style="font-family: 'Space Mono', ui-monospace, monospace; font-size: 12px; font-weight: 700; padding: 2px 8px; border: 2px solid #000; background: #FFD24D">{{b.layoutLabel}}</span>
+    </div>
+    <dl style="margin: 0; display: grid; grid-template-columns: 80px minmax(0, 1fr); border: 2.5px solid #000">
+      <dt style="padding: 8px 10px; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; border-bottom: 2px solid #000; border-right: 2px solid #000; background: #FFFDF5">Switch</dt>
+      <dd style="margin: 0; padding: 8px 10px; border-bottom: 2px solid #000; display: flex; align-items: center; gap: 8px; font-size: 13px"><span aria-hidden="true" style="width: 11px; height: 11px; box-sizing: border-box; border: 2px solid #000; background: {{b.stem}}"></span><span style="font-weight: 800">{{b.sw}}</span><span style="font-family: 'Space Mono', ui-monospace, monospace; font-size: 11px">{{b.swType}}</span></dd>
+      <dt style="padding: 8px 10px; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; border-bottom: 2px solid #000; border-right: 2px solid #000; background: #FFFDF5">Mods</dt>
+      <dd style="margin: 0; padding: 7px 10px; border-bottom: 2px solid #000; display: flex; flex-wrap: wrap; gap: 5px">
+        <sc-for list="{{b.mods}}" as="m" hint-placeholder-count="3"><span style="font-size: 11px; line-height: 15px; font-weight: 800; padding: 1px 6px; border: 2px solid #000; background: #C6F079">{{m}}</span></sc-for>
+      </dd>
+      <dt style="padding: 8px 10px; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; border-bottom: 2px solid #000; border-right: 2px solid #000; background: #FFFDF5">Keycaps</dt>
+      <dd style="margin: 0; padding: 8px 10px; border-bottom: 2px solid #000; font-family: 'Space Mono', ui-monospace, monospace; font-size: 12px">{{b.caps}}</dd>
+      <dt style="padding: 8px 10px; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; border-right: 2px solid #000; background: #FFFDF5">Case</dt>
+      <dd style="margin: 0; padding: 8px 10px; font-family: 'Space Mono', ui-monospace, monospace; font-size: 12px">{{b.case}}</dd>
+    </dl>
+    <sc-if value="{{hasAuthor}}" hint-placeholder-val="{{ false }}">
+      <a class="bc-au" href="{{b.authorHref}}"><span aria-hidden="true" style="width: 26px; height: 26px; box-sizing: border-box; border: 2px solid #000; background: {{b.authorBg}}; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900">{{b.authorInitial}}</span><span>by <span style="text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px">{{b.author}}</span></span></a>
+    </sc-if>
+  </article>
+</sc-if>
+<sc-if value="{{isShare}}" hint-placeholder-val="{{ false }}">
+  <article aria-label="Shareable build card" style="width: {{W}}px; height: {{shareH}}px; box-sizing: border-box; border: 3px solid #000; padding: 18px; background: #FFD24D; color: #000; display: flex; flex-direction: column; gap: 14px; overflow: hidden; font-family: 'Archivo', system-ui, sans-serif; box-shadow: 6px 6px 0 #000">
+    <div style="display: flex; align-items: center; gap: 8px">
+      <span aria-hidden="true" style="width: 26px; height: 26px; box-sizing: border-box; border: 2.5px solid #000; background: #FFFDF5; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px">K</span>
+      <span style="font-weight: 900; font-size: 15px; letter-spacing: -0.02em">KeyLab</span>
+      <span style="margin-left: auto; font-family: 'Space Mono', ui-monospace, monospace; font-size: 11px; font-weight: 700; padding: 1px 6px; border: 2px solid #000; background: #FFFDF5">{{b.layoutLabel}} build</span>
+    </div>
+    <h3 style="margin: 0; font-size: 34px; line-height: 32px; font-weight: 900; letter-spacing: -0.05em; text-transform: uppercase">{{b.name}}</h3>
+    <div style="display: flex; justify-content: center; padding: 10px 0 6px; border: 3px solid #000; background: #99D6FF">
+      <dc-import name="Keyboard" layout="{{b.layout}}" width="{{shareKbW}}" alpha="{{b.a}}" mod="{{b.m}}" accent="{{b.x}}" case-color="{{b.c}}" profile="{{b.profile}}" plate="{{b.plate}}" legend="{{b.legend}}" sound="{{b.snd}}" hint-size="240px,110px"></dc-import>
+    </div>
+    <dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <div style="border: 2.5px solid #000; background: #FFFFFF; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px"><dt style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; font-weight: 900">Switch</dt><dd style="margin: 0; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="width: 10px; height: 10px; box-sizing: border-box; border: 2px solid #000; background: {{b.stem}}"></span>{{b.sw}}</dd></div>
+      <div style="border: 2.5px solid #000; background: #FFFFFF; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px"><dt style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; font-weight: 900">Keycaps</dt><dd style="margin: 0; font-size: 13px; font-weight: 800">{{b.capsShort}}</dd></div>
+      <div style="border: 2.5px solid #000; background: #FFFFFF; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px"><dt style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; font-weight: 900">Mods</dt><dd style="margin: 0; font-size: 13px; font-weight: 800">{{b.modsShort}}</dd></div>
+      <div style="border: 2.5px solid #000; background: #FFFFFF; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px"><dt style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; font-weight: 900">Case</dt><dd style="margin: 0; font-size: 13px; font-weight: 800">{{b.caseShort}}</dd></div>
+    </dl>
+    <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; font-family: 'Space Mono', ui-monospace, monospace; font-size: 11px; font-weight: 700">
+      <span>Hear it: [BUILD LINK]</span>
+      <span style="padding: 1px 6px; background: #000; color: #FFD24D">BUILT IN KEYLAB</span>
+    </div>
+  </article>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"build":{"editor":null},"variant":{"editor":"enum","options":["summary","share"],"default":"summary"},"width":{"editor":"int","min":300,"max":520,"default":360},"$preview":{"width":360,"height":460}}'>
+const BC_DEFAULT = {
+  name: 'Night Thock 65', layout: '65', layoutLabel: '65%',
+  sw: 'Milk Yellow', stem: '#E9C46A', swType: 'Linear · 50g',
+  mods: ['Light lube', 'Case foam', 'Tuned stabs'],
+  caps: 'PBT · Cherry · Navy Mustard', capsShort: 'Navy Mustard',
+  case: 'Aluminum · gasket · brass', caseShort: 'Alu, gasket',
+  a: '#3D6A8C', m: '#1F2B45', x: '#F2C14E', c: '#2B4677', profile: 'cherry', plate: 'brass', legend: 'top-left',
+  snd: { pitch: 470, bright: .2, decay: 62, thump: 1, vol: .7 }
+};
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const b = Object.assign({}, BC_DEFAULT, p.build || {});
+    b.modsShort = b.modsShort || (b.mods.length ? b.mods.length + ' applied' : 'Stock');
+    if (b.author) { b.authorHref = b.authorHref || 'PublicProfileDesktop.dc.html'; b.authorInitial = b.authorInitial || b.author.replace('@', '').charAt(0).toUpperCase(); b.authorBg = b.authorBg || '#FFD24D'; }
+    const W = p.width || 360;
+    return {
+      b: b, W: W, kbW: W - 28 - 6 - 20, shareKbW: W - 36 - 6 - 30,
+      shareH: Math.round(W * 1.3),
+      isSummary: p.variant !== 'share', isShare: p.variant === 'share', hasAuthor: !!b.author
+    };
+  }
+}
+</script>
+</body>
+</html>

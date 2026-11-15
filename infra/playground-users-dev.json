@@ -19,7 +19,8 @@
         }
       ],
       "realmRoles": [
-        "user"
+        "user",
+        "keylab-user"
       ]
     },
     {
@@ -41,7 +42,9 @@
       ],
       "realmRoles": [
         "user",
-        "admin"
+        "admin",
+        "keylab-user",
+        "keylab-admin"
       ]
     }
   ]

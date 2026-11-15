@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Landing page</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Nunito:wght@700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+.kl{--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--ink:#2C2A5A;--ink2:#1E1C3F;--sun:#FFF1C7;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:#000;background:#FFFDF5;-webkit-font-smoothing:antialiased}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.wrap{max-width:1280px;margin:0 auto;padding:0 40px}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc[aria-pressed="true"],.kc[aria-checked="true"]{background:var(--acc)}
+.kc.primary{background:var(--lime);min-height:58px;padding:0 24px;font-size:18px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.big{min-height:58px;padding:0 24px;font-size:18px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active,.kc.big:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc.coral{background:var(--coral)}
+.kc.sm{padding:0 12px;font-size:13px}
+.kc.icon{width:44px;padding:0}
+.kc:focus-visible,.lnk:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.lbl{margin:0;font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900}
+.sticker{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border:2.5px solid #000;background:var(--acc);font-size:12px;line-height:16px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.tag{display:inline-flex;align-items:center;padding:2px 7px;border:2px solid #000;font-size:10px;line-height:14px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.h1{margin:0;font-size:78px;line-height:70px;font-weight:900;letter-spacing:-.06em}
+.h2{margin:0;font-size:50px;line-height:48px;font-weight:900;letter-spacing:-.055em}
+.h3{margin:0;font-size:26px;line-height:28px;font-weight:900;letter-spacing:-.04em}
+.body{margin:0;font-size:17px;line-height:26px;font-weight:500}
+.box{background:#FFFFFF;border:3px solid #000;box-shadow:6px 6px 0 #000}
+.lnk{font-weight:900;font-size:16px;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:5px}
+.lnk:hover{background:var(--acc)}
+.sec{padding:96px 0;border-bottom:3px solid #000}
+.step{position:relative;flex:1 1 0;min-width:240px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.num{width:56px;height:56px;border:3px solid #000;background:var(--acc);box-shadow:4px 4px 0 #000;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:24px;font-weight:700}
+.au{color:#000;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;min-height:44px}
+.au:hover{background:#FFF1C7}
+.au:focus-visible{outline:3px solid #F16B53;outline-offset:2px}
+</style>
+</helmet>
+<div class="kl" style="min-height: 100vh">
+  <dc-import name="MktNav" mobile="{{ false }}" active="none" hint-size="100%,78px"></dc-import>
+
+  <main>
+    <section aria-labelledby="hero-h" style="border-bottom: 3px solid #000; background: #FFFDF5">
+      <div class="wrap" style="padding-top: 64px; padding-bottom: 80px; display: flex; flex-wrap: wrap; align-items: center; gap: 48px">
+        <div style="flex: 1 1 460px; display: flex; flex-direction: column; gap: 24px">
+          <span class="sticker" style="align-self: flex-start; background: var(--sky)">Hear it before you buy it</span>
+          <h1 id="hero-h" class="h1">HEAR EVERY SWITCH BEFORE YOU BUY ONE.</h1>
+          <p class="body" style="max-width: 520px">Build a mechanical keyboard in your browser, press its keys, and hear how each switch, mod and keycap changes the sound.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center">
+            <a class="kc primary" href="MktAuth.dc.html">Start building
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"></path></svg>
+            </a>
+            <button type="button" class="kc big coral" onClick="{{trySound}}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg>
+              Try the sound
+            </button>
+          </div>
+          <p class="mono" style="margin: 0; font-size: 12px; line-height: 18px; font-weight: 700">NO SIGN-UP TO PLAY · HEADPHONES RECOMMENDED</p>
+        </div>
+
+        <div style="flex: 1 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+          <div class="box" style="background: var(--sky); padding: 24px 20px 18px; display: flex; flex-direction: column; align-items: center; gap: 14px; box-shadow: 8px 8px 0 #000">
+            <div style="max-width: 100%; overflow-x: auto"><dc-import name="Keyboard" layout="65" width="560" alpha="{{kb.a}}" mod="{{kb.m}}" accent="{{kb.x}}" case-color="{{kb.c}}" sound="{{sw.snd}}" ping-seq="{{ping}}" hint-size="560px,245px"></dc-import></div>
+            <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px">
+              <span class="sticker" style="background: #FFFDF5">Tap any key</span>
+              <span class="mono" style="padding: 2px 8px; border: 2.5px solid #000; background: #FFFDF5; font-size: 12px; font-weight: 700">{{sw.name}} · {{sw.spec}}</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <span id="pick-h" class="lbl">Pick a switch to hear</span>
+            <div role="radiogroup" aria-labelledby="pick-h" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+              <sc-for list="{{picker}}" as="p" hint-placeholder-count="4">
+                <button type="button" role="radio" class="kc" aria-checked="{{p.on}}" onClick="{{p.pick}}" style="flex-direction: column; gap: 4px; min-height: 68px; padding: 6px 8px; white-space: normal">
+                  <span style="display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 900"><span aria-hidden="true" style="width: 12px; height: 12px; border: 2px solid #000; background: {{p.stem}}"></span>{{p.name}}</span>
+                  <span class="mono" style="font-size: 10px; font-weight: 700">{{p.type}} · {{p.prof}}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" aria-labelledby="how-h" style="background: #FFF1C7">
+      <div class="wrap" style="display: flex; flex-direction: column; gap: 40px">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+          <h2 id="how-h" class="h2">HOW IT WORKS</h2>
+          <p class="body" style="max-width: 420px">Three steps from blank layout to a keyboard you can hear.</p>
+        </div>
+        <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 28px">
+          <li class="step box">
+            <span class="num">1</span>
+            <h3 class="h3">Pick a layout</h3>
+            <p class="body" style="font-size: 15px; line-height: 22px">60%, 65%, 75%, TKL or full size. See it drawn to scale.</p>
+            <div aria-hidden="true" style="display: flex; gap: 6px; flex-wrap: wrap">
+              <span class="tag">60%</span><span class="tag" style="background: var(--acc)">65%</span><span class="tag">75%</span><span class="tag">TKL</span><span class="tag">100%</span>
+            </div>
+          </li>
+          <li class="step box">
+            <span class="num" style="background: var(--coral)">2</span>
+            <h3 class="h3">Test switches by sound</h3>
+            <p class="body" style="font-size: 15px; line-height: 22px">Press each switch, compare up to three, and read the force curve.</p>
+            <div style="border: 2.5px solid #000; background: #FFFDF5; padding: 6px 8px"><dc-import name="Waveform" profile="Deep" height="34" labels="{{ false }}" seed="5" hint-size="100%,34px"></dc-import></div>
+          </li>
+          <li class="step box">
+            <span class="num" style="background: var(--lime)">3</span>
+            <h3 class="h3">Customize mods, keycaps and case</h3>
+            <p class="body" style="font-size: 15px; line-height: 22px">Lube, foam, keycap profile, plate and case material. Hear every change.</p>
+            <div aria-hidden="true" style="display: flex; gap: 6px">
+              <sc-for list="{{swatchRow}}" as="c" hint-placeholder-count="6"><span style="width: 30px; height: 30px; border: 2.5px solid #000; background: {{c}}"></span></sc-for>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="features" class="sec" aria-labelledby="f1-h">
+      <div class="wrap" style="display: flex; flex-wrap: wrap; gap: 56px; align-items: center">
+        <div style="flex: 1 1 380px; display: flex; flex-direction: column; gap: 18px">
+          <span class="sticker">Switch library</span>
+          <h2 id="f1-h" class="h2">EVERY SWITCH, ONE TAP AWAY.</h2>
+          <p class="body">Filter by type, weight and sound profile. Each card plays its own press and release, so you can hear the difference between a deep linear and a poppy tactile in seconds.</p>
+          <a class="lnk" href="MktLibrary.dc.html">Browse the switch library →</a>
+        </div>
+        <div style="flex: 1.4 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+          <div role="group" aria-label="Filter by type" style="display: flex; flex-wrap: wrap; gap: 10px">
+            <sc-for list="{{typeChips}}" as="t" hint-placeholder-count="5">
+              <button type="button" class="kc sm" aria-pressed="{{t.on}}" onClick="{{t.pick}}">{{t.label}}</button>
+            </sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px">
+            <sc-for list="{{libCards}}" as="c" hint-placeholder-count="4">
+              <dc-import name="SwitchCard" sw="{{c}}" hint-size="100%,236px"></dc-import>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" aria-labelledby="f2-h" style="background: var(--lime)">
+      <div class="wrap" style="display: flex; flex-wrap: wrap-reverse; gap: 56px; align-items: center">
+        <div style="flex: 1.4 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start">
+            <dc-import name="ToggleCard" title="Case foam" desc="Fills the hollow under the PCB. Cuts ping and echo for a tighter, deeper sound." impact="deeper · less echo" on="{{foam}}" on-toggle="{{setFoam}}" hint-size="100%,190px"></dc-import>
+            <dc-import name="ToggleCard" title="O-rings" desc="Rubber rings under the keycaps shorten travel and soften the bottom-out." impact="quieter · shorter" on="{{rings}}" on-toggle="{{setRings}}" hint-size="100%,190px"></dc-import>
+          </div>
+          <div class="box" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; justify-content: space-between; align-items: center"><span class="lbl">Sound meter</span><span class="sticker" style="background: #FFFDF5">{{meterWord}}</span></div>
+            <div aria-hidden="true" style="position: relative; height: 4px; background: #000; margin: 8px 0">
+              <span style="position: absolute; top: 50%; left: {{meterL}}; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; border: 3px solid #000; background: var(--coral); transition: left 200ms ease"></span>
+            </div>
+            <div class="mono" style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700"><span>DEEP</span><span>BRIGHT</span></div>
+          </div>
+        </div>
+        <div style="flex: 1 1 380px; display: flex; flex-direction: column; gap: 18px">
+          <span class="sticker" style="background: #FFFDF5">Mods workshop</span>
+          <h2 id="f2-h" class="h2">TOGGLE A MOD. HEAR THE SHIFT.</h2>
+          <p class="body">Lube, foam, tape, tuned stabilizers and springs. Switch them on and off and watch the deep-to-bright meter move.</p>
+          <a class="lnk" href="ModsDesktop.dc.html">Open the mods workshop →</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" aria-labelledby="f3-h">
+      <div class="wrap" style="display: flex; flex-wrap: wrap; gap: 56px; align-items: center">
+        <div style="flex: 1 1 380px; display: flex; flex-direction: column; gap: 18px">
+          <span class="sticker" style="background: var(--sky)">Keycaps studio</span>
+          <h2 id="f3-h" class="h2">SHAPE AND COLOR EVERY CAP.</h2>
+          <p class="body">Compare Cherry, OEM, SA, XDA and MT3 side by side, then paint the alphas, mods and accents or start from a colorway.</p>
+          <a class="lnk" href="KeycapsDesktop.dc.html">Open the keycaps studio →</a>
+        </div>
+        <div style="flex: 1.4 1 560px; min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+          <div class="box" style="padding: 16px; display: flex; flex-direction: column; gap: 12px">
+            <span class="lbl">Profiles</span>
+            <sc-for list="{{profiles}}" as="p" hint-placeholder-count="5">
+              <div style="display: flex; align-items: center; gap: 12px; border-bottom: 2px solid #000; padding-bottom: 8px">
+                <svg width="120" height="48" viewBox="0 0 120 48" aria-hidden="true" style="flex: none">
+                  <line x1="0" y1="45.5" x2="120" y2="45.5" stroke="#000" stroke-width="3"></line>
+                  <sc-for list="{{p.caps}}" as="cap" hint-placeholder-count="3"><path d="{{cap}}" fill="#99D6FF" stroke="#000" stroke-width="2.2"></path></sc-for>
+                </svg>
+                <span style="display: flex; flex-direction: column"><span style="font-size: 16px; font-weight: 900">{{p.name}}</span><span class="mono" style="font-size: 10px; font-weight: 700">{{p.spec}}</span></span>
+              </div>
+            </sc-for>
+          </div>
+          <div class="box" style="padding: 16px; display: flex; flex-direction: column; gap: 12px">
+            <span class="lbl">Colorways</span>
+            <sc-for list="{{themes}}" as="t" hint-placeholder-count="6">
+              <div style="display: flex; align-items: center; gap: 10px">
+                <span aria-hidden="true" style="display: grid; grid-template-columns: repeat(4, 22px); gap: 3px"><span style="height: 22px; border: 2px solid #000; background: {{t.x}}"></span><span style="height: 22px; border: 2px solid #000; background: {{t.a}}"></span><span style="height: 22px; border: 2px solid #000; background: {{t.a}}"></span><span style="height: 22px; border: 2px solid #000; background: {{t.m}}"></span></span>
+                <span style="font-size: 14px; font-weight: 800">{{t.name}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" aria-labelledby="f4-h" style="background: var(--ink); color: #FFFDF5">
+      <div class="wrap" style="display: flex; flex-wrap: wrap-reverse; gap: 56px; align-items: center">
+        <div style="flex: 1.4 1 560px; min-width: 0; border: 3px solid #000; background: #FFFDF5; color: #000; box-shadow: 8px 8px 0 #000; padding: 22px; display: flex; flex-direction: column; gap: 16px">
+          <p class="mono" aria-label="Typing test line" style="margin: 0; font-size: 22px; line-height: 34px; font-weight: 700; padding: 12px 16px; border: 3px solid #000; background: var(--sky)"><span>quiet keys make </span><span style="background: var(--acc); text-decoration: underline 3px">t</span><span style="color: #3A4A66">he best late night thoughts</span></p>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+            <div style="border: 3px solid #000; background: var(--acc); padding: 8px 12px"><p class="lbl" style="font-size: 10px">WPM</p><p class="mono" style="margin: 0; font-size: 26px; font-weight: 700">[WPM]</p></div>
+            <div style="border: 3px solid #000; background: var(--lime); padding: 8px 12px"><p class="lbl" style="font-size: 10px">Accuracy</p><p class="mono" style="margin: 0; font-size: 26px; font-weight: 700">[ACC]</p></div>
+            <div style="border: 3px solid #000; background: #FFFFFF; padding: 8px 12px"><p class="lbl" style="font-size: 10px">Room</p><p class="mono" style="margin: 0; font-size: 20px; line-height: 39px; font-weight: 700">SMALL</p></div>
+          </div>
+          <dc-import name="Waveform" profile="Deep" height="56" seed="9" hint-size="100%,74px"></dc-import>
+        </div>
+        <div style="flex: 1 1 380px; display: flex; flex-direction: column; gap: 18px">
+          <span class="sticker" style="background: var(--coral)">Sound playground</span>
+          <h2 id="f4-h" class="h2" style="color: #FFFDF5">TYPE ON IT BEFORE IT EXISTS.</h2>
+          <p class="body">Take a typing test on your build, add a desk, café or late-night room, and turn the volume up.</p>
+          <a class="lnk" href="PlaygroundDesktop.dc.html" style="color: #FFD24D">Open the sound playground →</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" aria-labelledby="cmp-h" style="background: #FFF1C7">
+      <div class="wrap" style="display: flex; flex-direction: column; gap: 32px">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+          <h2 id="cmp-h" class="h2">COMPARE THREE SWITCHES</h2>
+          <p class="body" style="max-width: 440px">Press play on each, or tap the card itself. Same key, three sounds.</p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px">
+          <sc-for list="{{compare}}" as="c" hint-placeholder-count="3">
+            <div class="box" style="padding: 16px; display: flex; flex-direction: column; gap: 14px">
+              <dc-import name="SwitchCard" sw="{{c.sw}}" play-seq="{{c.seq}}" hint-size="100%,236px"></dc-import>
+              <div style="display: flex; align-items: center; gap: 12px">
+                <button type="button" class="kc icon coral" aria-label="{{c.playLabel}}" onClick="{{c.play}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg></button>
+                <span class="mono" style="font-size: 12px; font-weight: 700">{{c.spec}}</span>
+              </div>
+              <dc-import name="Waveform" profile="{{c.prof}}" height="52" seed="{{c.seed}}" hint-size="100%,70px"></dc-import>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section id="community" class="sec" aria-labelledby="com-h">
+      <div class="wrap" style="display: flex; flex-direction: column; gap: 32px">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+          <h2 id="com-h" class="h2">BUILT BY THE COMMUNITY</h2>
+          <a class="kc" href="BuildsDesktop.dc.html">Share your build</a>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px 28px">
+          <sc-for list="{{builds}}" as="b" hint-placeholder-count="6">
+            <div style="display: flex; flex-direction: column; gap: 10px">
+              <dc-import name="BuildCard" build="{{b.build}}" width="370" hint-size="370px,450px"></dc-import>
+              <div style="width: 370px; max-width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px">
+                <a class="au" href="PublicProfileDesktop.dc.html" style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800"><span aria-hidden="true" style="width: 26px; height: 26px; border: 2px solid #000; background: {{b.avatar}}; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900">{{b.initial}}</span>{{b.author}}</a>
+                <button type="button" class="kc sm" aria-pressed="{{b.liked}}" aria-label="{{b.likeLabel}}" onClick="{{b.like}}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="{{b.heart}}" stroke="#000" stroke-width="2.5" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+                  <span class="mono" style="font-size: 12px">[LIKES]</span>
+                </button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" aria-labelledby="sp-h" style="background: var(--sky)">
+      <div class="wrap" style="display: flex; flex-direction: column; gap: 32px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px">
+          <h2 id="sp-h" class="h2">WHAT BUILDERS SAY</h2>
+          <div class="box" style="padding: 12px 18px; display: flex; align-items: baseline; gap: 10px"><span class="mono" style="font-size: 28px; font-weight: 700">[NUMBER OF BUILDS]</span><span style="font-size: 15px; font-weight: 800">builds shared so far</span></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px">
+          <dc-import name="TestimonialCard" tone="paper" hint-size="100%,230px"></dc-import>
+          <dc-import name="TestimonialCard" tone="ink" hint-size="100%,230px"></dc-import>
+          <dc-import name="TestimonialCard" tone="paper" hint-size="100%,230px"></dc-import>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="sec" aria-labelledby="faq-h">
+      <div class="wrap" style="display: flex; flex-wrap: wrap; gap: 48px">
+        <div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 16px">
+          <h2 id="faq-h" class="h2">QUESTIONS</h2>
+          <p class="body">Anything else? <a class="lnk" href="#">Ask us</a>.</p>
+        </div>
+        <div style="flex: 2 1 560px; display: flex; flex-direction: column; gap: 16px">
+          <dc-import name="FaqItem" uid="real" open="{{ true }}" q="Are the sounds real recordings?" a="Switches with a Recorded badge play recordings of a real press and release. Switches marked “No sound yet” show their specs and force curve until we record them." hint-size="100%,150px"></dc-import>
+          <dc-import name="FaqItem" uid="mobile" q="Does it work on mobile?" a="Yes. Tap keys in any current phone browser. Headphones give the clearest sound." hint-size="100%,66px"></dc-import>
+          <dc-import name="FaqItem" uid="buy" q="Can I buy the parts?" a="Not inside KeyLab. Pro exports a parts list you can take to any keyboard store." hint-size="100%,66px"></dc-import>
+          <dc-import name="FaqItem" uid="free" q="Is it free?" a="Building, playing and sharing are free. Pro adds unlimited saved builds, the full switch library, parts-list export and HD sound for [PRICE] a month." hint-size="100%,66px"></dc-import>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="cta-h" style="background: var(--acc); border-bottom: 3px solid #000">
+      <div class="wrap" style="padding-top: 72px; padding-bottom: 72px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 28px">
+        <h2 id="cta-h" class="h2" style="max-width: 680px">YOUR NEXT KEYBOARD STARTS WITH ONE KEY.</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px">
+          <a class="kc primary" href="MktAuth.dc.html">Start building</a>
+          <button type="button" class="kc big coral" onClick="{{trySound}}">Try the sound</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dc-import name="MktFooter" mobile="{{ false }}" hint-size="100%,320px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":7300}}'>
+const SW = [
+  { id: 'milk', name: 'Milk Yellow', type: 'Linear', stem: '#E9C46A', housing: 'milky', force: 50, act: 2.0, total: 4.0, prof: 'Deep', snd: { pitch: 520, bright: .25, decay: 70, thump: .9, vol: .7 } },
+  { id: 'peak', name: 'Peak Tactile', type: 'Tactile', stem: '#EFEBE0', housing: 'milky', force: 67, act: 2.0, total: 4.0, prof: 'Poppy', snd: { pitch: 1050, bright: .55, decay: 60, thump: .7, vol: .75 } },
+  { id: 'blue', name: 'Click Blue', type: 'Clicky', stem: '#2F6FD6', housing: 'ice', box: true, force: 60, act: 2.2, total: 4.0, prof: 'Clacky', snd: { pitch: 1300, bright: .65, decay: 50, thump: .4, vol: .7, click: true } },
+  { id: 'hushr', name: 'Hush Red', type: 'Silent', stem: '#E07A7A', housing: 'smoke', force: 45, act: 1.9, total: 3.7, prof: 'Muted', snd: { pitch: 380, bright: .08, decay: 34, thump: .4, vol: .28 } },
+  { id: 'red', name: 'Classic Red', type: 'Linear', stem: '#D64545', housing: 'clear', box: true, force: 45, act: 2.0, total: 4.0, prof: 'Poppy', snd: { pitch: 880, bright: .45, decay: 55, thump: .55, vol: .65 } },
+  { id: 'brown', name: 'Bump Brown', type: 'Tactile', stem: '#7A4E2D', housing: 'amber', force: 55, act: 2.0, total: 4.0, prof: 'Muted', snd: { pitch: 640, bright: .3, decay: 58, thump: .6, vol: .55 } },
+  { id: 'jade', name: 'Jade Clickbar', type: 'Clicky', stem: '#2E9E7A', housing: 'teal', box: true, force: 70, act: 1.8, total: 3.6, prof: 'Clacky', snd: { pitch: 1700, bright: .8, decay: 38, thump: .35, vol: .75, click: true } },
+  { id: 'proto', name: 'Proto Orange', type: 'Tactile', stem: '#E58A3A', housing: 'clear', force: 58, act: 2.0, total: 3.8, prof: 'Poppy', snd: { none: true }, nosound: true }
+];
+const PROFILES = [
+  { name: 'Cherry', spec: 'SCULPTED · LOW', H: 15, dd: 2, tilt: 2, sc: true },
+  { name: 'OEM', spec: 'SCULPTED · MEDIUM', H: 19, dd: 1.6, tilt: 2.2, sc: true },
+  { name: 'SA', spec: 'SCULPTED · TALL', H: 27, dd: 3.4, tilt: 2.6, sc: true },
+  { name: 'XDA', spec: 'UNIFORM · FLAT TOP', H: 15, dd: 1.2, tilt: 0, sc: false },
+  { name: 'MT3', spec: 'SCULPTED · DEEP DISH', H: 24, dd: 4.4, tilt: 2.4, sc: true }
+];
+const THEMES = [
+  { name: 'Navy Mustard', a: '#3D6A8C', m: '#1F2B45', x: '#F2C14E' },
+  { name: 'Cream & Ink', a: '#ECE6D8', m: '#2A2E38', x: '#D9573B' },
+  { name: 'Arctic', a: '#F2F5F9', m: '#B9C6D8', x: '#3F72AF' },
+  { name: 'Terracotta', a: '#E9D8C4', m: '#B4654A', x: '#2F4858' },
+  { name: 'Mono Slate', a: '#3B4458', m: '#2A3142', x: '#9AA7BD' }
+];
+const BUILDS = [
+  { author: '@deepthock', avatar: '#99D6FF', build: {} },
+  { author: '@pastel.pop', avatar: '#FFD24D', build: { name: 'Pastel Pop 60', layout: '60', layoutLabel: '60%', sw: 'Peak Tactile', stem: '#EFEBE0', swType: 'Tactile · 67g', mods: ['PE foam', 'Tuned stabs'], caps: 'PBT · OEM · Cream & Ink', capsShort: 'Cream & Ink', case: 'Polycarbonate · tray · PC', caseShort: 'PC, tray', a: '#ECE6D8', m: '#2A2E38', x: '#D9573B', c: '#E6DFCC', profile: 'oem', plate: 'pc', snd: { pitch: 1050, bright: .55, decay: 60, thump: .7, vol: .75 } } },
+  { author: '@clickclub', avatar: '#C6F079', build: { name: 'Typewriter TKL', layout: 'tkl', layoutLabel: 'TKL', sw: 'Click Blue', stem: '#2F6FD6', swType: 'Clicky · 60g', mods: ['Light lube'], caps: 'ABS · SA · Retro Grey', capsShort: 'Retro Grey', case: 'Aluminum · top mount · brass', caseShort: 'Alu, top', a: '#8B867E', m: '#6B675F', x: '#4A4741', c: '#D8D2C2', profile: 'sa', plate: 'brass', snd: { pitch: 1300, bright: .65, decay: 50, thump: .4, vol: .7, click: true } } },
+  { author: '@office.hush', avatar: '#F16B53', build: { name: 'Library 75', layout: '75', layoutLabel: '75%', sw: 'Hush Red', stem: '#E07A7A', swType: 'Silent · 45g', mods: ['O-rings', 'Case foam'], caps: 'PBT · XDA · Arctic', capsShort: 'Arctic', case: 'Aluminum · gasket · POM', caseShort: 'Alu, gasket', a: '#F2F5F9', m: '#B9C6D8', x: '#3F72AF', c: '#C3C9D4', profile: 'xda', plate: 'pom', snd: { pitch: 380, bright: .08, decay: 34, thump: .4, vol: .28 } } },
+  { author: '@woodgrain', avatar: '#FFD24D', build: { name: 'Terracotta 65', layout: '65', layoutLabel: '65%', sw: 'Bump Brown', stem: '#7A4E2D', swType: 'Tactile · 55g', mods: ['Case foam', 'Light lube'], caps: 'PBT · MT3 · Terracotta', capsShort: 'Terracotta', case: 'Wood · gasket · FR4', caseShort: 'Wood, gasket', a: '#E9D8C4', m: '#B4654A', x: '#2F4858', c: '#6B4A33', profile: 'mt3', plate: 'fr4', snd: { pitch: 640, bright: .3, decay: 58, thump: .6, vol: .55 } } },
+  { author: '@speedrun', avatar: '#99D6FF', build: { name: 'Slate Sprint 100', layout: '100', layoutLabel: '100%', sw: 'Speed Silver', stem: '#B8C0CC', swType: 'Linear · 45g', mods: ['Tuned stabs'], caps: 'PBT · Cherry · Mono Slate', capsShort: 'Mono Slate', case: 'Aluminum · tray · alu', caseShort: 'Alu, tray', a: '#3B4458', m: '#2A3142', x: '#9AA7BD', c: '#1C1F26', profile: 'cherry', plate: 'alu', snd: { pitch: 1500, bright: .7, decay: 42, thump: .3, vol: .62 } } }
+];
+function capPath(x0, H, dd, tilt) {
+  const b = 45, tl = b - H - tilt, tr = b - H + tilt;
+  return 'M' + x0 + ' ' + b + ' L' + (x0 + 4) + ' ' + tl + ' Q' + (x0 + 15) + ' ' + ((tl + tr) / 2 + dd) + ' ' + (x0 + 28) + ' ' + tr + ' L' + (x0 + 32) + ' ' + b + ' Z';
+}
+
+class Component extends DCLogic {
+  state = { pick: 'milk', ping: 0, type: 'All', foam: true, rings: false, seqs: [0, 0, 0], liked: {} };
+
+  renderVals() {
+    const s = this.state;
+    const sw = SW.find((x) => x.id === s.pick) || SW[0];
+    const meter = 0.55 + (s.foam ? 0.15 : 0) + (s.rings ? 0.18 : 0);
+    const types = ['All', 'Linear', 'Tactile', 'Clicky', 'Silent'];
+    const lib = SW.filter((x) => s.type === 'All' || x.type === s.type).slice(0, 4);
+    return {
+      sw: Object.assign({}, sw, { spec: sw.force + 'G · ' + sw.act.toFixed(1) + 'MM' }),
+      kb: { a: '#3D6A8C', m: '#1F2B45', x: '#F2C14E', c: '#2B4677' },
+      ping: s.ping,
+      trySound: () => this.setState({ ping: this.state.ping + 1 }),
+      picker: SW.slice(0, 4).map((x) => ({ name: x.name, type: x.type, prof: x.prof, stem: x.stem, on: String(x.id === s.pick), pick: () => this.setState({ pick: x.id, ping: this.state.ping + 1 }) })),
+      swatchRow: ['#3D6A8C', '#1F2B45', '#F2C14E', '#E9D8C4', '#B4654A', '#C6F079'],
+      typeChips: types.map((t) => ({ label: t, on: String(t === s.type), pick: () => this.setState({ type: t }) })),
+      libCards: lib.length ? lib : SW.slice(0, 4),
+      foam: s.foam, rings: s.rings,
+      setFoam: (v) => this.setState({ foam: v }), setRings: (v) => this.setState({ rings: v }),
+      meterL: Math.round((1 - meter) * 100) + '%',
+      meterWord: meter > .8 ? 'Deep & muted' : meter > .65 ? 'Deep & rounded' : 'Balanced',
+      profiles: PROFILES.map((x) => ({ name: x.name, spec: x.spec, caps: [0, 1, 2].map((i) => capPath(4 + i * 38, x.sc ? x.H * [1.12, 1, .92][i] : x.H, x.dd, x.sc ? x.tilt * [1.4, .4, -.8][i] : 0)) })),
+      themes: THEMES,
+      compare: [SW[0], SW[1], SW[2]].map((x, i) => ({
+        sw: x, seq: s.seqs[i], prof: x.prof, seed: 3 + i * 8,
+        spec: x.type.toUpperCase() + ' · ' + x.force + 'G · ' + x.act.toFixed(1) + 'MM',
+        playLabel: 'Play ' + x.name,
+        play: () => { const q = this.state.seqs.slice(); q[i] += 1; this.setState({ seqs: q }); }
+      })),
+      builds: BUILDS.map((b, i) => ({
+        build: b.build, author: b.author, avatar: b.avatar, initial: b.author.charAt(1).toUpperCase(),
+        liked: String(!!s.liked[i]), heart: s.liked[i] ? '#F16B53' : 'none',
+        likeLabel: (s.liked[i] ? 'Unlike ' : 'Like ') + 'build by ' + b.author,
+        like: () => { const l = Object.assign({}, this.state.liked); l[i] = !l[i]; this.setState({ liked: l }); }
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: keylab-api
+
+  datasource:
+    # One database, one schema per module (ModuleMigrations). Dev: the postgres
+    # service in infra/docker-compose.yml.
+    url: ${KEYLAB_DB_URL:jdbc:postgresql://localhost:5432/keylab}
+    username: ${KEYLAB_DB_USERNAME:keylab}
+    password: ${KEYLAB_DB_PASSWORD:keylab-dev-password}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway owns the tables; Hibernate only checks its entities against them.
+      ddl-auto: validate
+
+  flyway:
+    # Not Boot's single Flyway: ModuleMigrations runs one per schema.
+    enabled: false
+
+  modulith:
+    events:
+      jdbc:
+        # The event publication table is created by db/migration/platform.
+        schema: platform
+        schema-initialization:
+          enabled: false
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Same realm and wiring as the playground api: tokens must carry the
+          # public issuer, keys come from the JWKS URL directly.
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/playground}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8080/realms/playground/protocol/openid-connect/certs}
+          # Only tokens minted for this API (the gateway client's audience mapper).
+          audiences: keylab-api
+
+server:
+  port: 8183
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+keylab:
+  api:
+    # Date of the last additive release of v1, sent as KeyLab-API-Revision on
+    # every response (api-design-v1.md, Versioning).
+    revision: "2026-11-08"
