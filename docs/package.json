@@ -15,7 +15,10 @@
     "@docusaurus/theme-mermaid": "3.10.2",
     "@easyops-cn/docusaurus-search-local": "0.55.3",
     "@mdx-js/react": "^3.1.1",
+    "@scalar/api-reference": "1.78.1",
+    "@scalar/docusaurus": "0.8.58",
     "clsx": "^2.1.1",
+    "js-yaml": "4.3.2",
     "prism-react-renderer": "^2.4.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"

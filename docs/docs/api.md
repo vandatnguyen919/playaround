@@ -8,6 +8,11 @@ description: The endpoints the gateway exposes to the browser and the protected 
 Two layers. The browser only ever talks to the **gateway**. The **API** sits
 behind it and accepts bearer tokens.
 
+This page covers the login playground. Every KeyLab endpoint (`/v1`, grouped
+by tag, with its endpoint ID such as `CAT-01`) is in the
+[KeyLab API reference](pathname:///keylab-api/), drawn from
+`docs/keylab/openapi-v1.yaml` on each build.
+
 Ports are the local development ones: the app origin is
 `http://localhost:5174` (Vite, proxying to the gateway on `8181`), and the API
 listens on `8182`.

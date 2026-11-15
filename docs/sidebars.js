@@ -18,6 +18,7 @@ const sidebars = {
     },
     'technology-stack',
     'api',
+    { type: 'link', label: 'KeyLab API reference', href: '/keylab-api/' },
     'running-locally',
     {
       type: 'category',

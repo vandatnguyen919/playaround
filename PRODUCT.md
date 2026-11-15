@@ -561,6 +561,18 @@ layout and the scan are ours).
   `tinypool` to 2.x. Docusaurus 3.10.2 pulls 6.0.2 and 1.1.1, which Trivy
   reports as one High and two Critical, and CI fails on those. The site builds
   with the overrides. Drop each when Docusaurus ships the fixed version.
+- **KeyLab API reference at `/keylab-api/` (Dan, 2026-11-15):** every KeyLab
+  endpoint from `docs/keylab/openapi-v1.yaml`, grouped by tag, drawn by
+  `@scalar/docusaurus` with `@scalar/api-reference`, both pinned. The spec stays
+  in `docs/keylab/`; `docusaurus.config.js` copies it into `docs/.generated/`
+  (ignored) on every start and build and puts each `x-endpoint-id` in front of
+  the summary ("CAT-01 · List switches"), failing the build when an operation
+  has none. The spec passed `check-public.mjs`, which now also scans the copy in
+  `build/keylab/`. Scalar's browser bundle is served from the site, not its
+  CDN, with hosted fonts, the AI agent, the API client and developer tools off,
+  so the page calls nothing outside the site. Tradeoff: the whole spec is
+  public, including planned endpoints, and `npm start` picks up a spec change
+  only on restart.
 - **`@mermaid-js/layout-elk` is aliased to an empty module** in
   `docusaurus.config.js`: the theme's optional import of it failed the build
   under webpack 5.112 although the package is not used. Remove the alias when a
