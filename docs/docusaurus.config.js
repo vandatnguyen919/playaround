@@ -3,19 +3,51 @@
 // served from GitHub Pages at /playaround/.
 // Source of truth is PRODUCT.md and README.md in the repo: pages here summarise
 // and link. See README.md in this folder for what must never be published.
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import yaml from 'js-yaml'
 import { themes as prismThemes } from 'prism-react-renderer'
 
 const repo = 'https://github.com/vandatnguyen919/playaround'
+const baseUrl = '/playaround/'
+
+// KeyLab API reference. The spec stays in keylab/ (outside the pages) and is
+// copied into .generated/ each time the site starts or builds, so the page always
+// shows the current openapi-v1.yaml. check-public scans the copy in build/.
+// The copy puts each operation's x-endpoint-id in front of its summary
+// ("CAT-01 · List switches") so the IDs show in the page's nav and search.
+// Scalar's browser bundle is copied too, so the page loads nothing from a CDN.
+const generated = new URL('./.generated/', import.meta.url)
+mkdirSync(new URL('./keylab/', generated), { recursive: true })
+writeFileSync(new URL('./keylab/openapi-v1.yaml', generated), keylabSpec(new URL('./keylab/openapi-v1.yaml', import.meta.url)))
+copyFileSync(new URL('./node_modules/@scalar/api-reference/dist/browser/standalone.js', import.meta.url), new URL('./scalar-standalone.js', generated))
+
+/** Reads the KeyLab spec and prefixes every summary with its endpoint ID. */
+function keylabSpec(file) {
+  const spec = yaml.load(readFileSync(file, 'utf8'))
+  const methods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']
+  for (const [path, item] of Object.entries(spec.paths)) {
+    for (const method of methods) {
+      const op = item[method]
+      if (!op) continue
+      const id = op['x-endpoint-id']
+      if (!id) throw new Error(`keylab/openapi-v1.yaml: ${method.toUpperCase()} ${path} has no x-endpoint-id`)
+      op.summary = op.summary ? `${id} · ${op.summary}` : id
+    }
+  }
+  return yaml.dump(spec, { lineWidth: -1, noRefs: true })
+}
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'authn-authz-playground',
   tagline: 'A BFF login playground: the browser never sees tokens',
   url: 'https://vandatnguyen919.github.io',
-  baseUrl: '/playaround/',
+  baseUrl,
   organizationName: 'vandatnguyen919',
   projectName: 'playaround',
   trailingSlash: true,
+
+  staticDirectories: ['static', '.generated'],
 
   onBrokenLinks: 'throw',
   onBrokenAnchors: 'throw',
@@ -58,6 +90,22 @@ const config = {
         },
       }
     },
+    [
+      '@scalar/docusaurus',
+      {
+        label: 'KeyLab API',
+        route: '/keylab-api/',
+        cdn: `${baseUrl}scalar-standalone.js`,
+        configuration: {
+          url: `${baseUrl}keylab/openapi-v1.yaml`,
+          // Nothing leaves the page: no hosted fonts, no AI chat, no request proxy.
+          withDefaultFonts: false,
+          agent: { disabled: true },
+          hideClientButton: true,
+          showDeveloperTools: 'never',
+        },
+      },
+    ],
   ],
 
   // Click an image or diagram to open it in a zoom view.

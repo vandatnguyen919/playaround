@@ -34,3 +34,7 @@ From the repo root, `./verify docs` runs the build and the scan.
   (`src/zoom.js`, no dependency). An image inside a link keeps the link instead.
 - Pages live in `docs/`, the sidebar in `sidebars.js`. A new page must be added
   to the sidebar.
+- The KeyLab API reference (`/keylab-api/`) is built from
+  `keylab/openapi-v1.yaml`: edit the spec, never a copy. The config copies it
+  into `.generated/` with each summary prefixed by its `x-endpoint-id`, and
+  every operation must have one. Restart `npm start` to see a spec change.

@@ -2,7 +2,8 @@
 // Scans what the docs site publishes for things it must never hold: secrets
 // and dev defaults, dev user passwords, the public domain and VM address,
 // private container hostnames, Vault paths, and budget or cloud account
-// details. It reads the sources (docs/, static/, the config and sidebar, which
+// details. It reads the sources (and the KeyLab OpenAPI spec the API
+// reference serves, as copied into build/keylab/) (docs/, static/, the config and sidebar, which
 // also cover Mermaid text) and the built HTML and sitemap in build/.
 // Run after `npm run build`; `./verify docs` does both.
 //
@@ -34,7 +35,7 @@ const rules = [
 // Version numbers such as 26.8.2.1 look like IPv4. Only these exact ones are allowed.
 const allowedIps = new Set(["26.0.2.1"])
 
-const textFiles = new Set([".html", ".js", ".json", ".xml", ".txt", ".css", ".md", ".mdx", ".map", ".svg", ".excalidraw"])
+const textFiles = new Set([".html", ".js", ".json", ".xml", ".txt", ".css", ".md", ".mdx", ".map", ".svg", ".excalidraw", ".yaml"])
 
 function* walk(dir) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -44,7 +45,8 @@ function* walk(dir) {
   }
 }
 
-const builtOnly = new Set([".html", ".xml", ".txt"])
+// .yaml is the KeyLab OpenAPI spec that the API reference page serves.
+const builtOnly = new Set([".html", ".xml", ".txt", ".yaml"])
 let sources
 if (only) {
   sources = [...walk(only)]

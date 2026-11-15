@@ -4,6 +4,10 @@
 
 See Docs site and Current state in PRODUCT.md, and `docs/README.md`. Left:
 
+- **KeyLab API reference (branch feature/keylab-api-reference, 2026-11-15)** is cut from
+  `feature/kl0-keylab-foundation`, because `openapi-v1.yaml` is not on `main` yet, so it
+  carries that branch's commits. Next action: merge PR #51 first, then open this branch's
+  PR against `main`; the site publishes the spec on that merge.
 - **Dan's four other Pages projects moved address** when the custom domain came off the
   user site, back to `vandatnguyen919.github.io/<repo>/`. Next action: Dan updates any link
   that used the old addresses.
