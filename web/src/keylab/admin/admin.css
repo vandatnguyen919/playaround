@@ -678,45 +678,6 @@
 }
 
 /* Status badge (StatusBadge.dc.html) */
-.sbadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 7px 2px 5px;
-  border: 2px solid #000;
-  font-size: 10px;
-  line-height: 14px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  background: #ffffff;
-}
-
-.sbadge.published {
-  background: var(--lime);
-}
-
-.sbadge-dot {
-  width: 8px;
-  height: 8px;
-  flex: none;
-  border: 1.5px solid #000;
-}
-
-.sbadge.published .sbadge-dot {
-  background: #000;
-}
-
-.sbadge.hidden {
-  background: #000;
-  color: #fffdf5;
-}
-
-.sbadge.hidden .sbadge-dot {
-  border-color: #fffdf5;
-}
-
 /* Photo drop area */
 .se-photo {
   border: 2.5px dashed #000;
@@ -849,61 +810,6 @@
 
 .udz-pick[aria-disabled='true'] {
   cursor: not-allowed;
-}
-
-/* Force curve (ForceCurve.dc.html) */
-.fc {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-family: var(--font-mono);
-  font-weight: 700;
-}
-
-.fc-svg {
-  display: block;
-  overflow: visible;
-}
-
-.fc-empty {
-  margin: 0;
-  min-height: 180px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-size: 12px;
-}
-
-.fc-legend {
-  display: flex;
-  gap: 14px;
-  font-size: 10px;
-  line-height: 14px;
-}
-
-.fc-key {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.fc-press {
-  width: 16px;
-  height: 6px;
-  border: 1.5px solid #000;
-  background: var(--coral);
-}
-
-.fc-release {
-  width: 16px;
-  height: 0;
-  border-top: 2px dashed var(--indigo);
-}
-
-.fc-units {
-  margin-left: auto;
 }
 
 /* Toast (Toast.dc.html) */

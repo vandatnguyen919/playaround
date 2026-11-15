@@ -770,3 +770,447 @@
     display: none;
   }
 }
+
+/* Switch page (MktSwitch.dc.html, MktSwitchMobile.dc.html) */
+.sp-hero {
+  border-bottom: 3px solid #000;
+}
+
+.sp-hero-in {
+  padding-top: 32px;
+  padding-bottom: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.sp-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+.sp-intro {
+  flex: 1 1 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sp-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border: 2px solid #000;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sp-tag.ink {
+  background: var(--indigo);
+  color: #fff;
+}
+
+.sp-tag.sky {
+  background: var(--sky);
+}
+
+.sp-h1 {
+  margin: 0;
+  font-size: 80px;
+  line-height: 72px;
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  overflow-wrap: anywhere;
+}
+
+.sp-lede {
+  margin: 0;
+  max-width: 560px;
+  font-size: 17px;
+  line-height: 26px;
+  font-weight: 500;
+}
+
+.sp-actions {
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.sp-actions.d-only {
+  display: flex;
+}
+
+.mk .kc.sp-build {
+  background: var(--lime);
+  min-height: 58px;
+  padding: 0 24px;
+  font-size: 18px;
+  font-weight: 900;
+  border-width: 3px;
+  box-shadow: 5px 5px 0 #000;
+}
+
+.mk .kc.sp-alt {
+  min-height: 58px;
+  align-self: flex-start;
+}
+
+.mk .kc.sp-build:active,
+.mk .kc.sp-play:active {
+  transform: translate(5px, 5px);
+  box-shadow: 0 0 0 #000;
+}
+
+.sp-player {
+  flex: 1 1 520px;
+  min-width: 0;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: var(--sky);
+  border: 3px solid #000;
+  box-shadow: 6px 6px 0 #000;
+}
+
+.sp-player-top {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.sp-card {
+  width: 200px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.sp-controls {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sp-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sp-pick.d-only {
+  display: flex;
+}
+
+.sp-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mk .sp-opts .kc[aria-checked='true'] {
+  background: var(--acc);
+}
+
+.mk .kc[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.mk .kc.sp-play {
+  width: 100%;
+  background: var(--coral);
+  min-height: 64px;
+  padding: 0 26px;
+  font-size: 18px;
+  font-weight: 900;
+  border-width: 3px;
+  box-shadow: 5px 5px 0 #000;
+}
+
+.sp-wave {
+  border: 2.5px solid #000;
+  background: #fffdf5;
+  padding: 10px 12px;
+}
+
+.sp-note {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sp-back {
+  align-items: center;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.sp-specs {
+  border-bottom: 3px solid #000;
+  background: #fff1c7;
+}
+
+.sp-specs-in {
+  padding-top: 64px;
+  padding-bottom: 72px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 36px;
+}
+
+.sp-curve {
+  flex: 1.2 1 520px;
+  min-width: 0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #fff;
+  border: 3px solid #000;
+  box-shadow: 6px 6px 0 #000;
+}
+
+.sp-table {
+  flex: 1 1 400px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sp-h2 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 28px;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+}
+
+.sp-h2.big {
+  font-size: 34px;
+  line-height: 36px;
+}
+
+.sp-dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  margin: 0;
+  border: 2.5px solid #000;
+}
+
+.sp-dl dt,
+.sp-dl dd {
+  margin: 0;
+  padding: 11px 14px;
+  border-bottom: 2px solid #000;
+}
+
+.sp-dl dt {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 900;
+  background: #fffdf5;
+  border-right: 2px solid #000;
+}
+
+.sp-dl dd {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  background: #fff;
+}
+
+.sp-dl .last {
+  border-bottom: 0;
+}
+
+.sp-stem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sp-related {
+  border-bottom: 3px solid #000;
+}
+
+.sp-related-in {
+  padding-top: 64px;
+  padding-bottom: 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sp-related-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sp-rail {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 26px;
+}
+
+.sp-rail > li {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .sp-hero-in {
+    padding-top: 18px;
+    padding-bottom: 32px;
+    gap: 14px;
+  }
+
+  .sp-top {
+    gap: 14px;
+  }
+
+  .sp-intro {
+    flex-basis: 100%;
+    gap: 14px;
+  }
+
+  .sp-h1 {
+    font-size: 48px;
+    line-height: 44px;
+  }
+
+  .sp-lede {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .sp-tag {
+    padding: 2px 7px;
+    font-size: 10px;
+    line-height: 14px;
+  }
+
+  .sp-actions.d-only,
+  .sp-pick.d-only {
+    display: none;
+  }
+
+  .sp-back.m-only {
+    display: inline-flex;
+  }
+
+  .mk .kc.sp-build.m-only {
+    display: flex;
+  }
+
+  .sp-player {
+    flex-basis: 100%;
+    padding: 14px;
+    gap: 12px;
+    box-shadow: 5px 5px 0 #000;
+  }
+
+  .sp-player-top {
+    gap: 12px;
+  }
+
+  .sp-card {
+    width: 150px;
+  }
+
+  .sp-controls {
+    gap: 8px;
+  }
+
+  .sp-opts.variants {
+    flex-direction: column;
+  }
+
+  .sp-wave {
+    padding: 8px 10px;
+  }
+
+  .sp-specs-in {
+    padding-top: 32px;
+    padding-bottom: 36px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 14px;
+  }
+
+  .sp-table {
+    flex-basis: auto;
+  }
+
+  .sp-curve {
+    flex-basis: auto;
+    padding: 12px;
+    box-shadow: 5px 5px 0 #000;
+  }
+
+  .sp-h2,
+  .sp-h2.big {
+    font-size: 24px;
+    line-height: 26px;
+    letter-spacing: -0.045em;
+  }
+
+  .sp-dl dt,
+  .sp-dl dd {
+    padding: 10px;
+  }
+
+  .sp-dl dt {
+    font-size: 11px;
+  }
+
+  .sp-dl dd {
+    font-size: 13px;
+  }
+
+  .sp-related-in {
+    padding-top: 32px;
+    padding-bottom: 40px;
+    gap: 14px;
+  }
+
+  .sp-rail {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    padding: 2px 16px 12px;
+    margin: 0 -16px;
+    scrollbar-width: none;
+  }
+
+  .sp-rail > li {
+    flex: none;
+    width: 170px;
+  }
+
+  .sp-rail .lib-dl {
+    min-height: 44px;
+  }
+}

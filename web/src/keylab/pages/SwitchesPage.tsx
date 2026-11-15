@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router'
 import SwitchCard, { SwitchCardLoading } from '../catalog/SwitchCard.tsx'
 import { countLabel, isFiltered, queryFrom, useLibrary, type ForceBucket } from '../catalog/useLibrary.ts'
+import { useCardPlayer } from '../catalog/useCardPlayer.ts'
 import './switches.css'
 
 // The switch library inside the app (US-02): the head, filter chips, grid and
@@ -37,6 +38,7 @@ export default function SwitchesPage() {
   const profile = params.get('profile') ?? ''
   const force = params.get('force') ?? ''
   const { results, showMore } = useLibrary(queryFrom(params, FORCES))
+  const player = useCardPlayer()
 
   function set(name: string, value: string) {
     const next = new URLSearchParams(params)
@@ -122,7 +124,7 @@ export default function SwitchesPage() {
         <ul className="sw-grid">
           {results.items.map((sw) => (
             <li key={sw.id} data-testid="app-library-card">
-              <SwitchCard sw={sw} noSound={sw.soundStatus !== 'recorded'} />
+              <SwitchCard sw={sw} noSound={sw.soundStatus !== 'recorded'} playing={player.playing === sw.slug} onPress={player.onPress(sw.slug)} />
               <Link className="sw-dl" to={`/keylab/library/${encodeURIComponent(sw.slug)}`} aria-label={`${sw.name} details`}>
                 Details<span aria-hidden="true">→</span>
               </Link>

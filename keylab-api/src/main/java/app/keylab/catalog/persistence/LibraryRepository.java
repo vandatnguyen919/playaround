@@ -123,6 +123,29 @@ public class LibraryRepository {
             .param(slug).query(switches::row).optional();
     }
 
+    /**
+     * Published switches that sound most like {@code sw} (CAT-04): the same
+     * sound profile first, then the same type, then recorded before missing,
+     * then the nearest actuation force. Never {@code sw} itself.
+     */
+    public List<Switch> related(Switch sw, int limit) {
+        BigDecimal force = sw.specs().forceG() == null ? NO_FORCE : sw.specs().forceG();
+        return jdbc.sql("""
+                SELECT * FROM catalog.switches WHERE status = 'published' AND id <> :id
+                ORDER BY (profile IS NOT DISTINCT FROM :profile) DESC, (type = :type) DESC,
+                  (sound_status = 'recorded') DESC, ABS(COALESCE(force_g, :noForce) - :force) ASC, id ASC
+                LIMIT :limit
+                """)
+            .param("id", sw.id())
+            .param("profile", sw.specs().profile() == null ? null : sw.specs().profile().name())
+            .param("type", sw.specs().type().name())
+            .param("noForce", NO_FORCE)
+            .param("force", force)
+            .param("limit", limit)
+            .query(switches::row)
+            .list();
+    }
+
     /** Ready recordings of one switch: stock, lubed, foam; press before release. */
     public List<Recording> recordings(UUID switchId) {
         return jdbc.sql("""

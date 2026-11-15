@@ -3,11 +3,14 @@ package app.keylab.catalog.application;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
 import app.keylab.catalog.domain.LibraryFilter;
 import app.keylab.catalog.domain.LibraryFilter.Sort;
+import app.keylab.catalog.domain.Recording;
 import app.keylab.catalog.domain.Switch;
 import app.keylab.catalog.persistence.LibraryRepository;
 import app.keylab.shared.paging.Cursor;
@@ -65,6 +68,42 @@ public class SwitchLibrary {
             throw ApiProblem.of(ProblemTypes.BAD_REQUEST, "invalid_page_token",
                     "page_token is not a token from a previous page");
         }
+    }
+
+    /** One published switch (CAT-02). Drafts and pulled switches are not found. @throws ApiProblem 404 switch_not_found */
+    public Switch published(String slug) {
+        return library.publishedBySlug(slug == null ? "" : slug)
+            .orElseThrow(() -> ApiProblem.of(ProblemTypes.NOT_FOUND, "switch_not_found", "No switch with this name"));
+    }
+
+    /** Ready recordings of a published switch (CAT-03). */
+    public List<Recording> sounds(Switch sw) {
+        return library.recordings(sw.id());
+    }
+
+    /** Switches that sound like this one (CAT-04); the most similar first. */
+    public List<Switch> related(Switch sw, int limit) {
+        return library.related(sw, limit);
+    }
+
+    /**
+     * What {@code include} asks for on CAT-02: any of {@code sounds},
+     * {@code related}, comma separated. @throws ApiProblem 400 invalid_parameter
+     */
+    public static Set<String> includes(String include) {
+        if (include == null || include.isBlank()) {
+            return Set.of();
+        }
+        List<String> names = new ArrayList<>();
+        for (String part : include.split(",")) {
+            String name = part.trim().toLowerCase(Locale.ROOT);
+            if (!name.equals("sounds") && !name.equals("related")) {
+                throw ApiProblem.of(ProblemTypes.BAD_REQUEST, "invalid_parameter", "A query parameter is not valid",
+                        "include is sounds, related or both");
+            }
+            names.add(name);
+        }
+        return Set.copyOf(names);
     }
 
     /** The raw query parameters of CAT-01, checked by {@link #toFilter()}. */

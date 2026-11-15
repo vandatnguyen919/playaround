@@ -34,6 +34,10 @@ US-02 (2026-11-15): the library filters by type, sound profile, force,
 recording and search, 24 a page with "Show more", on the public page and on
 the app page `/keylab/switches` (filters and grid only; the builder parts of
 that screen come with their own stories).
+US-04 (2026-11-15): each switch has a page at `/keylab/library/:slug` (CAT-02
+to CAT-04) with specs, force curve, a stroke and mod-variant player, and a
+"Sounds similar" row; library cards play their stock press and release.
+"Use in a build" opens `/keylab?switch=slug`, which shows the picked switch.
 
 ## First useful result
 

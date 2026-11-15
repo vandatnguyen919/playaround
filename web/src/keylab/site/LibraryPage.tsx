@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import SwitchCard, { SwitchCardLoading } from '../catalog/SwitchCard.tsx'
 import { countLabel, isFiltered, queryFrom, useLibrary, type ForceBucket } from '../catalog/useLibrary.ts'
+import { useCardPlayer } from '../catalog/useCardPlayer.ts'
 
 // The public switch library (US-39, US-02): MktLibrary.dc.html and
 // MktLibraryMobile.dc.html. Published switches from CAT-01, 24 at a time.
@@ -52,6 +53,7 @@ export default function LibraryPage() {
   const sound = params.get('sound') ?? ''
   const filtered = isFiltered(params)
   const { results, showMore } = useLibrary(queryFrom(params, FORCES))
+  const player = useCardPlayer()
 
   useEffect(() => {
     document.title = 'Switch library · KeyLab'
@@ -221,7 +223,7 @@ export default function LibraryPage() {
             <ul className="lib-grid" data-testid="library-grid">
               {results.items.map((sw) => (
                 <li key={sw.id} data-testid="library-card">
-                  <SwitchCard sw={sw} noSound={sw.soundStatus !== 'recorded'} />
+                  <SwitchCard sw={sw} noSound={sw.soundStatus !== 'recorded'} playing={player.playing === sw.slug} onPress={player.onPress(sw.slug)} />
                   <Link className="lib-dl" to={`/keylab/library/${encodeURIComponent(sw.slug)}`} aria-label={`${sw.name} details`}>
                     Details<span aria-hidden="true">→</span>
                   </Link>

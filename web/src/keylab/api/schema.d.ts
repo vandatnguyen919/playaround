@@ -53,7 +53,7 @@ export interface paths {
         };
         /**
          * Get one switch
-         * @description **CAT-02** · access: Public · stories: US-04 · module: `catalog`
+         * @description **CAT-02** · access: Public · stories: US-04 · module: `catalog`. Published switches only: a draft, a pulled switch or an unknown slug is `404 switch_not_found`. `include` takes `sounds`, `related` or both (comma separated); anything else is `400 invalid_parameter`. `related` embeds the four switches CAT-04 lists first. Cached like CAT-01 (300 s, `ETag`, `304`).
          */
         get: operations["getSwitch"];
         put?: never;
@@ -73,7 +73,7 @@ export interface paths {
         };
         /**
          * Recordings by variant and stroke
-         * @description **CAT-03** · access: Public · stories: US-03, US-04 · module: `catalog`
+         * @description **CAT-03** · access: Public · stories: US-03, US-04 · module: `catalog`. Ready recordings only, stock then lubed then foam, press before release. A published switch with none answers `data: []` and `soundStatus: missing`; anything not published is `404 switch_not_found`. Cached like CAT-01.
          */
         get: operations["listSwitchSounds"];
         put?: never;
@@ -93,7 +93,7 @@ export interface paths {
         };
         /**
          * Switches that sound similar
-         * @description **CAT-04** · access: Public · stories: US-04 · module: `catalog`
+         * @description **CAT-04** · access: Public · stories: US-04 · module: `catalog`. Other published switches, most similar first: the same sound profile, then the same type, then recorded before missing, then the nearest actuation force. One page only (`nextPageToken` is always null). Cached like CAT-01.
          */
         get: operations["listRelatedSwitches"];
         put?: never;
@@ -2604,8 +2604,11 @@ export interface operations {
     getSwitch: {
         parameters: {
             query?: {
-                /** @description Comma-separated related records to embed. */
-                include?: components["parameters"]["include"];
+                /**
+                 * @description Comma-separated related records to embed, `sounds` and/or `related`.
+                 * @example sounds,related
+                 */
+                include?: string;
             };
             header?: never;
             path: {
@@ -2626,6 +2629,14 @@ export interface operations {
                     "application/json": components["schemas"]["Switch"];
                 };
             };
+            /** @description Not modified (the `If-None-Match` tag still matches). */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
             410: components["responses"]["Gone"];
             429: components["responses"]["TooManyRequests"];
@@ -2653,6 +2664,13 @@ export interface operations {
                     "application/json": components["schemas"]["SwitchSounds"];
                 };
             };
+            /** @description Not modified (the `If-None-Match` tag still matches). */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             404: components["responses"]["NotFound"];
             410: components["responses"]["Gone"];
             429: components["responses"]["TooManyRequests"];
@@ -2661,7 +2679,8 @@ export interface operations {
     listRelatedSwitches: {
         parameters: {
             query?: {
-                page_size?: components["parameters"]["pageSize"];
+                /** @description How many to list. Four by default, the "Sounds similar" row. */
+                page_size?: number;
             };
             header?: never;
             path: {
@@ -2685,6 +2704,14 @@ export interface operations {
                     };
                 };
             };
+            /** @description Not modified (the `If-None-Match` tag still matches). */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
             410: components["responses"]["Gone"];
             429: components["responses"]["TooManyRequests"];
