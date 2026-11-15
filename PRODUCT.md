@@ -19,6 +19,10 @@ buy it") on this BFF, gateway and realm. Its specs are in `docs/keylab/`
 (start with `docs/keylab/README.md`); its stories are tracked in Notion. KL0
 built the base: `keylab-api` (Spring Modulith, Postgres), the gateway route
 `/bff/keylab/v1/**`, and the KeyLab shell in `web/` under `/keylab`.
+US-37 (2026-11-15) added the first feature: editors add, edit and delete draft
+switches with specs and force curve (ADM-02 for one switch, `catalog.switches`)
+on the admin screen `/keylab/admin/switches/new` (admin frame under
+`/keylab/admin`). In review.
 
 ## First useful result
 

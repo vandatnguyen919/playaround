@@ -245,6 +245,8 @@ Keycloak owns credentials: changing email or password, and linking Google or App
 
 Everything under `/v1/admin` needs at least `keylab-viewer`; each row names the lowest role that may call it, and every write records an audit event (ADM-13). A switch is a draft until it is published, and publishing is refused (`409 missing_required_sounds`) until the stock press and release recordings are ready.
 
+ADM-02 details (US-37): a switch is created as a draft and only editors see it. `PATCH` merges, then checks the whole result as a create would, so one `422` lists every field to fix (`/forceCurve/2/travelMm` points at a single curve point). Limits: name and brand up to 60 characters, force 10 to 150 g, travel 0.5 to 6 mm, actuation 0.1 mm up to below the travel, up to 50 curve points within the travel at 0 to 250 g, no two points of one stroke at the same travel. A draft's `slug` follows its name (`coral-pop`, then `coral-pop-2`); a published one keeps it. `DELETE` is for drafts only (`409 switch_not_draft`); a published switch is pulled with ADM-03 instead, because builds may use it. `photoUploadId` is refused (`422 photo_upload_unavailable`) until ADM-04 uploads exist; US-38 adds the photo. Unknown or malformed ids are `404 switch_not_found`.
+
 | ID | Endpoint | What it does | Access | Stories |
 | --- | --- | --- | --- | --- |
 | ADM-01 | `GET /v1/admin/metrics/overview?from=&to=` | KPI tiles with deltas, daily builds, most-played switches, sound-preference split, recent builds, and the needs-attention counts (reported, missing sounds, processing). | Viewer | US-35 |

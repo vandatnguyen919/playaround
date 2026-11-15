@@ -58,7 +58,7 @@ The schema has four groups: the catalog, accounts, builds, and sharing plus resu
 | Table | Key columns | Notes |
 | --- | --- | --- |
 | `layouts` | `id` text PK, `name`, `key_count` int, `geometry` jsonb | 60%, 65%, 75%, TKL, 100%; `geometry` holds key positions and widths |
-| `switches` | `id` text PK, `name`, `brand`, `type` enum (linear, tactile, clicky, silent), `actuation_g`, `bottom_out_g`, `travel_mm`, `sound_params` jsonb, `sample_key`, `is_active` | Typed columns because the Switch library filters and sorts on them |
+| `switches` | `id` uuid PK, `slug` text unique, `name`, `brand`, `type` (linear, tactile, clicky, silent), `profile`, `stem_color`, `force_g`, `actuation_mm`, `travel_mm`, `bottom_out_g`, `spring`, `housing`, `force_curve` jsonb, `status` (draft, published, hidden), `sound_status`, `new_until`, `published_at`, `version` | Typed columns because the Switch library filters and sorts on them. Built in US-37 (`catalog.switches`, migration `V2__switches.sql`): the API addresses switches by UUID and `slug` (api-design-v1.md), and `force_curve` holds the points as one JSON list. Sound parameters arrive with the `sound` module |
 | `keycap_profiles` | `id` text PK, `name`, `family` enum (sculpted, uniform), `height_mm` | Cherry, OEM, SA, XDA, MT3 |
 | `keycap_materials` | `id` text PK, `name`, `sound_fx` jsonb | PBT, ABS |
 | `colorways` | `id` text PK, `name`, `alpha_hex`, `mod_hex`, `accent_hex` | Preset themes such as Navy Mustard |
@@ -70,7 +70,7 @@ The schema has four groups: the catalog, accounts, builds, and sharing plus resu
 | `desk_pads` | `id` text PK, `name`, `style` jsonb, `thumb_key` | Sky, Splash, Grid, Dots, Stripes, Checker, Walnut |
 | `catalog_releases` | `id` int PK, `published_at`, `cdn_key` | Each publish of the catalog JSON to the CDN |
 
-Catalog rows are retired with `is_active = false`, never deleted, so old builds still resolve.
+Catalog rows are retired with `is_active = false`, never deleted, so old builds still resolve. Switches use `status = 'hidden'` for this; only a draft, which no build can use, is ever deleted.
 
 ### Accounts
 

@@ -1119,7 +1119,7 @@ export interface paths {
         put?: never;
         /**
          * Create a draft switch
-         * @description **ADM-02** · access: Editor · stories: US-37 · module: `catalog`
+         * @description **ADM-02** · access: Editor · stories: US-37 · module: `catalog`. `photoUploadId` is refused with `422 photo_upload_unavailable` until ADM-04 uploads exist.
          */
         post: operations["adminCreateSwitch"];
         delete?: never;
@@ -1143,15 +1143,15 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Delete a switch
-         * @description **ADM-02** · access: Editor · stories: US-37 · module: `catalog`
+         * Delete a draft switch
+         * @description **ADM-02** · access: Editor · stories: US-37 · module: `catalog`. Drafts only: anything else is `409 switch_not_draft` (pull it from the library with ADM-03 instead).
          */
         delete: operations["adminDeleteSwitch"];
         options?: never;
         head?: never;
         /**
          * Edit a switch
-         * @description **ADM-02** · access: Editor · stories: US-37 · module: `catalog`
+         * @description **ADM-02** · access: Editor · stories: US-37 · module: `catalog`. The merged result is checked as a whole, like a create (422 lists every field). A draft's slug follows its name.
          */
         patch: operations["adminUpdateSwitch"];
         trace?: never;
@@ -1661,6 +1661,10 @@ export interface components {
              * @example invalid_idempotency_key
              * @example idempotency_key_reused
              * @example idempotency_in_progress
+             * @example switch_not_found
+             * @example switch_not_draft
+             * @example slug_taken
+             * @example photo_upload_unavailable
              */
             code: string;
             detail?: string;
@@ -4401,9 +4405,11 @@ export interface operations {
         requestBody?: never;
         responses: {
             204: components["responses"]["NoContent"];
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             410: components["responses"]["Gone"];
             412: components["responses"]["PreconditionFailed"];
             429: components["responses"]["TooManyRequests"];
@@ -4437,9 +4443,11 @@ export interface operations {
                     "application/json": components["schemas"]["AdminSwitch"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             410: components["responses"]["Gone"];
             412: components["responses"]["PreconditionFailed"];
             422: components["responses"]["Unprocessable"];

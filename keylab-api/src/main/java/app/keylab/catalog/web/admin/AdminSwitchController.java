@@ -1,0 +1,140 @@
+package app.keylab.catalog.web.admin;
+
+import java.math.BigDecimal;
+import java.net.URI;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+import app.keylab.catalog.application.AdminSwitches;
+import app.keylab.catalog.domain.ForceCurvePoint;
+import app.keylab.catalog.domain.Switch;
+import app.keylab.catalog.domain.SwitchSpecs;
+import app.keylab.shared.UserId;
+import app.keylab.shared.idempotency.IdempotencyKeys;
+import app.keylab.shared.idempotency.IdempotencyKeys.Stored;
+import app.keylab.shared.problem.ApiProblem;
+import app.keylab.shared.problem.ProblemTypes;
+import app.keylab.shared.security.Roles;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+
+/**
+ * ADM-02 for one switch (US-37): create a draft, read, edit with JSON Merge
+ * Patch and If-Match, delete a draft. Editor and up. The list (US-36) joins
+ * this controller with its own story.
+ */
+@RestController
+@RequestMapping("/v1/admin/switches")
+@PreAuthorize("hasRole('" + Roles.EDITOR + "')")
+class AdminSwitchController {
+
+    static final String MERGE_PATCH = "application/merge-patch+json";
+    private static final CacheControl PRIVATE = CacheControl.noStore().cachePrivate();
+
+    private final AdminSwitches switches;
+    private final IdempotencyKeys idempotencyKeys;
+    private final JsonMapper json;
+    private final Clock clock = Clock.systemUTC();
+
+    AdminSwitchController(AdminSwitches switches, IdempotencyKeys idempotencyKeys, JsonMapper json) {
+        this.switches = switches;
+        this.idempotencyKeys = idempotencyKeys;
+        this.json = json;
+    }
+
+    @GetMapping("/{id}")
+    ResponseEntity<AdminSwitch> get(@PathVariable String id) {
+        Switch sw = switches.get(parse(id));
+        return ResponseEntity.ok().cacheControl(PRIVATE).eTag(AdminSwitches.etag(sw)).body(view(sw));
+    }
+
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<String> create(@RequestBody JsonNode body,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @AuthenticationPrincipal Jwt jwt) {
+        UserId editor = UserId.of(jwt);
+        Stored result = idempotencyKeys.execute("catalog-switches:" + editor, idempotencyKey,
+                IdempotencyKeys.hash(json.writeValueAsString(body)), () -> {
+                    Switch created = switches.create(body, editor);
+                    return new Stored(201, "/v1/admin/switches/" + created.id(),
+                            json.writeValueAsString(view(created)));
+                });
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(result.status())
+            .cacheControl(PRIVATE)
+            .contentType(MediaType.APPLICATION_JSON)
+            .location(URI.create(result.location()));
+        // The ETag of the switch as it is now, so the editor can PATCH right away, replay or not.
+        UUID id = UUID.fromString(result.location().substring(result.location().lastIndexOf('/') + 1));
+        try {
+            response.eTag(AdminSwitches.etag(switches.get(id)));
+        }
+        catch (ApiProblem gone) {
+            // Deleted since the first request: the replay still answers as the first one did.
+        }
+        return response.body(result.body());
+    }
+
+    @PatchMapping(path = "/{id}", consumes = MERGE_PATCH)
+    ResponseEntity<AdminSwitch> update(@PathVariable String id, @RequestBody JsonNode patch,
+            @RequestHeader(value = HttpHeaders.IF_MATCH, required = false) String ifMatch,
+            @AuthenticationPrincipal Jwt jwt) {
+        Switch sw = switches.update(parse(id), ifMatch, patch, UserId.of(jwt));
+        return ResponseEntity.ok().cacheControl(PRIVATE).eTag(AdminSwitches.etag(sw)).body(view(sw));
+    }
+
+    @DeleteMapping("/{id}")
+    ResponseEntity<Void> delete(@PathVariable String id,
+            @RequestHeader(value = HttpHeaders.IF_MATCH, required = false) String ifMatch) {
+        switches.delete(parse(id), ifMatch);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Anything that is not a UUID names no switch: 404, like an id that does not exist. */
+    private static UUID parse(String id) {
+        try {
+            return UUID.fromString(id);
+        }
+        catch (IllegalArgumentException ex) {
+            throw ApiProblem.of(ProblemTypes.NOT_FOUND, "switch_not_found", "No switch with this id");
+        }
+    }
+
+    private AdminSwitch view(Switch sw) {
+        SwitchSpecs s = sw.specs();
+        Instant now = clock.instant();
+        return new AdminSwitch(sw.id(), sw.slug(), s.name(), s.brand(), s.type().name(),
+                s.profile() == null ? null : s.profile().name(), s.stemColor(), s.forceG(), s.actuationMm(),
+                s.travelMm(), sw.soundStatus(), sw.newUntil() != null && sw.newUntil().isAfter(now),
+                sw.publishedAt(), s.spring(), s.housing(), s.bottomOutG(), s.forceCurve(), sw.status().name());
+    }
+
+    /** AdminSwitch in openapi-v1.yaml. Unset optional fields are left out. */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    record AdminSwitch(UUID id, String slug, String name, String brand, String type, String profile,
+            String stemColor, BigDecimal forceG, BigDecimal actuationMm, BigDecimal travelMm, String soundStatus,
+            boolean isNew, Instant publishedAt, String spring, String housing, BigDecimal bottomOutG,
+            List<ForceCurvePoint> forceCurve, String status) {
+    }
+}
