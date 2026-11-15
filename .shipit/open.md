@@ -247,7 +247,7 @@ CAT-01), `ModularityTests`, web tests, `tsc`, lint, `vite build`, `check:api`, a
   ("hidden") test switch in the dev database by design (published switches
   cannot be deleted).
 
-## US-37 Add or edit a switch (branch feature/kl0-keylab-foundation, PR open)
+## US-37 Add or edit a switch (merged in PR #50)
 
 Verified 2026-11-15: `keylab-api` tests all green (new `AdminSwitchApiTest`,
 `AdminSwitchesTest`), web unit tests, `tsc -b`, lint, `vite build`, `check:api`,
