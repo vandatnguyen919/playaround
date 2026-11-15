@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pricing card</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.pc-cta{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:16px;font-weight:900;color:#000;border:3px solid #000;border-radius:0;min-height:54px;padding:0 18px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:5px 5px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.pc-cta:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.pc-cta:focus-visible{outline:3px solid #F16B53;outline-offset:3px}
+</style>
+</helmet>
+<article aria-label="{{name}} plan" style="width: 100%; box-sizing: border-box; border: 3px solid #000; background: {{bg}}; color: #000; box-shadow: {{shadow}}; display: flex; flex-direction: column; font-family: 'Archivo', system-ui, sans-serif">
+  <div style="padding: 18px 20px 16px; border-bottom: 3px solid #000; display: flex; flex-direction: column; gap: 10px; background: {{headBg}}; color: {{headFg}}">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+      <h3 style="margin: 0; font-size: 28px; line-height: 28px; font-weight: 900; letter-spacing: -0.05em; text-transform: uppercase">{{name}}</h3>
+      <sc-if value="{{pro}}" hint-placeholder-val="{{ false }}"><span style="padding: 2px 7px; border: 2px solid #000; background: #FFD24D; color: #000; font-size: 10px; line-height: 14px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase">For collectors</span></sc-if>
+    </div>
+    <p style="margin: 0; display: flex; align-items: baseline; gap: 6px"><span style="font-family: 'Space Mono', ui-monospace, monospace; font-size: 30px; line-height: 34px; font-weight: 700">{{price}}</span><span style="font-size: 14px; font-weight: 700">{{per}}</span></p>
+    <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 600">{{pitch}}</p>
+  </div>
+  <ul style="list-style: none; margin: 0; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1">
+    <sc-for list="{{features}}" as="f" hint-placeholder-count="5">
+      <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 20px; font-weight: 600">
+        <span aria-hidden="true" style="flex: none; margin-top: 1px; width: 18px; height: 18px; border: 2px solid #000; background: {{f.mark}}; display: flex; align-items: center; justify-content: center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="4" stroke-linecap="square"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>{{f.t}}
+      </li>
+    </sc-for>
+  </ul>
+  <div style="padding: 0 20px 20px">
+    <a class="pc-cta" href="{{href}}" style="background: {{ctaBg}}">{{cta}}</a>
+  </div>
+</article>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tier":{"editor":"enum","options":["free","pro"],"default":"pro"},"yearly":{"editor":"boolean","default":false},"href":{"editor":null},"$preview":{"width":380,"height":520}}'>
+const PC = {
+  free: { name: 'Free', pitch: 'Build, hear and share keyboards in the browser.', cta: 'Start building free', features: ['3 saved builds', 'Core switch library', 'Mods workshop and keycaps studio', 'Share links for every build', 'Standard sound'] },
+  pro: { name: 'Pro', pitch: 'For people planning a real build.', cta: 'Go Pro', features: ['Unlimited saved builds', 'Full switch library', 'Export a parts list', 'HD sound', 'Everything in Free'] }
+};
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, pro = p.tier !== 'free', t = PC[pro ? 'pro' : 'free'];
+    return {
+      name: t.name, pitch: t.pitch, cta: t.cta, pro: pro,
+      price: pro ? '[PRICE]' : '[PRICE]', per: p.yearly ? '/ year' : '/ month',
+      features: t.features.map((f) => ({ t: f, mark: pro ? '#FFD24D' : '#C6F079' })),
+      bg: '#FFFFFF', headBg: pro ? '#2C2A5A' : '#FFFDF5', headFg: pro ? '#FFFDF5' : '#000000',
+      shadow: pro ? '8px 8px 0 #000' : '5px 5px 0 #000',
+      ctaBg: pro ? '#FFD24D' : '#C6F079',
+      href: p.href || 'MktAuth.dc.html'
+    };
+  }
+}
+</script>
+</body>
+</html>

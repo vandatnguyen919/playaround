@@ -6,3 +6,4 @@ rootProject.name = 'authn-authz-playground'
 
 include 'gateway'
 include 'api'
+include 'keylab-api'

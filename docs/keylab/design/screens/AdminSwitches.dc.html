@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab admin · Switches</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+.ad{--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--ink:#2C2A5A;--sun:#FFF1C7;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:#000;background:#EFE8D6;font-size:13px;-webkit-font-smoothing:antialiased}
+.ad *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:13px;font-weight:800;color:#000;background:#FFFDF5;border:2px solid #000;border-radius:0;min-height:34px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;box-shadow:2px 2px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(2px,2px);box-shadow:0 0 0 #000}
+.kc[aria-pressed="true"]{background:var(--acc)}
+.kc.go{background:var(--lime);min-height:38px;font-weight:900;border-width:2.5px;box-shadow:3px 3px 0 #000}
+.kc.go:active{transform:translate(3px,3px)}
+.kc.coral{background:var(--coral)}
+.kc:focus-visible,.tg:focus-visible,.chk:focus-visible,.field:focus,.rlink:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.card{background:#FFFDF5;border:2.5px solid #000;box-shadow:4px 4px 0 #000}
+.lbl{margin:0;font-size:10.5px;line-height:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:900}
+.field{height:36px;border:2px solid #000;border-radius:0;background:#FFFFFF;font:inherit;font-size:13px;font-weight:600;padding:0 10px;color:#000}
+.tbl{width:100%;border-collapse:collapse;min-width:980px}
+.tbl th{text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;padding:8px 10px;border-bottom:2.5px solid #000;background:#FFF1C7;white-space:nowrap}
+.tbl td{padding:6px 10px;border-bottom:1.5px solid #000;vertical-align:middle;font-size:13px;height:50px}
+.tbl tbody tr:hover{background:#FFF1C7}
+.tbl tbody tr.sel{background:#FFD24D}
+.chk{width:18px;height:18px;margin:0;accent-color:#000;cursor:pointer}
+.tg{appearance:none;margin:0;cursor:pointer;position:relative;width:46px;height:26px;border:2px solid #000;border-radius:0;background:#FFFFFF;padding:0;box-shadow:2px 2px 0 #000}
+.tg[aria-checked="true"]{background:#000}
+.tg span{position:absolute;top:3px;left:3px;width:16px;height:16px;border:2px solid #000;background:#000;transition:left 100ms ease}
+.tg[aria-checked="true"] span{left:23px;background:var(--acc)}
+.rlink{font-weight:800;text-decoration:underline;text-underline-offset:3px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+</style>
+</helmet>
+<div class="ad" style="min-height: 100vh; display: flex; flex-wrap: wrap">
+  <div style="flex: 0 0 232px; background: #2C2A5A; border-right: 3px solid #000"><dc-import name="AdminSidebar" active="switches" min-height="1000" hint-size="100%,1000px"></dc-import></div>
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="AdminTopbar" title="Switches" crumb="Catalog · 12 switches" hint-size="100%,66px"></dc-import>
+    <main style="padding: 18px 20px 28px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <label for="sw-q" class="lbl">Search</label>
+          <input id="sw-q" class="field" type="search" placeholder="Name or brand" value="{{q}}" onChange="{{setQ}}" style="width: 240px">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <label for="sw-type" class="lbl">Type</label>
+          <select id="sw-type" class="field" onChange="{{setType}}"><option value="All">All types</option><option>Linear</option><option>Tactile</option><option>Clicky</option><option>Silent</option></select>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span id="snd-h" class="lbl">Sound</span>
+          <div role="group" aria-labelledby="snd-h" style="display: flex; gap: 6px"><sc-for list="{{soundChips}}" as="c" hint-placeholder-count="4"><button type="button" class="kc" aria-pressed="{{c.on}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for></div>
+        </div>
+        <a class="kc go" href="AdminSwitchEdit.dc.html" style="margin-left: auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="square" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Add switch</a>
+      </div>
+
+      <sc-if value="{{hasSel}}" hint-placeholder-val="{{ false }}">
+        <div role="region" aria-label="Bulk actions" style="border: 2.5px solid #000; background: #000; color: #FFFDF5; padding: 8px 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+          <span style="font-weight: 900; margin-right: 6px">{{selLabel}}</span>
+          <button type="button" class="kc" onClick="{{bulkPublish}}">Publish</button>
+          <button type="button" class="kc" onClick="{{bulkUnpublish}}">Unpublish</button>
+          <button type="button" class="kc">Request recording</button>
+          <button type="button" class="kc coral">Delete</button>
+          <button type="button" class="kc" onClick="{{clearSel}}" style="margin-left: auto; background: transparent; color: #FFFDF5; border-color: #FFFDF5; box-shadow: none">Clear</button>
+        </div>
+      </sc-if>
+
+      <section class="card" aria-label="Switches table" style="overflow: hidden">
+        <sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
+          <div style="overflow-x: auto">
+            <table class="tbl">
+              <caption style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Switches in the catalog</caption>
+              <thead><tr>
+                <th scope="col" style="width: 40px"><input class="chk" type="checkbox" aria-label="Select all switches" checked="{{allSel}}" onChange="{{toggleAll}}"></th>
+                <th scope="col" style="width: 52px"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Photo</span></th>
+                <th scope="col">Name</th><th scope="col">Brand</th><th scope="col">Type</th><th scope="col">Force</th><th scope="col">Travel</th><th scope="col">Sound</th><th scope="col">Published</th><th scope="col"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Actions</span></th>
+              </tr></thead>
+              <tbody>
+                <sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+                  <tr class="{{r.cls}}">
+                    <td><input class="chk" type="checkbox" aria-label="{{r.selLabel}}" checked="{{r.sel}}" onChange="{{r.toggle}}"></td>
+                    <td><span aria-hidden="true" style="width: 36px; height: 36px; border: 2px solid #000; background: {{r.housing}}; display: flex; align-items: center; justify-content: center"><span style="width: 16px; height: 16px; border: 2px solid #000; background: {{r.stem}}"></span></span></td>
+                    <td><span style="display: flex; flex-direction: column"><span style="font-weight: 900; font-size: 14px">{{r.name}}</span><span class="mono" style="font-size: 10px; font-weight: 700">{{r.id}}</span></span></td>
+                    <td style="font-weight: 600">{{r.brand}}</td>
+                    <td><span style="padding: 1px 6px; border: 2px solid #000; background: {{r.tagBg}}; color: {{r.tagFg}}; font-size: 10px; line-height: 14px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase">{{r.type}}</span></td>
+                    <td class="mono" style="font-weight: 700">{{r.force}}g</td>
+                    <td class="mono" style="font-weight: 700">{{r.travel}}mm</td>
+                    <td><dc-import name="StatusBadge" status="{{r.sound}}" hint-size="100px,22px"></dc-import></td>
+                    <td><button type="button" class="tg" role="switch" aria-checked="{{r.pub}}" aria-label="{{r.pubLabel}}" onClick="{{r.togglePub}}"><span></span></button></td>
+                    <td><a class="kc" href="AdminSwitchEdit.dc.html" aria-label="{{r.editLabel}}">Edit</a></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-top: 2px solid #000">
+            <span class="mono" style="font-size: 11px; font-weight: 700">{{shown}}</span>
+            <div style="display: flex; gap: 6px"><button type="button" class="kc" aria-label="Previous page" disabled style="opacity: .45; cursor: not-allowed">←</button><button type="button" class="kc" aria-label="Next page">→</button></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{loading}}" hint-placeholder-val="{{ false }}">
+          <div aria-busy="true" aria-label="Loading switches" style="display: flex; flex-direction: column">
+            <div style="height: 34px; background: #FFF1C7; border-bottom: 2.5px solid #000"></div>
+            <sc-for list="{{skeleton}}" as="k" hint-placeholder-count="8">
+              <div style="height: 50px; border-bottom: 1.5px solid #000; display: grid; grid-template-columns: 40px 52px 1.4fr 1fr 96px 72px 72px 120px 84px 70px; align-items: center; padding: 0 10px; gap: 10px; animation: pulse 1.2s ease-in-out infinite">
+                <span></span><span style="width: 36px; height: 36px; border: 2px dashed #000"></span><span style="height: 12px; width: {{k.w}}; background: #000"></span><span style="height: 10px; width: 60%; background: #C9C4B4"></span><span style="height: 14px; width: 56px; background: #C9C4B4"></span><span style="height: 10px; width: 36px; background: #C9C4B4"></span><span style="height: 10px; width: 40px; background: #C9C4B4"></span><span style="height: 16px; width: 80px; background: #C9C4B4"></span><span style="height: 22px; width: 44px; border: 2px dashed #000"></span><span></span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 40px 24px; display: flex; align-items: center; gap: 20px">
+            <span aria-hidden="true" style="flex: none; width: 72px; height: 72px; border: 3px dashed #000; background: repeating-linear-gradient(45deg, #FFF1C7 0 8px, #FFFDF5 8px 16px)"></span>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 20px; font-weight: 900">No switches yet</span><span style="font-size: 13px; font-weight: 500">Add the first switch to the catalog. It stays a draft until you publish it.</span></div>
+            <a class="kc go" href="AdminSwitchEdit.dc.html">Add switch</a>
+          </div>
+        </sc-if>
+        <sc-if value="{{error}}" hint-placeholder-val="{{ false }}">
+          <div role="alert" style="padding: 32px 24px; display: flex; align-items: center; gap: 16px; border-left: 8px solid #F16B53">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 18px; font-weight: 900">Couldn’t load the catalog</span><span style="font-size: 13px; font-weight: 500">The catalog service didn’t answer. Your changes are safe; try again.</span></div>
+            <button type="button" class="kc" onClick="{{retry}}">Retry</button>
+          </div>
+        </sc-if>
+      </section>
+
+      <sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
+        <div style="position: fixed; right: 24px; bottom: 24px; width: 440px; max-width: calc(100% - 48px); z-index: 5"><dc-import name="Toast" kind="success" title="{{toastTitle}}" body="{{toastBody}}" action="View in library" href="MktLibrary.dc.html" on-dismiss="{{dismiss}}" hint-size="100%,72px"></dc-import></div>
+      </sc-if>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tableState":{"editor":"enum","options":["ready","loading","empty","error"],"default":"ready"},"$preview":{"width":1440,"height":1000}}'>
+const HOUS = { clear: '#E3E9F1', milky: '#EFEAE0', smoke: '#4A505C', amber: '#8E6640', ice: '#C4D6F4', teal: '#56C4CC' };
+const TAG = { Linear: ['#2C2A5A', '#FFFFFF'], Tactile: ['#FFD24D', '#000000'], Clicky: ['#99D6FF', '#000000'], Silent: ['#FFFFFF', '#000000'] };
+const ROWS = [
+  ['coral-pop', 'Coral Pop', 'Clack Works', 'Tactile', '#F16B53', 'milky', 62, 3.8, 'recorded', true],
+  ['milk-yellow', 'Milk Yellow', 'Thock Co.', 'Linear', '#E9C46A', 'milky', 50, 4.0, 'recorded', true],
+  ['classic-red', 'Classic Red', 'Thock Co.', 'Linear', '#D64545', 'clear', 45, 4.0, 'recorded', true],
+  ['ink-black', 'Ink Black', 'Thock Co.', 'Linear', '#2A2E38', 'smoke', 60, 4.0, 'recorded', true],
+  ['speed-silver', 'Speed Silver', 'Clack Works', 'Linear', '#B8C0CC', 'clear', 45, 3.4, 'recorded', true],
+  ['bump-brown', 'Bump Brown', 'Thock Co.', 'Tactile', '#7A4E2D', 'amber', 55, 4.0, 'recorded', true],
+  ['peak-tactile', 'Peak Tactile', 'Clack Works', 'Tactile', '#EFEBE0', 'milky', 67, 4.0, 'recorded', true],
+  ['click-blue', 'Click Blue', 'Clack Works', 'Clicky', '#2F6FD6', 'ice', 60, 4.0, 'recorded', true],
+  ['jade-clickbar', 'Jade Clickbar', 'Clack Works', 'Clicky', '#2E9E7A', 'teal', 70, 3.6, 'processing', true],
+  ['hush-red', 'Hush Red', 'Quiet Labs', 'Silent', '#E07A7A', 'smoke', 45, 3.7, 'recorded', true],
+  ['hush-tactile', 'Hush Tactile', 'Quiet Labs', 'Silent', '#8C6BB1', 'milky', 62, 3.7, 'recorded', true],
+  ['proto-orange', 'Proto Orange', 'Quiet Labs', 'Tactile', '#E58A3A', 'clear', 58, 3.8, 'missing', false]
+];
+class Component extends DCLogic {
+  state = { q: '', type: 'All', snd: 'all', sel: {}, pub: {}, toast: null, st: null };
+  renderVals() {
+    const s = this.state, p = this.props;
+    const st = s.st || p.tableState || 'ready';
+    const q = s.q.trim().toLowerCase();
+    const isPub = (r) => (s.pub[r[0]] != null ? s.pub[r[0]] : r[9]);
+    const list = ROWS.filter((r) => (s.type === 'All' || r[3] === s.type) && (s.snd === 'all' || r[8] === s.snd) && (!q || (r[1] + ' ' + r[2]).toLowerCase().indexOf(q) >= 0));
+    const selIds = Object.keys(s.sel).filter((k) => s.sel[k]);
+    const setPub = (ids, v) => { const pub = Object.assign({}, this.state.pub); ids.forEach((id) => { pub[id] = v; }); const n = ids.length; this.setState({ pub: pub, toast: v ? (n === 1 ? (ROWS.find((r) => r[0] === ids[0]) || [])[1] + ' is live' : n + ' switches published') : null }); };
+    return {
+      ready: st === 'ready', loading: st === 'loading', empty: st === 'empty', error: st === 'error',
+      retry: () => { this.setState({ st: 'loading' }); clearTimeout(this.t); this.t = setTimeout(() => this.setState({ st: 'ready' }), 900); },
+      q: s.q, setQ: (e) => this.setState({ q: e.target.value }), setType: (e) => this.setState({ type: e.target.value }),
+      soundChips: [['all', 'All'], ['recorded', 'Recorded'], ['missing', 'Missing'], ['processing', 'Processing']].map((c) => ({ label: c[1], on: String(s.snd === c[0]), pick: () => this.setState({ snd: c[0] }) })),
+      hasSel: selIds.length > 0, selLabel: selIds.length + ' selected',
+      allSel: list.length > 0 && list.every((r) => s.sel[r[0]]),
+      toggleAll: () => { const all = list.every((r) => this.state.sel[r[0]]); const sel = {}; if (!all) list.forEach((r) => { sel[r[0]] = true; }); this.setState({ sel: sel }); },
+      clearSel: () => this.setState({ sel: {} }),
+      bulkPublish: () => { setPub(selIds, true); this.setState({ sel: {} }); },
+      bulkUnpublish: () => { setPub(selIds, false); this.setState({ sel: {} }); },
+      rows: list.map((r) => {
+        const pub = isPub(r), sel = !!s.sel[r[0]], T = TAG[r[3]];
+        return {
+          id: r[0], name: r[1], brand: r[2], type: r[3], stem: r[4], housing: HOUS[r[5]], force: r[6], travel: r[7].toFixed(1), sound: r[8],
+          tagBg: T[0], tagFg: T[1], cls: sel ? 'sel' : '', sel: sel, pub: String(pub),
+          selLabel: 'Select ' + r[1], pubLabel: 'Published: ' + r[1], editLabel: 'Edit ' + r[1],
+          toggle: () => { const x = Object.assign({}, this.state.sel); x[r[0]] = !x[r[0]]; this.setState({ sel: x }); },
+          togglePub: () => setPub([r[0]], !pub)
+        };
+      }),
+      shown: '1–' + list.length + ' OF [TOTAL]',
+      skeleton: [70, 55, 80, 62, 48, 74, 58, 66].map((w) => ({ w: w + '%' })),
+      toast: !!s.toast, toastTitle: 'Published', toastBody: (s.toast || '') + ' in the public switch library.',
+      dismiss: () => this.setState({ toast: null })
+    };
+  }
+  componentWillUnmount() { clearTimeout(this.t); }
+}
+</script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import axios from 'axios'
 import { outageMessage } from './outage.ts'
+import './index.css'
 import './App.css'
 
 // One origin for the browser: Vite proxies these paths to the gateway. Axios

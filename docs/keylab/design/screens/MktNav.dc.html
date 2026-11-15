@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Marketing navigation</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.mn-l{color:#000;text-decoration:none;font-size:15px;font-weight:800;padding:8px 2px;border-bottom:3px solid transparent}
+.mn-l:hover{border-bottom-color:#000}
+.mn-l[aria-current="page"]{border-bottom-color:#F16B53}
+.mn-l:focus-visible,.mn-b:focus-visible{outline:3px solid #F16B53;outline-offset:3px}
+.mn-b{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:15px;font-weight:900;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.mn-b:hover{background:#FFF1C7}
+.mn-b:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.mn-b.go{background:#C6F079}
+.mn-b.ghost{background:transparent;box-shadow:none;border-color:transparent}
+.mn-b.ghost:hover{border-color:#000;background:#FFF1C7}
+.mn-m{display:flex;align-items:center;min-height:52px;padding:0 4px;color:#000;text-decoration:none;font-size:20px;font-weight:900;letter-spacing:-0.03em;border-bottom:2.5px solid #000}
+.mn-m:focus-visible{outline:3px solid #F16B53;outline-offset:2px}
+</style>
+</helmet>
+<header style="width: 100%; box-sizing: border-box; background: #FFFDF5; border-bottom: 3px solid #000; font-family: 'Archivo', system-ui, sans-serif; color: #000; position: relative">
+  <div style="max-width: 1360px; margin: 0 auto; padding: {{pad}}; display: flex; align-items: center; gap: 24px">
+    <a href="{{home}}" aria-label="KeyLab home" style="display: flex; align-items: center; gap: 10px; color: #000; text-decoration: none">
+      <span aria-hidden="true" style="width: 36px; height: 36px; border: 3px solid #000; background: #FFD24D; box-shadow: 3px 3px 0 #000; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 17px">K</span>
+      <span style="font-weight: 900; font-size: 24px; letter-spacing: -0.05em">KEYLAB</span>
+    </a>
+    <sc-if value="{{desktop}}" hint-placeholder-val="{{ true }}">
+      <nav aria-label="Main" style="display: flex; gap: 22px; margin-left: 12px">
+        <sc-for list="{{links}}" as="l" hint-placeholder-count="4">
+          <a class="mn-l" href="{{l.href}}" aria-current="{{l.cur}}">{{l.label}}</a>
+        </sc-for>
+      </nav>
+      <div style="margin-left: auto; display: flex; gap: 10px; align-items: center">
+        <a class="mn-b ghost" href="{{login}}">Log in</a>
+        <a class="mn-b go" href="{{signup}}">Start building</a>
+      </div>
+    </sc-if>
+    <sc-if value="{{mobile}}" hint-placeholder-val="{{ false }}">
+      <div style="margin-left: auto; display: flex; gap: 8px; align-items: center">
+        <a class="mn-b go" href="{{signup}}" style="font-size: 14px; padding: 0 12px">Start</a>
+        <button type="button" class="mn-b" aria-expanded="{{openAttr}}" aria-controls="mn-menu" aria-label="{{menuLabel}}" onClick="{{toggle}}" style="width: 44px; padding: 0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="{{menuIcon}}"></path></svg>
+        </button>
+      </div>
+    </sc-if>
+  </div>
+  <sc-if value="{{menuOpen}}" hint-placeholder-val="{{ false }}">
+    <nav id="mn-menu" aria-label="Main" style="border-top: 3px solid #000; background: #FFD24D; padding: 8px 16px 18px; display: flex; flex-direction: column">
+      <sc-for list="{{links}}" as="l" hint-placeholder-count="4">
+        <a class="mn-m" href="{{l.href}}" aria-current="{{l.cur}}">{{l.label}}</a>
+      </sc-for>
+      <a class="mn-m" href="{{login}}">Log in</a>
+    </nav>
+  </sc-if>
+</header>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"mobile":{"editor":"boolean","default":false},"active":{"editor":"enum","options":["none","features","switches","pricing","community"],"default":"none"},"$preview":{"width":1440,"height":78}}'>
+class Component extends DCLogic {
+  state = { open: false };
+  renderVals() {
+    const p = this.props, m = !!p.mobile, sfx = m ? 'Mobile' : '';
+    const L = [
+      ['features', 'Features', 'MktLanding' + sfx + '.dc.html#features'],
+      ['switches', 'Switch library', 'MktLibrary' + sfx + '.dc.html'],
+      ['pricing', 'Pricing', 'MktPricing' + sfx + '.dc.html'],
+      ['community', 'Community', 'MktLanding' + sfx + '.dc.html#community']
+    ];
+    const open = this.state.open;
+    return {
+      desktop: !m, mobile: m, pad: m ? '12px 16px' : '16px 40px',
+      home: 'MktLanding' + sfx + '.dc.html', login: 'MktAuth' + sfx + '.dc.html', signup: 'MktAuth' + sfx + '.dc.html',
+      links: L.map((l) => ({ label: l[1], href: l[2], cur: l[0] === p.active ? 'page' : 'false' })),
+      menuOpen: m && open, openAttr: String(open), menuLabel: open ? 'Close menu' : 'Open menu',
+      menuIcon: open ? 'M6 6l12 12M18 6L6 18' : 'M4 7h16M4 12h16M4 17h16',
+      toggle: () => this.setState({ open: !open })
+    };
+  }
+}
+</script>
+</body>
+</html>

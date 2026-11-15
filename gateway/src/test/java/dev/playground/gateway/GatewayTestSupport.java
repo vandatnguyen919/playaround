@@ -3,6 +3,7 @@ package dev.playground.gateway;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
@@ -16,7 +17,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 
 /**
  * Shared pieces for the gateway integration tests: Redis started with the
- * real config and ACL from infra/redis, a stub API, and stub Keycloak
+ * real config and ACL from infra/redis, a stub API and keylab-api, and stub Keycloak
  * endpoints so no identity provider has to run.
  */
 final class GatewayTestSupport {
@@ -34,6 +35,11 @@ final class GatewayTestSupport {
             .waitingFor(Wait.forLogMessage(".*Ready to accept connections.*", 1));
 
     static final AtomicInteger API_CALLS = new AtomicInteger();
+
+    static final AtomicInteger KEYLAB_CALLS = new AtomicInteger();
+
+    // What the last keylab-api health call carried: "none" when no token was relayed.
+    static final AtomicReference<String> KEYLAB_AUTHORIZATION = new AtomicReference<>();
 
     // Stub Keycloak: only the discovery document, read at startup. Its
     // endpoints are never called by these tests.
@@ -66,6 +72,33 @@ final class GatewayTestSupport {
                     .get("/api/fail", (request, response) -> {
                         API_CALLS.incrementAndGet();
                         return response.status(500).send();
+                    })
+                    // keylab-api on the same stub server, with keylab-api's own paths.
+                    .get("/v1/health", (request, response) -> {
+                        KEYLAB_CALLS.incrementAndGet();
+                        String authorization = request.requestHeaders().get("Authorization");
+                        KEYLAB_AUTHORIZATION.set((authorization != null) ? authorization : "none");
+                        return response.header("Content-Type", "application/json")
+                                .header("KeyLab-API-Revision", "2026-11-08")
+                                .sendString(Mono.just("{\"status\":\"ok\"}"));
+                    })
+                    .get("/v1/builds/{id}", (request, response) -> {
+                        KEYLAB_CALLS.incrementAndGet();
+                        return response.status(401).header("Content-Type", "application/problem+json")
+                                .header("WWW-Authenticate", "Bearer")
+                                .sendString(Mono.just("{\"status\":401,\"code\":\"unauthenticated\"}"));
+                    })
+                    .post("/v1/builds", (request, response) -> {
+                        KEYLAB_CALLS.incrementAndGet();
+                        return response.status(201).send();
+                    })
+                    .get("/v1/slow", (request, response) -> {
+                        KEYLAB_CALLS.incrementAndGet();
+                        return response.sendString(Mono.delay(Duration.ofSeconds(4)).thenReturn("late"));
+                    })
+                    .get("/v1/fail", (request, response) -> {
+                        KEYLAB_CALLS.incrementAndGet();
+                        return response.status(500).send();
                     }))
             .bindNow();
 
@@ -75,6 +108,7 @@ final class GatewayTestSupport {
     static void common(DynamicPropertyRegistry registry) {
         registry.add("KEYCLOAK_ISSUER_URI", () -> "http://localhost:" + API.port() + "/realms/test");
         registry.add("API_URL", () -> "http://localhost:" + API.port());
+        registry.add("KEYLAB_API_URL", () -> "http://localhost:" + API.port());
         registry.add("SPA_LOCATION", () -> "classpath:/spa/");
         registry.add("management.server.port", () -> "0");
     }

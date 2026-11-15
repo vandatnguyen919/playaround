@@ -132,6 +132,34 @@
         "description": "May use Jenkins. Not a default role: granted by hand."
       },
       {
+        "name": "keylab-user",
+        "description": "KeyLab member. A default role: everything under /v1/me and writes on their own records."
+      },
+      {
+        "name": "keylab-viewer",
+        "description": "KeyLab team, read only: the lowest role for /v1/admin. Granted by hand."
+      },
+      {
+        "name": "keylab-editor",
+        "description": "KeyLab team, edits the catalog and sounds. Includes keylab-viewer. Granted by hand.",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "keylab-viewer"
+          ]
+        }
+      },
+      {
+        "name": "keylab-admin",
+        "description": "KeyLab team, everything in the admin dashboard. Includes keylab-editor. Granted by hand.",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "keylab-editor"
+          ]
+        }
+      },
+      {
         "name": "offline_access",
         "description": "${role_offline-access}"
       },
@@ -147,7 +175,8 @@
           "realm": [
             "offline_access",
             "uma_authorization",
-            "user"
+            "user",
+            "keylab-user"
           ],
           "client": {
             "account": [
@@ -189,6 +218,7 @@
       "defaultClientScopes": [
         "web-origins",
         "acr",
+        "basic",
         "roles",
         "profile",
         "email"
@@ -224,6 +254,17 @@
             "id.token.claim": "true",
             "access.token.claim": "true",
             "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience keylab-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "keylab-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
           }
         }
       ],

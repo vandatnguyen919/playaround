@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Component sheet (user profile)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.ks{font-family:'Archivo',system-ui,sans-serif;color:#000;background:#FFFDF5;min-height:100vh;padding:40px 48px 56px;display:flex;flex-direction:column;gap:36px;-webkit-font-smoothing:antialiased}
+.ks *{box-sizing:border-box}
+.sec{display:flex;flex-direction:column;gap:14px;padding-top:18px;border-top:3px solid #000}
+.sh{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.sh h2{margin:0;font-size:22px;line-height:26px;font-weight:900;letter-spacing:-.02em}
+.sh p{margin:0;font-size:13px;line-height:18px;font-weight:500;max-width:760px}
+.cap{font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.06em;font-weight:700;text-transform:uppercase}
+.cell{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.frame{border:2px dashed #000;padding:16px;background:#FFFDF5}
+</style>
+</helmet>
+<div class="ks">
+  <header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+    <div>
+      <span class="cap">KeyLab · component sheet 3</span>
+      <h1 style="margin: 4px 0 0; font-size: 40px; line-height: 44px; font-weight: 900; letter-spacing: -.03em">User profile components</h1>
+    </div>
+    <p style="margin: 0; max-width: 560px; font-size: 13px; line-height: 19px; font-weight: 500">Same tokens and keycap buttons as sheets 1 and 2. Every instance is the live component; hover, press (buttons slide into their shadow) and keyboard focus (coral ring) work on each one.</p>
+  </header>
+
+  <section class="sec" aria-labelledby="p1">
+    <div class="sh"><h2 id="p1">Profile header</h2><p>Own: Edit + Share. Public: Follow / Following, Try their setup, overflow with Report and Block. Avatar is a square with a thick border; plan shows as a sticker.</p></div>
+    <div class="cell"><span class="cap">Own · desktop</span><div class="frame"><dc-import name="ProfileHeader" variant="own" plan="free" hint-size="100%,190px"></dc-import></div></div>
+    <div class="cell"><span class="cap">Public · desktop · following</span><div class="frame"><dc-import name="ProfileHeader" variant="public" display-name="Tactile First" handle="@tactilefirst" initials="TF" avatar-bg="#C6F079" plan="pro" bio="Bumps over everything. Building a tactile board for every desk I own." following="{{ true }}" follows-you="{{ true }}" hint-size="100%,190px"></dc-import></div></div>
+    <div class="row">
+      <div class="cell" style="width: 390px"><span class="cap">Own · mobile</span><div class="frame"><dc-import name="ProfileHeader" variant="own" mobile="{{ true }}" plan="free" hint-size="100%,300px"></dc-import></div></div>
+      <div class="cell" style="width: 390px"><span class="cap">Private · mobile</span><div class="frame"><dc-import name="ProfileHeader" variant="private" mobile="{{ true }}" display-name="Tactile First" handle="@tactilefirst" initials="TF" avatar-bg="#C6F079" plan="pro" bio="" hint-size="100%,220px"></dc-import></div></div>
+      <div class="cell" style="width: 390px"><span class="cap">Loading</span><div class="frame"><dc-import name="ProfileHeader" variant="loading" mobile="{{ true }}" hint-size="100%,100px"></dc-import></div></div>
+    </div>
+  </section>
+
+  <div class="row" style="gap: 40px">
+    <section class="sec" aria-labelledby="p2" style="flex: 1 1 560px">
+      <div class="sh"><h2 id="p2">Stat tile</h2><p>Values in Space Mono, placeholders until real counts exist.</p></div>
+      <div class="row">
+        <div class="cell" style="width: 200px"><span class="cap">Default</span><dc-import name="StatTile" label="Builds" value="[BUILDS]" accent="#FFD24D" hint-size="100%,92px"></dc-import></div>
+        <div class="cell" style="width: 200px"><span class="cap">Link (hover / press)</span><dc-import name="StatTile" label="Followers" value="[FOLLOWERS]" accent="#99D6FF" href="PublicProfileDesktop.dc.html" hint-size="100%,92px"></dc-import></div>
+        <div class="cell" style="width: 200px"><span class="cap">Loading</span><dc-import name="StatTile" label="Likes received" state="loading" accent="#F16B53" hint-size="100%,92px"></dc-import></div>
+        <div class="cell" style="width: 132px"><span class="cap">Compact</span><dc-import name="StatTile" label="Switches tried" value="[TRIED]" accent="#2C2A5A" compact="{{ true }}" hint-size="100%,66px"></dc-import></div>
+      </div>
+    </section>
+    <section class="sec" aria-labelledby="p3" style="flex: 1 1 560px">
+      <div class="sh"><h2 id="p3">Badge sticker</h2><p>Earned badges tilt a little like a sticker; locked ones are flat with a dashed border.</p></div>
+      <div class="row" style="padding: 6px 0">
+        <dc-import name="BadgeSticker" kind="first-build" date="MAR 2026" hint-size="210px,62px"></dc-import>
+        <dc-import name="BadgeSticker" kind="tried-25" date="APR 2026" tilt="1.5" hint-size="250px,62px"></dc-import>
+        <dc-import name="BadgeSticker" kind="mod-master" date="JUN 2026" tilt="-1" hint-size="210px,62px"></dc-import>
+        <dc-import name="BadgeSticker" kind="featured" date="OCT 2026" tilt="2" hint-size="260px,62px"></dc-import>
+        <dc-import name="BadgeSticker" kind="mod-master" earned="{{ false }}" hint-size="330px,62px"></dc-import>
+      </div>
+    </section>
+  </div>
+
+  <section class="sec" aria-labelledby="p4">
+    <div class="sh"><h2 id="p4">Tab bar</h2><p>role="tablist"; left and right arrow keys move between tabs. Counts in Space Mono; a lock marks a tab only you can see.</p></div>
+    <div class="row">
+      <div class="cell" style="flex: 1 1 640px"><span class="cap">Desktop · Builds active</span><dc-import name="TabBar" hint-size="100%,51px"></dc-import></div>
+      <div class="cell" style="width: 358px"><span class="cap">Mobile · Activity active</span><dc-import name="TabBar" mobile="{{ true }}" active="activity" hint-size="100%,51px"></dc-import></div>
+    </div>
+  </section>
+
+  <div class="row" style="gap: 40px">
+    <section class="sec" aria-labelledby="p5" style="flex: 1 1 560px">
+      <div class="sh"><h2 id="p5">Activity row</h2><p>Timeline row: a coloured key icon per kind, a link to the thing, time in Space Mono.</p></div>
+      <ol style="list-style: none; margin: 0; padding: 0; max-width: 620px">
+        <li><dc-import name="ActivityRow" kind="published" target="Night Thock 65" href="BuildsDesktop.dc.html" time="2 h ago" hint-size="100%,80px"></dc-import></li>
+        <li><dc-import name="ActivityRow" kind="tried" target="Coral Pop" href="MktSwitch.dc.html" time="Yesterday" hint-size="100%,80px"></dc-import></li>
+        <li><dc-import name="ActivityRow" kind="followed" target="@tactilefirst" href="PublicProfileDesktop.dc.html" time="2 d ago" hint-size="100%,80px"></dc-import></li>
+        <li><dc-import name="ActivityRow" kind="liked" target="Pastel Pop 60" href="MktLanding.dc.html" time="3 d ago" hint-size="100%,80px"></dc-import></li>
+        <li><dc-import name="ActivityRow" kind="badge" target="Mod master" time="Jun 2026" hint-size="100%,80px"></dc-import></li>
+        <li><dc-import name="ActivityRow" kind="collection" target="Jade Hush → Office quiet" time="Jun 2026" last="{{ true }}" hint-size="100%,60px"></dc-import></li>
+      </ol>
+    </section>
+    <section class="sec" aria-labelledby="p6" style="flex: 1 1 560px">
+      <div class="sh"><h2 id="p6">Settings row</h2><p>68 px minimum height; every control is a real button, link or switch with a 44 px target.</p></div>
+      <div style="border: 3px solid #000; background: #FFFFFF; box-shadow: 6px 6px 0 #000; max-width: 640px">
+        <dc-import name="SettingsRow" label="Email" desc="Used to sign in and for receipts." control="button" value="thockwise@[EMAIL]" action="Change" hint-size="100%,72px"></dc-import>
+        <dc-import name="SettingsRow" label="Likes on my builds" desc="When someone likes a build you shared." control="toggle" on="{{ true }}" hint-size="100%,72px"></dc-import>
+        <dc-import name="SettingsRow" label="Product news" desc="About once a month. Email only." control="toggle" on="{{ false }}" hint-size="100%,72px"></dc-import>
+        <dc-import name="SettingsRow" label="Plan" desc="Free plan." control="link" action="Upgrade to Pro" href="MktPricing.dc.html" hint-size="100%,72px"></dc-import>
+        <dc-import name="SettingsRow" label="Apple" desc="Sign in with your Apple ID." control="go" value="Not connected" action="Connect" hint-size="100%,72px"></dc-import>
+        <dc-import name="SettingsRow" label="Delete account" desc="Removes your profile, builds and likes for good." control="danger" action="Delete account" last="{{ true }}" hint-size="100%,72px"></dc-import>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -223,6 +223,97 @@ class GatewayHardeningIntegrationTest {
         assertThat(GatewayTestSupport.API_CALLS.get()).isEqualTo(callsBefore);
     }
 
+    // --- KeyLab route: /bff/keylab/v1/** to keylab-api /v1/** ----------------------
+
+    @Test
+    void keylabPagesServeTheSpaToGuests() {
+        for (String page : List.of("/keylab", "/keylab/switches", "/keylab/builds/42")) {
+            http().get().uri(page).accept(MediaType.TEXT_HTML).exchange()
+                .expectStatus().isOk()
+                .expectHeader().valueEquals("Content-Security-Policy", SecurityConfig.CONTENT_SECURITY_POLICY)
+                .expectBody(String.class).value((html) -> assertThat(html).contains("/assets/index.js"));
+        }
+    }
+
+    @Test
+    void aGuestReachesKeylabApiWithNoTokenAndThePathRewritten() {
+        GatewayTestSupport.KEYLAB_AUTHORIZATION.set(null);
+
+        http().get().uri("/bff/keylab/v1/health").exchange()
+            .expectStatus().isOk()
+            .expectHeader().valueEquals("KeyLab-API-Revision", "2026-11-08")
+            .expectBody().jsonPath("$.status").isEqualTo("ok");
+
+        assertThat(GatewayTestSupport.KEYLAB_AUTHORIZATION.get()).isEqualTo("none");
+    }
+
+    @Test
+    void keylabApiDecidesWhoMayCallWhatAndItsErrorPassesThroughUnchanged() {
+        http().get().uri("/bff/keylab/v1/builds/42").exchange()
+            .expectStatus().isUnauthorized()
+            .expectHeader().contentType("application/problem+json")
+            .expectBody().jsonPath("$.code").isEqualTo("unauthenticated");
+    }
+
+    @Test
+    void aSignedInCallToKeylabApiCarriesTheAccessToken() {
+        GatewayTestSupport.KEYLAB_AUTHORIZATION.set(null);
+
+        signedIn("keylab-user").get().uri("/bff/keylab/v1/health").exchange().expectStatus().isOk();
+
+        assertThat(GatewayTestSupport.KEYLAB_AUTHORIZATION.get()).startsWith("Bearer ");
+    }
+
+    @Test
+    void anUnsafeKeylabCallWithoutTheCsrfTokenIsRefusedAtTheGateway() {
+        int before = GatewayTestSupport.KEYLAB_CALLS.get();
+
+        http().post().uri("/bff/keylab/v1/builds").exchange().expectStatus().isForbidden();
+
+        assertThat(GatewayTestSupport.KEYLAB_CALLS.get()).isEqualTo(before);
+    }
+
+    @Test
+    void onlyTheKeylabV1PrefixIsOpenAndRouted() {
+        // No route and no open rule: the gateway's own default applies.
+        http().get().uri("/bff/keylab/v2/health").exchange().expectStatus().isUnauthorized();
+        http().get().uri("/bff/keylab").exchange().expectStatus().isUnauthorized();
+    }
+
+    @Test
+    void aSlowKeylabCallIsCutOffWithAProblem() {
+        signedIn("keylab-slow").get().uri("/bff/keylab/v1/slow").exchange()
+            .expectStatus().isEqualTo(504)
+            .expectHeader().contentType("application/problem+json")
+            .expectBody()
+            .jsonPath("$.code").isEqualTo("api_timeout")
+            .jsonPath("$.status").isEqualTo(504)
+            .jsonPath("$.type").isEqualTo("https://keylab.app/problems/api-timeout")
+            .jsonPath("$.title").isNotEmpty();
+    }
+
+    @Test
+    void keylabHasItsOwnCircuitSoItsFailuresLeaveTheApiRoutesClosed() {
+        WebTestClient client = signedIn("keylab-cb");
+        for (int i = 0; i < 10; i++) {
+            client.get().uri("/bff/keylab/v1/fail").exchange()
+                .expectStatus().isEqualTo(502)
+                .expectHeader().contentType("application/problem+json")
+                .expectBody().jsonPath("$.code").isEqualTo("api_error");
+        }
+        int callsBefore = GatewayTestSupport.KEYLAB_CALLS.get();
+
+        client.get().uri("/bff/keylab/v1/health").exchange()
+            .expectStatus().isEqualTo(503)
+            .expectHeader().valueEquals(HttpHeaders.RETRY_AFTER, "15")
+            .expectHeader().contentType("application/problem+json")
+            .expectBody().jsonPath("$.code").isEqualTo("api_unavailable");
+        assertThat(GatewayTestSupport.KEYLAB_CALLS.get()).isEqualTo(callsBefore);
+
+        // The API's circuit is another one and stays closed.
+        client.get().uri("/bff/me").exchange().expectStatus().isOk();
+    }
+
     // --- Redis ACL (infra/redis/start.sh) ----------------------------------------
 
     @Test

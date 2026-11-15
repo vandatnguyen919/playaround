@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FAQ item</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.faq-q{appearance:none;width:100%;margin:0;cursor:pointer;font:inherit;text-align:left;color:#000;border:0;border-radius:0;min-height:60px;padding:14px 16px;display:flex;align-items:center;gap:14px;font-size:18px;line-height:22px;font-weight:900;letter-spacing:-0.02em}
+.faq-q:hover{background:#FFF1C7}
+.faq-q:focus-visible{outline:3px solid #F16B53;outline-offset:-3px}
+</style>
+</helmet>
+<div style="width: 100%; box-sizing: border-box; border: 3px solid #000; background: #FFFFFF; box-shadow: {{shadow}}; font-family: 'Archivo', system-ui, sans-serif; color: #000">
+  <h3 style="margin: 0">
+    <button type="button" class="faq-q" aria-expanded="{{openAttr}}" aria-controls="{{pid}}" onClick="{{toggle}}" style="background: {{qBg}}">
+      <span style="flex: 1">{{q}}</span>
+      <span aria-hidden="true" style="flex: none; width: 32px; height: 32px; border: 2.5px solid #000; background: {{iconBg}}; display: flex; align-items: center; justify-content: center; box-shadow: 2px 2px 0 #000">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="square"><path d="{{iconPath}}"></path></svg>
+      </span>
+    </button>
+  </h3>
+  <sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+    <div id="{{pid}}" style="padding: 0 16px 16px; border-top: 2.5px solid #000">
+      <p style="margin: 14px 0 0; font-size: 15px; line-height: 22px; font-weight: 500; max-width: 720px">{{a}}</p>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"q":{"editor":"text","default":"Are the sounds real recordings?"},"a":{"editor":"text","default":"Every switch with a recorded badge uses real press and release recordings. Switches marked “No sound yet” show specs only until we record them."},"open":{"editor":"boolean","default":false},"uid":{"editor":null},"$preview":{"width":720,"height":150}}'>
+class Component extends DCLogic {
+  state = { open: null };
+  renderVals() {
+    const p = this.props;
+    const open = this.state.open != null ? this.state.open : !!p.open;
+    return {
+      q: p.q || 'Are the sounds real recordings?',
+      a: p.a || 'Every switch with a recorded badge uses real press and release recordings.',
+      open: open, openAttr: String(open), pid: 'faq-' + (p.uid || 'a'),
+      qBg: open ? '#FFD24D' : '#FFFFFF', iconBg: open ? '#FFFDF5' : '#FFD24D',
+      iconPath: open ? 'M5 12h14' : 'M12 5v14M5 12h14',
+      shadow: open ? '5px 5px 0 #000' : '3px 3px 0 #000',
+      toggle: () => this.setState({ open: !open })
+    };
+  }
+}
+</script>
+</body>
+</html>

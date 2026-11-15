@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Pricing</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+.kl{--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--ink:#2C2A5A;--sun:#FFF1C7;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:#000;background:#FFFDF5;-webkit-font-smoothing:antialiased}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.wrap{max-width:1280px;margin:0 auto;padding:0 40px}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc[aria-checked="true"]{background:var(--acc)}
+.kc.primary{background:var(--lime);min-height:58px;padding:0 24px;font-size:18px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.lbl{margin:0;font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900}
+.sticker{display:inline-flex;align-items:center;padding:3px 8px;border:2.5px solid #000;background:var(--acc);font-size:12px;line-height:16px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.h1{margin:0;font-size:72px;line-height:66px;font-weight:900;letter-spacing:-.06em}
+.h2{margin:0;font-size:40px;line-height:40px;font-weight:900;letter-spacing:-.05em}
+.body{margin:0;font-size:17px;line-height:26px;font-weight:500}
+.cmp{width:100%;border-collapse:collapse;border:3px solid #000;background:#FFFFFF;box-shadow:6px 6px 0 #000}
+.cmp th,.cmp td{border:2px solid #000;padding:14px 16px;text-align:left;font-size:15px;line-height:20px}
+.cmp thead th{background:#FFFDF5;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:900}
+.cmp tbody th{font-weight:800}
+.cmp td{font-weight:600}
+.cmp .pro{background:#FFF1C7}
+</style>
+</helmet>
+<div class="kl" style="min-height: 100vh">
+  <dc-import name="MktNav" mobile="{{ false }}" active="pricing" hint-size="100%,78px"></dc-import>
+  <main>
+    <section aria-labelledby="pr-h" style="border-bottom: 3px solid #000">
+      <div class="wrap" style="padding-top: 64px; padding-bottom: 80px; display: flex; flex-direction: column; gap: 40px">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px">
+          <div style="display: flex; flex-direction: column; gap: 18px; max-width: 760px">
+            <span class="sticker" style="align-self: flex-start; background: var(--sky)">Pricing</span>
+            <h1 id="pr-h" class="h1">BUILD FREE. GO PRO WHEN IT GETS SERIOUS.</h1>
+            <p class="body">Every feature you need to hear a build is free. Pro is for people about to order real parts.</p>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <span id="bill-h" class="lbl">Billing</span>
+            <div role="radiogroup" aria-labelledby="bill-h" style="display: flex; gap: 10px">
+              <button type="button" role="radio" class="kc" aria-checked="{{monthlyOn}}" onClick="{{setMonthly}}" style="min-width: 120px">Monthly</button>
+              <button type="button" role="radio" class="kc" aria-checked="{{yearlyOn}}" onClick="{{setYearly}}" style="min-width: 120px">Yearly <span class="mono" style="font-size: 10px; padding: 0 5px; border: 2px solid #000; background: var(--lime)">[SAVE X%]</span></button>
+            </div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px; max-width: 900px">
+          <dc-import name="PricingCard" tier="free" yearly="{{yearly}}" href="MktAuth.dc.html" hint-size="100%,520px"></dc-import>
+          <dc-import name="PricingCard" tier="pro" yearly="{{yearly}}" href="MktAuth.dc.html" hint-size="100%,520px"></dc-import>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="cmp-h" style="border-bottom: 3px solid #000; background: var(--sun)">
+      <div class="wrap" style="padding-top: 80px; padding-bottom: 88px; display: flex; flex-direction: column; gap: 28px">
+        <h2 id="cmp-h" class="h2">COMPARE THE PLANS</h2>
+        <div style="overflow-x: auto; padding: 0 8px 8px 0">
+          <table class="cmp">
+            <caption style="text-align: left; padding-bottom: 12px; font-size: 14px; font-weight: 600">Prices billed {{billWord}}. All amounts are placeholders.</caption>
+            <thead>
+              <tr><th scope="col" style="width: 44%">Feature</th><th scope="col">Free</th><th scope="col" class="pro">Pro</th></tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{rows}}" as="r" hint-placeholder-count="9">
+                <tr>
+                  <th scope="row">{{r.f}}</th>
+                  <td><span style="display: inline-flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 18px; height: 18px; border: 2px solid #000; background: {{r.freeBg}}; display: inline-flex; align-items: center; justify-content: center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="4" stroke-linecap="square"><path d="{{r.freeIcon}}"></path></svg></span>{{r.free}}</span></td>
+                  <td class="pro"><span style="display: inline-flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 18px; height: 18px; border: 2px solid #000; background: #FFD24D; display: inline-flex; align-items: center; justify-content: center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="4" stroke-linecap="square"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>{{r.pro}}</span></td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="cta-h" style="background: var(--acc); border-bottom: 3px solid #000">
+      <div class="wrap" style="padding-top: 64px; padding-bottom: 64px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px">
+        <h2 id="cta-h" class="h2" style="max-width: 640px">NOT SURE YET? PRESS A KEY FIRST.</h2>
+        <a class="kc primary" href="MktLanding.dc.html">Try it free</a>
+      </div>
+    </section>
+  </main>
+  <dc-import name="MktFooter" mobile="{{ false }}" hint-size="100%,320px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2280}}'>
+const ROWS = [
+  ['Saved builds', '3', 'Unlimited'],
+  ['Switch library', 'Core switches', 'Full library'],
+  ['Mods workshop', 'Included', 'Included'],
+  ['Keycaps studio', 'Included', 'Included'],
+  ['Case & plate', 'Included', 'Included'],
+  ['Sound playground', 'Included', 'Included'],
+  ['Share links', 'Included', 'Included'],
+  ['Export parts list', 'Not included', 'Included'],
+  ['Sound quality', 'Standard', 'HD']
+];
+class Component extends DCLogic {
+  state = { yearly: false };
+  renderVals() {
+    const y = this.state.yearly;
+    return {
+      yearly: y, monthlyOn: String(!y), yearlyOn: String(y), billWord: y ? 'yearly' : 'monthly',
+      setMonthly: () => this.setState({ yearly: false }), setYearly: () => this.setState({ yearly: true }),
+      rows: ROWS.map((r) => ({ f: r[0], free: r[1], pro: r[2], freeBg: r[1] === 'Not included' ? '#FFFFFF' : '#C6F079', freeIcon: r[1] === 'Not included' ? 'M6 12h12' : 'M5 12.5l4.5 4.5L19 7.5' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

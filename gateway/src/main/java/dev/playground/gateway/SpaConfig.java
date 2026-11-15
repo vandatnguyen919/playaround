@@ -24,7 +24,8 @@ class SpaConfig {
     RouterFunction<ServerResponse> spaRoutes(ResourceLoader resources,
             @Value("${playground.spa-location}") String spaLocation) {
         Resource index = resources.getResource(spaLocation + "index.html");
-        return RouterFunctions.route(GET("/").or(GET("/me")).or(GET("/admin")).or(GET("/forbidden")),
+        return RouterFunctions.route(GET("/").or(GET("/me")).or(GET("/admin")).or(GET("/forbidden"))
+                .or(GET("/keylab")).or(GET("/keylab/**")),
                 (request) -> index.exists()
                         ? ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue(index)
                         : ServerResponse.notFound().build());

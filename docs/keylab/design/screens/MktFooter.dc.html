@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Marketing footer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.mf-l{color:#FFFDF5;text-decoration:none;font-size:14px;line-height:20px;font-weight:600;display:inline-flex;min-height:32px;align-items:center}
+.mf-l:hover{color:#FFD24D;text-decoration:underline;text-underline-offset:3px}
+.mf-l:focus-visible{outline:3px solid #FFD24D;outline-offset:2px}
+</style>
+</helmet>
+<footer style="width: 100%; box-sizing: border-box; background: #2C2A5A; color: #FFFDF5; border-top: 3px solid #000; font-family: 'Archivo', system-ui, sans-serif">
+  <div style="max-width: 1360px; margin: 0 auto; padding: {{pad}}; display: flex; flex-wrap: wrap; gap: 32px 48px">
+    <div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 12px">
+      <span style="display: flex; align-items: center; gap: 10px"><span aria-hidden="true" style="width: 34px; height: 34px; border: 3px solid #000; background: #FFD24D; color: #000; box-shadow: 3px 3px 0 #000; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px">K</span><span style="font-weight: 900; font-size: 22px; letter-spacing: -0.05em">KEYLAB</span></span>
+      <p style="margin: 0; max-width: 280px; font-size: 14px; line-height: 20px; font-weight: 500">Hear a mechanical keyboard before you buy a single part.</p>
+    </div>
+    <sc-for list="{{cols}}" as="c" hint-placeholder-count="4">
+      <nav aria-label="{{c.title}}" style="flex: 1 1 {{colBasis}}; display: flex; flex-direction: column; gap: 4px">
+        <h2 style="margin: 0 0 6px; font-size: 11px; line-height: 14px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: #FFD24D">{{c.title}}</h2>
+        <sc-for list="{{c.links}}" as="l" hint-placeholder-count="4"><a class="mf-l" href="{{l.href}}">{{l.label}}</a></sc-for>
+      </nav>
+    </sc-for>
+  </div>
+  <div style="border-top: 2px solid #1E1C3F; background: #1E1C3F">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 14px {{padX}}; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-family: 'Space Mono', ui-monospace, monospace; font-size: 11px; font-weight: 700">
+      <span>© [YEAR] KeyLab</span>
+      <span>Keyboard sounds recorded in-house</span>
+    </div>
+  </div>
+</footer>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"mobile":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":320}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const m = !!this.props.mobile, sfx = m ? 'Mobile' : '';
+    const lk = (a, b) => ({ label: a, href: b });
+    return {
+      pad: m ? '32px 16px' : '48px 40px', padX: m ? '16px' : '40px', colBasis: m ? '140px' : '150px',
+      cols: [
+        { title: 'Product', links: [lk('Build a keyboard', m ? 'Main.dc.html' : 'HomeDesktop.dc.html'), lk('Switch library', 'MktLibrary' + sfx + '.dc.html'), lk('Sound playground', m ? 'PlaygroundMobile.dc.html' : 'PlaygroundDesktop.dc.html'), lk('Pricing', 'MktPricing' + sfx + '.dc.html')] },
+        { title: 'Community', links: [lk('Builds gallery', 'MktLanding' + sfx + '.dc.html#community'), lk('Share a build', m ? 'BuildsMobile.dc.html' : 'BuildsDesktop.dc.html'), lk('[DISCORD LINK]', '#'), lk('[NEWSLETTER]', '#')] },
+        { title: 'Support', links: [lk('FAQ', 'MktLanding' + sfx + '.dc.html#faq'), lk('Help center', '#'), lk('Contact us', '#'), lk('Request a switch', '#')] },
+        { title: 'Legal', links: [lk('Terms', '#'), lk('Privacy', '#'), lk('Cookies', '#'), lk('Sound credits', '#')] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

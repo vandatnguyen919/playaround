@@ -168,3 +168,23 @@ Done and checked locally: see Current state in PRODUCT.md. Left:
   `keycloak-admin-url`): a master frontend URL change moves the token issuer.
 - **Multi-arch image to GHCR:** CI publishes it on `main` (see Images
   above).
+
+## KL0 KeyLab foundation (branch feature/kl0-keylab-foundation, not committed)
+
+Verified 2026-11-15: full `node verify.mjs` green (gateway, api, keylab, web, attacks,
+smoke 45, headers, e2e 12 incl. 4 KeyLab, docs), run with
+`COMPOSE_PROJECT_NAME=playground-verify MANAGEMENT_PORT=9191` because the local prod
+gateway holds 9181. Left:
+
+- **Commit and PR:** waiting for Dan. Ticket says commit before starting US-37.
+- **Deployment ticket:** keylab-api has no Dockerfile, GHCR image, compose.prod.yml service or
+  Postgres on the VM yet (out of KL0 scope by decision). Next action: open a ticket.
+- **Vault:** `KEYLAB_DB_PASSWORD` uses the compose dev default. Add it to infra/vault with the
+  deployment ticket.
+- **openapi-typescript runs through npx** (it wants TypeScript 5, web is on 6), so
+  `check:api` needs npm registry access on first run. Dan may prefer another approach.
+- **Shell copy not in the designs:** Sign in slot ("Sign in / to save builds"), "This page is
+  not built yet.", the API status card. The sidebar "Current build" card is left out until
+  builds exist. Next action: Dan reviews, or the first stories replace them.
+- **Gateway CORS** allows GET and POST only. Same origin today; PATCH and DELETE need adding
+  if KeyLab ever calls cross-origin.

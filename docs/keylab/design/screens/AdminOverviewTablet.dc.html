@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab admin · Overview (tablet check)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1024px; min-height: 1600px; background: #EFE8D6">
+  <dc-import name="AdminOverview" compact="{{ true }}" kpi-state="{{kpiState}}" hint-size="1024px,1600px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"kpiState":{"editor":"enum","options":["ready","loading","empty","error"],"default":"ready"},"$preview":{"width":1024,"height":1600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { kpiState: this.props.kpiState || 'ready' };
+  }
+}
+</script>
+</body>
+</html>

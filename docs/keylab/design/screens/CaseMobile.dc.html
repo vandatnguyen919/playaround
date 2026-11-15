@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Case and plate</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Nunito:wght@700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.kl{--bg:#FFFDF5;--surface:#FFFFFF;--surface2:#FFF1C7;--text:#000000;--muted:#3A3A3A;--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--indigo:#2C2A5A;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.kl[data-theme="dark"]{--bg:#1E1C3F;--surface:#2C2A5A;--surface2:#3A3870;--text:#FFFDF5;--muted:#D6D3F5}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc[aria-checked="true"],.kc.on{background:var(--acc)}
+.kc.primary{background:var(--lime);min-height:56px;font-size:16px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc.sm{padding:0 8px;font-size:12px}
+.kc.icon{width:44px;padding:0}
+.kc:focus-visible,.nv:focus-visible,.tile:focus-visible,.sw:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.tile{appearance:none;margin:0;font:inherit;color:#000;text-align:left;cursor:pointer;background:#FFFFFF;border:3px solid #000;border-radius:0;padding:10px;display:flex;flex-direction:column;gap:6px;box-shadow:4px 4px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.tile:active{transform:translate(4px,4px);box-shadow:0 0 0 #000}
+.tile[aria-checked="true"]{background:var(--acc);transform:translate(-2px,-2px);box-shadow:7px 7px 0 #000}
+.sw{appearance:none;margin:0;padding:0;cursor:pointer;min-height:44px;border:2.5px solid #000;border-radius:0;box-shadow:3px 3px 0 #000}
+.sw:active{transform:translate(3px,3px);box-shadow:none}
+.sw[aria-pressed="true"]{outline:3px solid var(--text);outline-offset:3px}
+.stage{background:var(--sky);color:#000;border:3px solid #000;box-shadow:6px 6px 0 #000}
+.padsq{appearance:none;flex:none;position:relative;width:44px;height:44px;margin:0;padding:0;cursor:pointer;border:2.5px solid #000;border-radius:0;box-shadow:2px 2px 0 #000;display:flex;align-items:flex-end;justify-content:center;transition:transform 70ms ease,box-shadow 70ms ease;-webkit-tap-highlight-color:transparent}
+.padsq span{margin-bottom:-2px;padding:0 3px;background:#000;color:#FFFDF5;font-size:9px;line-height:12px;font-weight:700}
+.padsq:active{transform:translate(2px,2px);box-shadow:0 0 0 #000}
+.padsq:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.lbl{font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;margin:0}
+.h1{font-size:36px;line-height:34px;font-weight:900;letter-spacing:-.05em;margin:0}
+.sticker{display:inline-flex;align-items:center;padding:1px 6px;border:2px solid #000;background:var(--acc);color:#000;font-size:10px;line-height:14px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.nav{flex:none;display:flex;gap:2px;padding:8px 8px 22px;background:#FFFFFF;border-top:3px solid #000}
+.nv{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px;flex:1;color:#000;text-decoration:none;font-size:11px;font-weight:800}
+.nv .ic{width:46px;height:32px;display:flex;align-items:center;justify-content:center;border:2.5px solid transparent}
+.nv.on .ic{background:var(--acc);border-color:#000;box-shadow:3px 3px 0 #000}
+.noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="kl" data-theme="{{theme}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <header style="flex: none; padding: 12px 16px; display: flex; align-items: center; gap: 12px">
+    <a class="kc icon" href="Main.dc.html" aria-label="Back to build"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <h1 class="h1">Case &amp; plate</h1>
+  </header>
+
+  <div class="stage" style="position: relative; flex: none; margin: 0 16px 6px; padding: 14px 10px 10px; display: flex; flex-direction: column; align-items: center; gap: 10px; background: {{pad.bg}}">
+    <span aria-hidden="true" style="position: absolute; inset: 5px; border: 2px dashed {{pad.stitch}}; pointer-events: none"></span>
+    <div style="position: relative"><dc-import name="Keyboard" layout="65" width="326" case-color="{{caseColor}}" case-mat="{{mat}}" plate="{{plate}}" sound="{{snd}}" ping-seq="{{ping}}" hint-size="326px,150px"></dc-import></div>
+    <div style="position: relative; width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 10px 6px 8px; border: 2.5px solid #000; background: var(--sky); color: #000">
+    <button type="button" class="padsq" onClick="{{cyclePad}}" aria-label="Desk pad: {{pad.name}}. Tap for the next pad" title="Desk pad · {{pad.name}}" style="background: {{pad.bg}}"><span class="mono">PAD</span></button>
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <span class="lbl">Sound</span>
+        <span class="sticker" style="background: #FFFDF5">{{word}}</span>
+      </div>
+      <div aria-hidden="true" style="position: relative; height: 3px; margin: 6px 0; background: #000">
+        <span style="position: absolute; top: 50%; left: {{posL}}; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2.5px solid #000; background: var(--coral); transition: left 200ms ease"></span>
+      </div>
+      <div class="mono" style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700"><span>BRIGHT</span><span>DEEP</span></div>
+    </div>
+    </div>
+  </div>
+
+  <main class="noscroll" style="flex: 1; overflow-y: auto; padding: 18px 16px 26px; display: flex; flex-direction: column; gap: 22px">
+    <section aria-labelledby="cm-h" style="display: flex; flex-direction: column; gap: 10px">
+      <h2 id="cm-h" class="lbl">Case material</h2>
+      <div role="radiogroup" aria-labelledby="cm-h" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+        <sc-for list="{{mats}}" as="m" hint-placeholder-count="4">
+          <button type="button" role="radio" class="tile" aria-checked="{{m.on}}" onClick="{{m.pick}}">
+            <span aria-hidden="true" style="height: 24px; border: 2.5px solid #000; background: {{m.sample}}"></span>
+            <span style="font-size: 16px; font-weight: 900; letter-spacing: -0.02em">{{m.name}}</span>
+            <span style="font-size: 12px; line-height: 16px; font-weight: 500">{{m.note}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section aria-labelledby="cc-h" style="display: flex; flex-direction: column; gap: 10px">
+      <h2 id="cc-h" class="lbl">Case color · {{colorName}}</h2>
+      <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{colors}}" as="c" hint-placeholder-count="8">
+          <button type="button" class="sw" aria-label="{{c.name}}" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="background: {{c.hex}}"></button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section aria-labelledby="pl-h" style="display: flex; flex-direction: column; gap: 10px">
+      <h2 id="pl-h" class="lbl">Plate</h2>
+      <div role="radiogroup" aria-labelledby="pl-h" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px">
+        <sc-for list="{{plates}}" as="p" hint-placeholder-count="5">
+          <button type="button" role="radio" class="kc sm" aria-checked="{{p.on}}" onClick="{{p.pick}}" style="flex-direction: column; gap: 4px; min-height: 60px; padding: 0">
+            <span aria-hidden="true" style="width: 24px; height: 10px; border: 2px solid #000; background: {{p.hex}}"></span>{{p.name}}
+          </button>
+        </sc-for>
+      </div>
+      <p style="margin: 0; font-size: 13px; line-height: 18px; font-weight: 500"><strong style="font-weight: 900">{{plateName}}</strong> {{plateNote}}</p>
+    </section>
+
+    <section aria-labelledby="mt-h" style="display: flex; flex-direction: column; gap: 10px">
+      <h2 id="mt-h" class="lbl">Mount style</h2>
+      <div role="radiogroup" aria-labelledby="mt-h" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+        <sc-for list="{{mounts}}" as="t" hint-placeholder-count="3">
+          <button type="button" role="radio" class="tile" aria-checked="{{t.on}}" onClick="{{t.pick}}" style="padding: 8px">
+            <svg width="72" height="38" viewBox="0 0 60 36" aria-hidden="true" fill="none" stroke-linecap="square" stroke-linejoin="miter">
+              <path d="{{t.caseD}}" stroke="#000" stroke-width="3"></path>
+              <path d="M9 17 H51" stroke="#2C2A5A" stroke-width="4"></path>
+              <path d="M11 22 H49" stroke="#000" stroke-width="2"></path>
+              <sc-for list="{{t.dots}}" as="d" hint-placeholder-count="2">
+                <rect x="{{d.x}}" y="{{d.y}}" width="{{d.w}}" height="{{d.h}}" fill="#F16B53" stroke="#000" stroke-width="1"></rect>
+              </sc-for>
+            </svg>
+            <span style="font-size: 14px; font-weight: 900">{{t.name}}</span>
+            <span style="font-size: 11px; line-height: 15px; font-weight: 500">{{t.note}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <a class="kc primary" href="PlaygroundMobile.dc.html">Hear it in the playground
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"></path></svg>
+    </a>
+  </main>
+
+  <nav class="nav" aria-label="Primary">
+    <a class="nv on" href="Main.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M6 10h1M10 10h1M14 10h1M18 10h1M7 14h10"></path></svg></span>Build</a>
+    <a class="nv" href="SwitchesMobile.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><path d="M12 2.5v7M8.5 6h7"></path><rect x="4.5" y="11" width="15" height="9.5"></rect></svg></span>Switches</a>
+    <a class="nv" href="ModsMobile.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"></path><rect x="13" y="5" width="4" height="4"></rect><rect x="7" y="15" width="4" height="4"></rect></svg></span>Mods</a>
+    <a class="nv" href="KeycapsMobile.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M3.5 19.5h17L18 6H6z"></path><path d="M9 10.5h6"></path></svg></span>Keycaps</a>
+    <a class="nv" href="BuildsMobile.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6.5 3.5h11v17l-5.5-3.8-5.5 3.8z"></path></svg></span>My builds</a>
+    <a class="nv" href="ProfileMobile.dc.html"><span class="ic"><span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border: 2.5px solid #000; background: #FFD24D; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; letter-spacing: -0.03em">TW</span></span>Profile</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":844}}'>
+const BASE = { pitch: 520, bright: .25, decay: 70, thump: .9, vol: .7 };
+const PADS = [
+  { id: 'sky', name: 'Sky', stitch: 'rgba(0,0,0,.35)', bg: '#99D6FF' },
+  { id: 'splash', name: 'Splash', stitch: 'rgba(255,253,245,.55)', bg: 'radial-gradient(circle at 10% 20%, #F16B53 0 22px, transparent 23px) 0 0/100% 100%, radial-gradient(circle at 88% 78%, #F16B53 0 34px, transparent 35px) 0 0/100% 100%, radial-gradient(circle at 72% 14%, #FFD24D 0 9px, transparent 10px) 0 0/100% 100%, linear-gradient(115deg, transparent 0 60%, #3A3870 60% 76%, transparent 76%) 0 0/100% 100%, #2C2A5A' },
+  { id: 'grid', name: 'Grid', stitch: 'rgba(0,0,0,.35)', bg: 'linear-gradient(transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/22px 22px, linear-gradient(90deg, transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/22px 22px, #FFFDF5' },
+  { id: 'dots', name: 'Dots', stitch: 'rgba(0,0,0,.35)', bg: 'radial-gradient(circle, #000 0 2px, transparent 2.5px) 0 0/18px 18px, #FFD24D' },
+  { id: 'stripes', name: 'Stripes', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-linear-gradient(135deg, #C6F079 0 16px, #B2DE63 16px 32px)' },
+  { id: 'checker', name: 'Checker', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-conic-gradient(#FFFDF5 0 25%, #EFE6CD 0 50%) 0 0/28px 28px' },
+  { id: 'walnut', name: 'Walnut', stitch: 'rgba(255,253,245,.45)', bg: 'repeating-linear-gradient(92deg, #8A5E3C 0 9px, #7A5233 9px 20px, #93663F 20px 27px)' }
+];
+const MATS = [
+  { id: 'alu', name: 'Aluminum', note: 'Dense and solid. Clean, low resonance.', sample: '#C9CFD9', fx: { p: 1, b: 0, d: 1.1, t: 1 } },
+  { id: 'pc', name: 'Polycarbonate', note: 'Frosted and light-friendly. Softer, brighter.', sample: '#DCE3EC', fx: { p: 1.08, b: .08, d: .95, t: .95 } },
+  { id: 'plastic', name: 'Plastic', note: 'Light and cheap. Hollow without foam.', sample: '#4A5160', fx: { p: 1.12, b: .05, d: 1.2, t: .85 } },
+  { id: 'wood', name: 'Wood', note: 'Warm and muted. Softens the high end.', sample: 'repeating-linear-gradient(91deg, #7A5638 0 5px, #6B4A33 5px 10px)', fx: { p: .9, b: -.08, d: .85, t: 1.1 } }
+];
+const COLORS = [['Silver', '#C3C9D4'], ['Navy blue', '#2B4677'], ['Indigo', '#2C2A5A'], ['Yellow', '#FFD24D'], ['Black', '#1C1F26'], ['Cream', '#E6DFCC'], ['Coral', '#F16B53'], ['Walnut', '#6B4A33']];
+const PLATES = [
+  { id: 'alu', name: 'Alu', full: 'Aluminum.', note: 'Stiff and balanced, the safe middle ground.', hex: '#8D96A6', fx: { p: 1, b: 0, t: 1 } },
+  { id: 'brass', name: 'Brass', full: 'Brass.', note: 'Heavy and stiff. Bright, sharp and loud.', hex: '#A9873A', fx: { p: 1.12, b: .1, t: .9 } },
+  { id: 'fr4', name: 'FR4', full: 'FR4.', note: 'Slight flex, slightly deeper than aluminum.', hex: '#2E2C2A', fx: { p: .97, b: -.02, t: 1 } },
+  { id: 'pc', name: 'PC', full: 'Polycarbonate.', note: 'Flexible and soft. Deep, muted thock.', hex: '#C9D2DE', fx: { p: .86, b: -.1, t: 1.1 } },
+  { id: 'pom', name: 'POM', full: 'POM.', note: 'The most flexible. Creamy and low.', hex: '#E8E6E1', fx: { p: .82, b: -.12, t: 1.15 } }
+];
+const MOUNTS = [
+  { id: 'tray', name: 'Tray', note: 'Firm, simple. Some ping.', fx: { p: 1.05, d: 1.1, t: 1 }, caseD: 'M4 9 V31 H56 V9', dots: [{ x: 15, y: 23, w: 4, h: 8 }, { x: 41, y: 23, w: 4, h: 8 }] },
+  { id: 'gasket', name: 'Gasket', note: 'Soft, bouncy, even.', fx: { p: .92, d: .85, t: 1.05 }, caseD: 'M4 12 V5 H56 V12 M4 20 V31 H56 V20', dots: [{ x: 5, y: 12.5, w: 6, h: 3 }, { x: 49, y: 12.5, w: 6, h: 3 }, { x: 5, y: 18.5, w: 6, h: 3 }, { x: 49, y: 18.5, w: 6, h: 3 }] },
+  { id: 'top', name: 'Top mount', note: 'Balanced, consistent.', fx: { p: 1, d: 1, t: 1 }, caseD: 'M4 31 V5 H56 V31 H4 M9 5 V15 M51 5 V15', dots: [{ x: 7, y: 13, w: 4, h: 4 }, { x: 49, y: 13, w: 4, h: 4 }] }
+];
+
+class Component extends DCLogic {
+  state = { mat: 'alu', color: 1, plate: 'brass', mount: 'gasket', ping: 0, pad: 'sky' };
+  cyclePad() { const i = PADS.findIndex((d) => d.id === this.state.pad); this.setState({ pad: PADS[(i + 1) % PADS.length].id }); }
+  set(u) { this.setState(u); clearTimeout(this.tm); this.tm = setTimeout(() => this.setState({ ping: this.state.ping + 1 }), 80); }
+  componentWillUnmount() { clearTimeout(this.tm); }
+
+  renderVals() {
+    const s = this.state;
+    const M = MATS.find((x) => x.id === s.mat), P = PLATES.find((x) => x.id === s.plate), T = MOUNTS.find((x) => x.id === s.mount);
+    const snd = {
+      pitch: BASE.pitch * M.fx.p * P.fx.p * T.fx.p,
+      bright: Math.max(0, Math.min(1, BASE.bright + M.fx.b + P.fx.b)),
+      decay: BASE.decay * M.fx.d * T.fx.d,
+      thump: BASE.thump * M.fx.t * P.fx.t * T.fx.t,
+      vol: BASE.vol
+    };
+    const pos = Math.max(0, Math.min(1, .15 + .85 * (1 - Math.log(snd.pitch / 300) / Math.log(6)) - snd.bright * .25 + .09));
+    return {
+      pad: PADS.find((d) => d.id === s.pad) || PADS[0], cyclePad: () => this.cyclePad(),
+      padShort: (PADS.find((d) => d.id === s.pad) || PADS[0]).name.toUpperCase(),
+      theme: this.props.theme || 'light',
+      caseColor: COLORS[s.color][1], colorName: COLORS[s.color][0], mat: s.mat, plate: s.plate, snd: snd, ping: s.ping,
+      word: pos < .3 ? 'Bright & poppy' : pos < .5 ? 'Balanced' : pos < .72 ? 'Deep & rounded' : 'Deep & muted',
+      posL: (pos * 100).toFixed(1) + '%',
+      mats: MATS.map((m) => ({ name: m.name, note: m.note, sample: m.sample, on: String(m.id === s.mat), pick: () => this.set({ mat: m.id }) })),
+      colors: COLORS.map((c, i) => ({ name: c[0], hex: c[1], on: String(i === s.color), pick: () => this.setState({ color: i }) })),
+      plates: PLATES.map((p) => ({ name: p.name, hex: p.hex, on: String(p.id === s.plate), pick: () => this.set({ plate: p.id }) })),
+      plateName: P.full, plateNote: P.note,
+      mounts: MOUNTS.map((t) => ({ name: t.name, note: t.note, caseD: t.caseD, dots: t.dots, on: String(t.id === s.mount), pick: () => this.set({ mount: t.id }) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

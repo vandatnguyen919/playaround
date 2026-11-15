@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mod toggle card</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 100%; box-sizing: border-box; border: 3px solid #000; padding: 14px; background: {{cardBg}}; color: #000; box-shadow: 4px 4px 0 #000; display: flex; flex-direction: column; gap: 12px; font-family: 'Archivo', system-ui, sans-serif; transition: background 120ms ease">
+  <div style="display: flex; align-items: flex-start; gap: 12px">
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+        <h3 style="margin: 0; font-size: 17px; line-height: 20px; font-weight: 900; letter-spacing: -0.02em">{{title}}</h3>
+        <span style="font-family: 'Space Mono', ui-monospace, monospace; font-size: 10px; line-height: 14px; font-weight: 700; padding: 1px 6px; border: 2px solid #000; background: #FFFDF5">{{impact}}</span>
+      </div>
+      <p style="margin: 0; font-size: 13px; line-height: 18px; color: #222">{{desc}}</p>
+    </div>
+    <sc-if value="{{hasToggle}}" hint-placeholder-val="{{ true }}">
+      <button type="button" role="switch" aria-checked="{{onAttr}}" aria-label="{{title}}" onClick="{{toggle}}" style="flex: none; position: relative; width: 56px; height: 44px; appearance: none; border: 0; padding: 0; margin: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent">
+        <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 7px; height: 30px; box-sizing: border-box; border: 2.5px solid #000; background: {{trackBg}}; box-shadow: 2px 2px 0 #000"></span>
+        <span aria-hidden="true" style="position: absolute; top: 12px; left: {{knobX}}px; width: 20px; height: 20px; box-sizing: border-box; border: 2.5px solid #000; background: {{knobBg}}; transition: left 120ms ease"></span>
+      </button>
+    </sc-if>
+  </div>
+  <sc-if value="{{hasLevels}}" hint-placeholder-val="{{ false }}">
+    <div role="radiogroup" aria-label="{{title}} amount" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{levels}}" as="lv" hint-placeholder-count="3">
+        <button type="button" role="radio" aria-checked="{{lv.on}}" onClick="{{lv.pick}}" style="min-height: 44px; appearance: none; border: 2.5px solid #000; border-radius: 0; margin: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 800; background: {{lv.bg}}; color: #000; box-shadow: {{lv.sh}}; transform: {{lv.tf}}">{{lv.label}}</button>
+      </sc-for>
+    </div>
+  </sc-if>
+  <div style="display: flex; align-items: center; gap: 10px">
+    <button type="button" onClick="{{before}}" style="min-height: 44px; padding: 0 12px; appearance: none; border: 2.5px solid #000; border-radius: 0; margin: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 800; background: #FFFFFF; color: #000; box-shadow: 3px 3px 0 #000; display: flex; align-items: center; gap: 6px">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg>Before
+    </button>
+    <button type="button" onClick="{{after}}" style="min-height: 44px; padding: 0 12px; appearance: none; border: 2.5px solid #000; border-radius: 0; margin: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 800; background: #FFD24D; color: #000; box-shadow: 3px 3px 0 #000; display: flex; align-items: center; gap: 6px">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg>After
+    </button>
+    <span style="margin-left: auto; font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase">{{status}}</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"title":{"editor":"text","default":"Case foam"},"desc":{"editor":"text","default":"Fills the hollow under the PCB. Cuts ping and echo for a tighter, deeper sound."},"impact":{"editor":"text","default":"deeper −1"},"on":{"editor":"boolean","default":true},"hasToggle":{"editor":"boolean","default":true},"levels":{"editor":null},"level":{"editor":null},"onToggle":{"editor":null},"onLevel":{"editor":null},"onBefore":{"editor":null},"onAfter":{"editor":null},"$preview":{"width":340,"height":196}}'>
+class Component extends DCLogic {
+  state = { on: null, level: null };
+
+  renderVals() {
+    const p = this.props, s = this.state;
+    const levels = p.levels || null;
+    const lvl = p.level != null ? p.level : (s.level != null ? s.level : 0);
+    const hasToggle = p.hasToggle !== false && !levels;
+    const on = levels ? lvl > 0 : (p.on != null ? !!p.on : (s.on != null ? s.on : true));
+    return {
+      title: p.title || 'Case foam',
+      desc: p.desc == null ? 'Fills the hollow under the PCB. Cuts ping and echo for a tighter, deeper sound.' : p.desc,
+      impact: p.impact || 'deeper −1',
+      hasToggle: hasToggle, hasLevels: !!levels,
+      onAttr: String(on),
+      cardBg: on ? '#C6F079' : '#FFFFFF',
+      trackBg: on ? '#000000' : '#FFFFFF',
+      knobBg: on ? '#FFD24D' : '#000000',
+      knobX: on ? 31 : 5,
+      status: on ? (levels ? levels[lvl] : 'On') : 'Off',
+      levels: (levels || []).map((l, i) => ({
+        label: l, on: String(i === lvl),
+        bg: i === lvl ? '#FFD24D' : '#FFFFFF',
+        sh: i === lvl ? '0 0 0 #000' : '3px 3px 0 #000',
+        tf: i === lvl ? 'translate(3px, 3px)' : 'translate(0, 0)',
+        pick: () => { if (p.onLevel) p.onLevel(i); else this.setState({ level: i }); }
+      })),
+      toggle: () => { if (p.onToggle) p.onToggle(!on); else this.setState({ on: !on }); },
+      before: () => { if (p.onBefore) p.onBefore(); },
+      after: () => { if (p.onAfter) p.onAfter(); }
+    };
+  }
+}
+</script>
+</body>
+</html>

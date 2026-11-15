@@ -11,6 +11,8 @@ COPY gradlew settings.gradle build.gradle gradle.properties ./
 COPY gradle/ gradle/
 COPY gateway/build.gradle gateway/
 COPY api/build.gradle api/
+# settings.gradle includes it, and Gradle fails on a project with no directory.
+COPY keylab-api/build.gradle keylab-api/
 RUN --mount=type=cache,target=/root/.gradle \
     sed -i 's/\r$//' gradlew && chmod +x gradlew && ./gradlew --no-daemon -q :api:dependencies > /dev/null
 COPY api/src/main api/src/main

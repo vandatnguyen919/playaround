@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // Starts or stops the whole dev stack headless, for ./verify and CI.
 //
-//   node verify-stack.mjs up [--build]   compose services, realm, api, gateway, Vite
+//   node verify-stack.mjs up [--build]   compose services, realm, api, keylab-api, gateway, Vite
 //   node verify-stack.mjs status         what answers on each port
-//   node verify-stack.mjs down           stops the api, gateway and Vite started by up
+//   node verify-stack.mjs down           stops the api, keylab-api, gateway and Vite started by up
 //
 // up builds what is missing (theme jar, web/dist, boot jars), or everything with
 // --build. It reuses anything already answering, so it is safe next to a dev
@@ -65,6 +65,7 @@ const services = {
   keycloak: { url: "http://localhost:8080/realms/playground", accept: (s) => s === 200 },
   mailpit: { url: "http://localhost:8025/api/v1/info", accept: (s) => s === 200 },
   api: { url: "http://localhost:8182/actuator/health", accept: (s) => s === 200 },
+  keylabApi: { url: "http://localhost:8183/v1/health", accept: (s) => s === 200 },
   gateway: { url: "http://localhost:8181/bff/me", accept: (s) => s === 401 },
   management: { url: `http://localhost:${MANAGEMENT_PORT}/actuator/health`, accept: (s) => s === 200 },
   app: { url: "http://localhost:5174/bff/me", accept: (s) => s === 401 },
@@ -107,7 +108,9 @@ function build(force) {
   }
   if (!existsSync(join(ROOT, "web/node_modules"))) sh(npm, ["--prefix", "web", "ci"])
   if (force || !existsSync(join(ROOT, "web/dist/index.html"))) sh(npm, ["--prefix", "web", "run", "build"])
-  if (force || !bootJar("api") || !bootJar("gateway")) sh(...gradle([":api:bootJar", ":gateway:bootJar", "--console=plain"]))
+  if (force || !bootJar("api") || !bootJar("gateway") || !bootJar("keylab-api")) {
+    sh(...gradle([":api:bootJar", ":gateway:bootJar", ":keylab-api:bootJar", "--console=plain"]))
+  }
 }
 
 function startDetached(name, cmd, args, env = {}) {
@@ -148,12 +151,15 @@ async function up(force) {
   if (!(await isUp("keycloak"))) missing.push("keycloak")
   if (!(await isUp("mailpit"))) missing.push("mailpit")
   if (!(await tcp("localhost", 6379))) missing.push("redis")
+  // KeyLab's database. keylab-api migrates it (one schema per module) at startup.
+  if (!(await tcp("localhost", 5432))) missing.push("postgres")
   if (missing.length) sh("docker", [...COMPOSE, "up", "-d", "--wait", "--wait-timeout", "600", ...missing])
   if (missing.includes("keycloak")) sh("docker", [...COMPOSE, "run", "--rm", "keycloak-config"])
   else console.log("reusing Keycloak on :8080 (realm not reapplied)")
   await waitFor("keycloak", 60)
 
   if (!(await isUp("api"))) startDetached("api", java, ["-jar", bootJar("api")])
+  if (!(await isUp("keylabApi"))) startDetached("keylabApi", java, ["-jar", bootJar("keylab-api")])
   if (!(await isUp("gateway"))) {
     startDetached("gateway", java, ["-jar", bootJar("gateway")], {
       SPA_LOCATION: `file:${join(ROOT, "web/dist").replaceAll("\\", "/")}/`,
@@ -163,6 +169,7 @@ async function up(force) {
   }
   if (!(await isUp("app"))) startDetached("app", npm, ["--prefix", "web", "run", "dev", "--", "--strictPort"])
   await waitFor("api", 180)
+  await waitFor("keylabApi", 180)
   await waitFor("gateway", 180)
   await waitFor("management", 30)
   await waitFor("app", 60)

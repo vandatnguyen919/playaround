@@ -1,0 +1,63 @@
+/*
+ * KeyLab design tokens, taken from docs/keylab/design/screens (HomeDesktop,
+ * Main, Components .dc.html). Neo-brutalist: flat colours, black borders,
+ * hard offset shadows, no radius. Fonts are self-hosted (@fontsource) because
+ * the gateway CSP allows fonts from this origin only.
+ *
+ * Every style lives in a class: the CSP is style-src 'self', which blocks
+ * inline style attributes in the built app.
+ */
+@import '@fontsource-variable/archivo/wght.css';
+@import '@fontsource/space-mono/400.css';
+@import '@fontsource/space-mono/700.css';
+
+.kl {
+  /* Colours: paper theme (default) */
+  --bg: #fffdf5;
+  --surface: #ffffff;
+  --surface2: #fff1c7;
+  --text: #000000;
+  --muted: #3a3a3a;
+  --acc: #ffd24d;
+  --acc-text: #2c2a5a;
+  --lime: #c6f079;
+  --coral: #f16b53;
+  --sky: #99d6ff;
+  --indigo: #2c2a5a;
+  --ink: #000000;
+  --cream: #fffdf5;
+
+  /* Borders and shadows */
+  --bw-thin: 2px;
+  --bw: 2.5px;
+  --bw-thick: 3px;
+  --shadow-sm: 2px 2px 0 #000;
+  --shadow: 3px 3px 0 #000;
+  --shadow-md: 4px 4px 0 #000;
+  --shadow-lg: 5px 5px 0 #000;
+  --shadow-xl: 7px 7px 0 #000;
+
+  /* Type */
+  --font: 'Archivo Variable', 'Archivo', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, Menlo, monospace;
+
+  /* Sizes */
+  --target: 44px;
+  --side-width: 236px;
+  --press: 70ms ease;
+
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ink theme */
+.kl[data-theme='dark'] {
+  --bg: #1e1c3f;
+  --surface: #2c2a5a;
+  --surface2: #3a3870;
+  --text: #fffdf5;
+  --muted: #d6d3f5;
+  --acc-text: #ffd24d;
+}

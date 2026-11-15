@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Status badge</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<span style="display: inline-flex; align-items: center; gap: 5px; padding: 2px 7px 2px 5px; border: 2px solid #000; font-family: 'Archivo', system-ui, sans-serif; font-size: 10px; line-height: 14px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; background: {{bg}}; color: {{fg}}">
+  <span aria-hidden="true" style="width: 8px; height: 8px; flex: none; border: 1.5px solid {{fg}}; background: {{dot}}"></span>{{label}}
+</span>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"status":{"editor":"enum","options":["recorded","missing","processing","published","draft","hidden","reported","featured","pro","free","active","suspended","invited"],"default":"recorded"},"text":{"editor":null},"$preview":{"width":120,"height":24}}'>
+const SB = {
+  recorded: ['Recorded', '#C6F079', '#000000', '#000000'],
+  missing: ['Missing', '#F16B53', '#000000', 'transparent'],
+  processing: ['Processing', '#99D6FF', '#000000', 'repeating-linear-gradient(45deg, #000 0 2px, transparent 2px 4px)'],
+  published: ['Published', '#C6F079', '#000000', '#000000'],
+  draft: ['Draft', '#FFFFFF', '#000000', 'transparent'],
+  hidden: ['Hidden', '#000000', '#FFFDF5', 'transparent'],
+  reported: ['Reported', '#F16B53', '#000000', '#000000'],
+  featured: ['Featured', '#FFD24D', '#000000', '#000000'],
+  pro: ['Pro', '#2C2A5A', '#FFFDF5', '#FFD24D'],
+  free: ['Free', '#FFFFFF', '#000000', 'transparent'],
+  active: ['Active', '#C6F079', '#000000', '#000000'],
+  suspended: ['Suspended', '#F16B53', '#000000', 'transparent'],
+  invited: ['Invited', '#99D6FF', '#000000', 'transparent']
+};
+class Component extends DCLogic {
+  renderVals() {
+    const s = SB[this.props.status] || SB.recorded;
+    return { label: this.props.text || s[0], bg: s[1], fg: s[2], dot: s[3] };
+  }
+}
+</script>
+</body>
+</html>

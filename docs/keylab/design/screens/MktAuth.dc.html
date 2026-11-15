@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Sign up or log in</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+.kl{--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--ink:#2C2A5A;--sun:#FFF1C7;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:#000;background:#FFFDF5;-webkit-font-smoothing:antialiased}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:15px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:48px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc.primary{background:var(--lime);min-height:56px;font-size:17px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc:focus-visible,.tab:focus-visible,.lnk:focus-visible,.eye:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.lbl{margin:0;font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900}
+.field{width:100%;height:50px;border:2.5px solid #000;border-radius:0;background:#FFFFFF;font:inherit;font-size:16px;font-weight:600;padding:0 14px;color:#000}
+.field:focus{outline:3px solid var(--coral);outline-offset:1px;background:#FFF1C7}
+.field[aria-invalid="true"]{border-color:#B3261E;border-width:3px;background:#FFF5F2}
+.tab{appearance:none;margin:0;cursor:pointer;font:inherit;flex:1;min-height:52px;border:0;border-bottom:3px solid #000;background:#FFFDF5;font-size:16px;font-weight:900;color:#000}
+.tab[aria-selected="true"]{background:var(--acc);box-shadow:inset 0 -6px 0 #000}
+.tab+.tab{border-left:3px solid #000}
+.lnk{font-weight:800;text-decoration:underline;text-underline-offset:3px}
+.eye{appearance:none;margin:0;cursor:pointer;position:absolute;right:4px;top:4px;height:42px;padding:0 10px;border:0;background:transparent;font:inherit;font-size:13px;font-weight:900;color:#000}
+.err{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:700;color:#8C1D18}
+</style>
+</helmet>
+<div class="kl" style="min-height: 100vh; display: flex; flex-direction: column">
+  <header style="border-bottom: 3px solid #000; background: #FFFDF5">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 16px 40px; display: flex; align-items: center; justify-content: space-between">
+      <a href="MktLanding.dc.html" aria-label="KeyLab home" style="display: flex; align-items: center; gap: 10px; text-decoration: none"><span aria-hidden="true" style="width: 36px; height: 36px; border: 3px solid #000; background: var(--acc); box-shadow: 3px 3px 0 #000; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 17px">K</span><span style="font-weight: 900; font-size: 24px; letter-spacing: -0.05em">KEYLAB</span></a>
+      <a class="lnk" href="MktLanding.dc.html" style="font-size: 15px">Back to the site</a>
+    </div>
+  </header>
+  <main style="flex: 1; display: flex; flex-wrap: wrap">
+    <section aria-label="Your build preview" style="flex: 1 1 560px; background: var(--acc); border-right: 3px solid #000; padding: 64px 56px; display: flex; flex-direction: column; justify-content: center; gap: 28px">
+      <span class="lbl" style="align-self: flex-start; padding: 3px 8px; border: 2.5px solid #000; background: #FFFDF5">Your build is waiting</span>
+      <h1 style="margin: 0; font-size: 64px; line-height: 58px; font-weight: 900; letter-spacing: -0.06em; max-width: 560px">SAVE IT, SHARE IT, HEAR IT ANYWHERE.</h1>
+      <div style="align-self: flex-start; border: 3px solid #000; background: var(--sky); box-shadow: 8px 8px 0 #000; padding: 18px 16px 12px; max-width: 100%">
+        <dc-import name="Keyboard" layout="65" width="480" hint-size="480px,210px"></dc-import>
+      </div>
+      <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
+        <li style="display: flex; gap: 10px; align-items: center; font-size: 16px; font-weight: 700"><span aria-hidden="true" style="width: 20px; height: 20px; border: 2.5px solid #000; background: var(--lime)"></span>Keep your builds in one place</li>
+        <li style="display: flex; gap: 10px; align-items: center; font-size: 16px; font-weight: 700"><span aria-hidden="true" style="width: 20px; height: 20px; border: 2.5px solid #000; background: var(--lime)"></span>Share a link anyone can press</li>
+        <li style="display: flex; gap: 10px; align-items: center; font-size: 16px; font-weight: 700"><span aria-hidden="true" style="width: 20px; height: 20px; border: 2.5px solid #000; background: var(--lime)"></span>Free to start, no card needed</li>
+      </ul>
+    </section>
+
+    <section aria-label="Account" style="flex: 1 1 520px; padding: 56px; display: flex; align-items: center; justify-content: center">
+      <div style="width: 100%; max-width: 480px; border: 3px solid #000; background: #FFFFFF; box-shadow: 8px 8px 0 #000">
+        <div role="tablist" aria-label="Account" style="display: flex">
+          <button type="button" role="tab" class="tab" id="tab-up" aria-selected="{{upOn}}" aria-controls="pan-auth" onClick="{{showUp}}">Sign up</button>
+          <button type="button" role="tab" class="tab" id="tab-in" aria-selected="{{inOn}}" aria-controls="pan-auth" onClick="{{showIn}}">Log in</button>
+        </div>
+        <div id="pan-auth" role="tabpanel" aria-labelledby="{{panelBy}}" style="padding: 28px; display: flex; flex-direction: column; gap: 18px">
+          <h2 style="margin: 0; font-size: 30px; line-height: 32px; font-weight: 900; letter-spacing: -0.045em">{{heading}}</h2>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <a class="kc" href="{{next}}" style="width: 100%"><span aria-hidden="true" style="width: 22px; height: 22px; border: 2px solid #000; background: #FFFFFF; font-weight: 900; font-size: 12px; display: flex; align-items: center; justify-content: center">G</span>Continue with Google</a>
+            <a class="kc" href="{{next}}" style="width: 100%; background: #000; color: #FFFDF5"><span aria-hidden="true" style="width: 22px; height: 22px; border: 2px solid #FFFDF5; font-weight: 900; font-size: 12px; display: flex; align-items: center; justify-content: center">A</span>Continue with Apple</a>
+          </div>
+          <div aria-hidden="true" style="display: flex; align-items: center; gap: 10px"><span style="flex: 1; height: 3px; background: #000"></span><span class="lbl">or with email</span><span style="flex: 1; height: 3px; background: #000"></span></div>
+          <form onSubmit="{{submit}}" novalidate style="display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <label for="au-email" class="lbl">Email</label>
+              <input id="au-email" class="field" type="email" autocomplete="email" placeholder="you@example.com" value="{{email}}" onChange="{{setEmail}}" aria-invalid="{{emailBad}}" aria-describedby="au-email-err">
+              <sc-if value="{{showEmailErr}}" hint-placeholder-val="{{ false }}"><span id="au-email-err" class="err" role="alert"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 6v8M12 17.5v.5"></path></svg>Enter an email like name@example.com</span></sc-if>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <div style="display: flex; justify-content: space-between; align-items: baseline"><label for="au-pw" class="lbl">Password</label><sc-if value="{{isIn}}" hint-placeholder-val="{{ false }}"><a class="lnk" href="#" style="font-size: 13px">Forgot password?</a></sc-if></div>
+              <div style="position: relative"><input id="au-pw" class="field" type="{{pwType}}" autocomplete="{{pwAuto}}" value="{{pw}}" onChange="{{setPw}}" aria-describedby="au-pw-hint" style="padding-right: 72px"><button type="button" class="eye" onClick="{{togglePw}}" aria-pressed="{{pwShown}}" aria-label="Show password">{{pwWord}}</button></div>
+              <sc-if value="{{isUp}}" hint-placeholder-val="{{ true }}"><span id="au-pw-hint" class="mono" style="font-size: 11px; font-weight: 700">AT LEAST 8 CHARACTERS</span></sc-if>
+            </div>
+            <button type="submit" class="kc primary" style="width: 100%; margin-top: 4px">{{cta}}</button>
+          </form>
+          <sc-if value="{{isUp}}" hint-placeholder-val="{{ true }}"><p style="margin: 0; font-size: 13px; line-height: 19px; font-weight: 500">By creating an account you agree to the <a class="lnk" href="#">Terms</a> and <a class="lnk" href="#">Privacy policy</a>.</p></sc-if>
+          <sc-if value="{{done}}" hint-placeholder-val="{{ false }}">
+            <a class="kc" href="{{next}}" role="status" style="background: var(--lime); justify-content: space-between">{{doneMsg}}<span aria-hidden="true">→</span></a>
+          </sc-if>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"mode":{"editor":"enum","options":["signup","login"],"default":"signup"},"state":{"editor":"enum","options":["default","error"],"default":"default"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  state = { mode: null, email: '', pw: '', show: false, tried: false, done: false };
+  renderVals() {
+    const s = this.state, p = this.props;
+    const mode = s.mode || p.mode || 'signup', up = mode === 'signup';
+    const forced = p.state === 'error' && !s.tried;
+    const bad = forced || (s.tried && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s.email));
+    return {
+      upOn: String(up), inOn: String(!up), isUp: up, isIn: !up, panelBy: up ? 'tab-up' : 'tab-in',
+      showUp: () => this.setState({ mode: 'signup', tried: false, done: false }), showIn: () => this.setState({ mode: 'login', tried: false, done: false }),
+      heading: up ? 'Create your account' : 'Welcome back',
+      cta: up ? 'Create account' : 'Log in',
+      next: up ? 'MktOnboarding.dc.html' : 'HomeDesktop.dc.html',
+      email: forced ? 'alex@' : s.email, setEmail: (e) => this.setState({ email: e.target.value }),
+      emailBad: String(bad), showEmailErr: bad,
+      pw: s.pw, setPw: (e) => this.setState({ pw: e.target.value }),
+      pwType: s.show ? 'text' : 'password', pwShown: String(s.show), pwWord: s.show ? 'Hide' : 'Show', pwAuto: up ? 'new-password' : 'current-password',
+      togglePw: () => this.setState({ show: !s.show }),
+      done: s.done && !bad, doneMsg: up ? 'Account ready. Set up your build' : 'Logged in. Open your builds',
+      submit: (e) => { e.preventDefault(); const ok = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.state.email); this.setState({ tried: true, done: ok }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

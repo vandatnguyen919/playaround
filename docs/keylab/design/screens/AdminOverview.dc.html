@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab admin · Overview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+.ad{--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--ink:#2C2A5A;--sun:#FFF1C7;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:#000;background:#EFE8D6;font-size:13px;-webkit-font-smoothing:antialiased}
+.ad *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:13px;font-weight:800;color:#000;background:#FFFDF5;border:2px solid #000;border-radius:0;min-height:34px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;box-shadow:2px 2px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(2px,2px);box-shadow:0 0 0 #000}
+.kc[aria-pressed="true"]{background:var(--acc)}
+.kc:focus-visible,.rlink:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.card{background:#FFFDF5;border:2.5px solid #000;box-shadow:4px 4px 0 #000;padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ch{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.h2{margin:0;font-size:16px;line-height:20px;font-weight:900;letter-spacing:-.02em}
+.lbl{margin:0;font-size:10.5px;line-height:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:900}
+.sample{font-family:'Space Mono',monospace;font-size:9.5px;font-weight:700;padding:0 5px;border:1.5px solid #000;background:#FFFFFF}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;padding:7px 10px;border-bottom:2.5px solid #000;background:#FFF1C7;white-space:nowrap}
+.tbl td{padding:7px 10px;border-bottom:1.5px solid #000;vertical-align:middle;font-size:13px}
+.tbl tbody tr:hover{background:#FFF1C7}
+.rlink{font-weight:800;text-decoration:underline;text-underline-offset:3px}
+</style>
+</helmet>
+<div class="ad" style="min-height: 100vh; display: flex; flex-wrap: wrap">
+  <div style="flex: 0 0 {{sideW}}; background: #2C2A5A; border-right: 3px solid #000"><dc-import name="AdminSidebar" active="overview" compact="{{compact}}" min-height="1000" hint-size="100%,1000px"></dc-import></div>
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="AdminTopbar" title="Overview" crumb="KeyLab admin · last 30 days" hint-size="100%,66px"></dc-import>
+    <main style="padding: 18px 20px 28px; display: flex; flex-direction: column; gap: 18px">
+      <section aria-label="Key numbers" style="display: grid; grid-template-columns: repeat({{kpiCols}}, minmax(0, 1fr)); gap: 16px">
+        <dc-import name="KpiTile" label="Active users" value="[ACTIVE USERS]" delta="[+X%]" up="{{ true }}" accent="#C6F079" state="{{kpiState}}" points="{{p1}}" hint-size="100%,132px"></dc-import>
+        <dc-import name="KpiTile" label="Builds created" value="[BUILDS]" delta="[+X%]" up="{{ true }}" accent="#FFD24D" state="{{kpiState}}" points="{{p2}}" hint-size="100%,132px"></dc-import>
+        <dc-import name="KpiTile" label="Sounds played" value="[PLAYS]" delta="[+X%]" up="{{ true }}" accent="#99D6FF" state="{{kpiState}}" points="{{p3}}" hint-size="100%,132px"></dc-import>
+        <dc-import name="KpiTile" label="Pro conversions" value="[CONVERSIONS]" delta="[−X%]" up="{{ false }}" accent="#F16B53" state="{{kpiState}}" points="{{p4}}" hint-size="100%,132px"></dc-import>
+      </section>
+
+      <div style="display: grid; grid-template-columns: {{chartCols}}; gap: 16px">
+        <section class="card" aria-labelledby="ln-h">
+          <div class="ch"><h2 id="ln-h" class="h2">Builds created per day</h2><span class="sample">SAMPLE SHAPE</span></div>
+          <svg viewBox="0 0 560 200" width="100%" role="img" aria-label="Line chart of daily builds over the last 30 days, sample shape" style="display: block">
+            <sc-for list="{{grid}}" as="g" hint-placeholder-count="4">
+              <line x1="40" y1="{{g.y}}" x2="552" y2="{{g.y}}" stroke="#000" stroke-opacity=".25" stroke-dasharray="3 4"></line>
+              <text x="34" y="{{g.ty}}" text-anchor="end" font-family="Space Mono, monospace" font-size="9" font-weight="700">{{g.l}}</text>
+            </sc-for>
+            <path d="{{lineArea}}" fill="#C6F079" fill-opacity=".55"></path>
+            <polyline points="{{linePts}}" fill="none" stroke="#000" stroke-width="2.5" stroke-linejoin="miter"></polyline>
+            <line x1="40" y1="172" x2="552" y2="172" stroke="#000" stroke-width="2.5"></line>
+            <rect x="{{lastX}}" y="{{lastY}}" width="9" height="9" fill="#FFD24D" stroke="#000" stroke-width="2"></rect>
+            <text x="40" y="190" font-family="Space Mono, monospace" font-size="9" font-weight="700">30 DAYS AGO</text>
+            <text x="296" y="190" text-anchor="middle" font-family="Space Mono, monospace" font-size="9" font-weight="700">15 DAYS AGO</text>
+            <text x="552" y="190" text-anchor="end" font-family="Space Mono, monospace" font-size="9" font-weight="700">TODAY</text>
+          </svg>
+        </section>
+
+        <section class="card" aria-labelledby="bar-h">
+          <div class="ch"><h2 id="bar-h" class="h2">Most-played switches</h2><span class="sample">SAMPLE SHAPE</span></div>
+          <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+            <sc-for list="{{bars}}" as="b" hint-placeholder-count="6">
+              <li style="display: grid; grid-template-columns: 100px minmax(0, 1fr) 42px; align-items: center; gap: 8px">
+                <span style="display: flex; align-items: center; gap: 6px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><span aria-hidden="true" style="flex: none; width: 10px; height: 10px; border: 2px solid #000; background: {{b.stem}}"></span>{{b.name}}</span>
+                <span aria-hidden="true" style="height: 18px; border: 2px solid #000; background: #FFFFFF; display: flex"><span style="width: {{b.w}}; background: {{b.c}}; border-right: 2px solid #000"></span></span>
+                <span class="mono" style="font-size: 11px; font-weight: 700; text-align: right">[N]</span>
+              </li>
+            </sc-for>
+          </ol>
+        </section>
+
+        <section class="card" aria-labelledby="dn-h">
+          <div class="ch"><h2 id="dn-h" class="h2">Sound preference</h2><span class="sample">SAMPLE</span></div>
+          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
+            <svg width="132" height="132" viewBox="0 0 132 132" role="img" aria-label="Donut chart of sound profile preference: deep, poppy, clacky, muted; sample shares" style="flex: none">
+              <circle cx="66" cy="66" r="48" fill="none" stroke="#000" stroke-width="30"></circle>
+              <sc-for list="{{donut}}" as="d" hint-placeholder-count="4">
+                <circle cx="66" cy="66" r="48" fill="none" stroke="{{d.c}}" stroke-width="25" stroke-dasharray="{{d.dash}}" stroke-dashoffset="{{d.off}}" transform="rotate(-90 66 66)"></circle>
+              </sc-for>
+              <circle cx="66" cy="66" r="33" fill="#FFFDF5" stroke="#000" stroke-width="2.5"></circle>
+            </svg>
+            <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 110px">
+              <sc-for list="{{donut}}" as="d" hint-placeholder-count="4">
+                <li style="display: flex; align-items: center; gap: 8px; font-weight: 800"><span aria-hidden="true" style="width: 14px; height: 14px; border: 2px solid #000; background: {{d.c}}"></span><span style="flex: 1">{{d.name}}</span><span class="mono" style="font-size: 11px">[X%]</span></li>
+              </sc-for>
+            </ul>
+          </div>
+        </section>
+      </div>
+
+      <div style="display: grid; grid-template-columns: {{lowerCols}}; gap: 16px; align-items: start">
+        <section class="card" aria-labelledby="rb-h" style="padding-bottom: 10px">
+          <div class="ch"><h2 id="rb-h" class="h2">Recent builds</h2><a class="kc" href="AdminCommunity.dc.html">All community builds</a></div>
+          <div style="overflow-x: auto; margin: 0 -16px; border-top: 2px solid #000">
+            <table class="tbl">
+              <thead><tr><th scope="col">Build</th><th scope="col">Author</th><th scope="col">Layout</th><th scope="col">Switch</th><th scope="col">Shared</th><th scope="col">Status</th></tr></thead>
+              <tbody>
+                <sc-for list="{{recent}}" as="r" hint-placeholder-count="6">
+                  <tr>
+                    <td style="font-weight: 900">{{r.name}}</td>
+                    <td>{{r.author}}</td>
+                    <td class="mono" style="font-weight: 700">{{r.layout}}</td>
+                    <td><span style="display: inline-flex; align-items: center; gap: 6px"><span aria-hidden="true" style="width: 10px; height: 10px; border: 2px solid #000; background: {{r.stem}}"></span>{{r.sw}}</span></td>
+                    <td class="mono" style="font-size: 12px; font-weight: 700">{{r.when}}</td>
+                    <td><dc-import name="StatusBadge" status="{{r.status}}" hint-size="96px,22px"></dc-import></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="na-h" style="background: #FFFFFF; border-width: 3px; box-shadow: 5px 5px 0 #F16B53">
+          <div class="ch"><h2 id="na-h" class="h2">Needs attention</h2><span class="mono" style="font-size: 11px; font-weight: 700; padding: 0 6px; border: 2px solid #000; background: #F16B53">6</span></div>
+          <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+            <sc-for list="{{attention}}" as="a" hint-placeholder-count="4">
+              <li style="border: 2px solid #000; background: {{a.bg}}; padding: 10px; display: flex; flex-direction: column; gap: 6px">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px"><span style="font-size: 14px; font-weight: 900">{{a.title}}</span><dc-import name="StatusBadge" status="{{a.status}}" hint-size="90px,22px"></dc-import></div>
+                <span style="font-size: 12px; line-height: 16px; font-weight: 500">{{a.desc}}</span>
+                <a class="kc" href="{{a.href}}" style="align-self: flex-start">{{a.action}}</a>
+              </li>
+            </sc-for>
+          </ul>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"compact":{"editor":"boolean","default":false},"kpiState":{"editor":"enum","options":["ready","loading","empty","error"],"default":"ready"},"$preview":{"width":1440,"height":1000}}'>
+const LINE = [8, 9, 8.5, 10, 9, 11, 12, 11, 13, 12.5, 12, 14, 13, 15, 16, 15, 14.5, 16, 18, 17, 19, 18, 20, 21, 19.5, 22, 23, 22, 24, 26];
+const BARS = [['Milk Yellow', '#E9C46A', .92, '#FFD24D'], ['Click Blue', '#2F6FD6', .78, '#99D6FF'], ['Peak Tactile', '#EFEBE0', .66, '#FFD24D'], ['Ink Black', '#2A2E38', .58, '#99D6FF'], ['Hush Red', '#E07A7A', .44, '#FFD24D'], ['Coral Pop', '#F16B53', .3, '#C6F079']];
+const DONUT = [['Deep', '#2C2A5A', .38], ['Poppy', '#FFD24D', .27], ['Clacky', '#99D6FF', .2], ['Muted', '#F16B53', .15]];
+const RECENT = [
+  ['Night Thock 65', '@deepthock', '65%', 'Milk Yellow', '#E9C46A', '12 MIN AGO', 'published'],
+  ['Pastel Pop 60', '@pastel.pop', '60%', 'Peak Tactile', '#EFEBE0', '40 MIN AGO', 'featured'],
+  ['Typewriter TKL', '@clickclub', 'TKL', 'Click Blue', '#2F6FD6', '1 H AGO', 'published'],
+  ['Untitled 75', '@newbuilder', '75%', 'Coral Pop', '#F16B53', '2 H AGO', 'reported'],
+  ['Library 75', '@office.hush', '75%', 'Hush Red', '#E07A7A', '3 H AGO', 'published'],
+  ['Slate Sprint 100', '@speedrun', '100%', 'Speed Silver', '#B8C0CC', '5 H AGO', 'hidden']
+];
+const ATT = [
+  { title: '3 reported builds', status: 'reported', desc: 'Waiting for review in the moderation queue.', action: 'Review queue', href: 'AdminCommunity.dc.html', bg: '#FFF1C7' },
+  { title: '2 missing sound files', status: 'missing', desc: 'Proto Orange has no recordings. Coral Pop is missing its foam variant.', action: 'Open sound library', href: 'AdminSounds.dc.html', bg: '#FFFDF5' },
+  { title: '1 upload processing', status: 'processing', desc: 'Jade Clickbar · lubed release. Levels check running.', action: 'View upload', href: 'AdminSounds.dc.html', bg: '#FFFDF5' }
+];
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, compact = !!p.compact;
+    const lo = Math.min.apply(null, LINE), hi = Math.max.apply(null, LINE);
+    const xy = LINE.map((v, i) => [40 + i * (512 / (LINE.length - 1)), 166 - ((v - lo) / (hi - lo)) * 140]);
+    const circ = 2 * Math.PI * 48;
+    let acc = 0;
+    const donut = DONUT.map((d) => { const seg = d[2] * circ; const o = { name: d[0], c: d[1], dash: (seg - 2).toFixed(1) + ' ' + (circ - seg + 2).toFixed(1), off: (-acc).toFixed(1) }; acc += seg; return o; });
+    const spark = (k) => LINE.filter((_, i) => i % 3 === 0).map((v, i) => v + Math.sin(i * k) * 2);
+    return {
+      compact: compact, sideW: compact ? '72px' : '232px',
+      kpiCols: compact ? 2 : 4,
+      chartCols: compact ? 'minmax(0, 1fr)' : 'minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, .9fr)',
+      lowerCols: compact ? 'minmax(0, 1fr)' : 'minmax(0, 2.2fr) minmax(0, 1fr)',
+      kpiState: p.kpiState || 'ready',
+      p1: spark(.9), p2: spark(.5), p3: spark(1.4), p4: spark(2.1).reverse(),
+      grid: [[0, '0'], [.33, ''], [.66, ''], [1, '[MAX]']].map((g) => ({ y: (166 - g[0] * 140).toFixed(1), ty: (169 - g[0] * 140).toFixed(1), l: g[1] })),
+      linePts: xy.map((q) => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join(' '),
+      lineArea: 'M' + xy.map((q) => q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join(' L') + ' L552 172 L40 172 Z',
+      lastX: (xy[xy.length - 1][0] - 4.5).toFixed(1), lastY: (xy[xy.length - 1][1] - 4.5).toFixed(1),
+      bars: BARS.map((b) => ({ name: b[0], stem: b[1], w: Math.round(b[2] * 100) + '%', c: b[3] })),
+      donut: donut,
+      recent: RECENT.map((r) => ({ name: r[0], author: r[1], layout: r[2], sw: r[3], stem: r[4], when: r[5], status: r[6] })),
+      attention: ATT
+    };
+  }
+}
+</script>
+</body>
+</html>

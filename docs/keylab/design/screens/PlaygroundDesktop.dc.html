@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Sound playground (desktop)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Nunito:wght@700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.kl{--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--indigo:#2C2A5A;font-family:'Archivo',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.padctl{position:absolute;top:16px;right:16px;z-index:3;display:flex;align-items:center;gap:8px}
+.padtray{display:flex;gap:6px;padding:5px;border:2.5px solid #000;background:#FFFDF5;box-shadow:3px 3px 0 #000;animation:padin 170ms cubic-bezier(.3,1.3,.5,1)}
+@keyframes padin{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.padtray{animation:none}.padtog svg{transition:none}}
+.padsw{width:36px;height:36px;margin:0;padding:0;cursor:pointer;border:2.5px solid #000;border-radius:0;box-shadow:2px 2px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.padsw[aria-checked="true"]{transform:translate(2px,2px);box-shadow:0 0 0 #000;outline:3px solid #000;outline-offset:2px}
+.padsw:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.padtog{appearance:none;margin:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 10px 0 6px;border:2.5px solid #000;border-radius:0;background:#FFFDF5;color:#000;font:inherit;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease}
+.padtog:hover{background:#FFF1C7}
+.padtog:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.padtog[aria-expanded="true"]{background:var(--acc)}
+.padtog:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.padtog-sw{width:28px;height:28px;border:2px solid #000}
+.padtog svg{transition:transform 170ms ease}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc[aria-checked="true"]{background:var(--acc)}
+.kc.sm{padding:0 12px;font-size:13px}
+.kc:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.field{width:100%;min-height:60px;border:3px solid #000;border-radius:0;padding:0 18px;font:inherit;font-family:'Space Mono',ui-monospace,monospace;font-size:20px;font-weight:700;color:#000;background:#FFFFFF;box-shadow:5px 5px 0 #000}
+.field:focus{outline:none;background:#FFF1C7}
+.rng{-webkit-appearance:none;appearance:none;width:100%;height:30px;margin:0;background:transparent;color:inherit}
+.rng::-webkit-slider-runnable-track{height:4px;background:currentColor}
+.rng::-moz-range-track{height:4px;background:currentColor}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;margin-top:-10px;border-radius:50%;background:var(--coral);border:3px solid #000}
+.rng::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--coral);border:3px solid #000}
+.rng:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.lbl{font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;margin:0}
+.stat{border:3px solid #000;padding:8px 12px;color:#000;box-shadow:4px 4px 0 #000}
+</style>
+</helmet>
+<div class="kl" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column; background: {{scene}}; color: {{sceneFg}}; transition: background 250ms ease">
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 16px 28px; border-bottom: 3px solid #000; background: var(--acc); color: #000">
+    <a class="kc sm" href="HomeDesktop.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Back to build</a>
+    <h1 style="margin: 0; font-size: 30px; line-height: 30px; font-weight: 900; letter-spacing: -0.05em">SOUND PLAYGROUND</h1>
+    <span class="mono" style="font-size: 12px; font-weight: 700; padding: 2px 8px; border: 2px solid #000; background: #FFFDF5">NIGHT THOCK 65 · MILK YELLOW · LUBED · FOAM · BRASS</span>
+    <div style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 20px; align-items: center">
+      <div role="radiogroup" aria-label="Ambient background" style="display: flex; align-items: center; gap: 8px">
+        <span class="lbl">Ambient</span>
+        <sc-for list="{{ambients}}" as="a" hint-placeholder-count="4">
+          <button type="button" role="radio" class="kc sm" aria-checked="{{a.on}}" onClick="{{a.pick}}">{{a.label}}</button>
+        </sc-for>
+      </div>
+      <div role="radiogroup" aria-label="Mode" style="display: flex; gap: 8px">
+        <button type="button" role="radio" class="kc sm" aria-checked="{{freeOn}}" onClick="{{setFree}}">Free type</button>
+        <button type="button" role="radio" class="kc sm" aria-checked="{{testOn}}" onClick="{{setTest}}">Typing test</button>
+      </div>
+    </div>
+  </header>
+
+  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; padding: 28px 28px 36px">
+    <div style="max-width: 100%; overflow-x: auto; padding: 0 10px 10px 0">
+      <div aria-label="Keyboard on desk pad" role="group" style="position: relative; border: 3px solid #000; background: {{pad.bg}}; box-shadow: 8px 8px 0 #000; padding: 76px 26px 76px; display: flex; flex-direction: column; gap: 14px">
+        <span aria-hidden="true" style="position: absolute; inset: 7px; border: 2px dashed {{pad.stitch}}; pointer-events: none"></span>
+      <div class="padctl">
+          <sc-if value="{{padOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="padtray" role="radiogroup" aria-label="Desk pad">
+              <sc-for list="{{pads}}" as="d" hint-placeholder-count="7">
+                <button type="button" role="radio" class="padsw" aria-checked="{{d.on}}" aria-label="{{d.name}}" title="{{d.name}}" onClick="{{d.pick}}" style="background: {{d.bg}}"></button>
+              </sc-for>
+            </div>
+          </sc-if>
+          <button type="button" class="padtog" aria-expanded="{{padOpenAttr}}" aria-label="Desk pad: {{pad.name}}" title="Desk pad · {{pad.name}}" onClick="{{togglePad}}">
+            <span aria-hidden="true" class="padtog-sw" style="background: {{pad.bg}}"></span>
+            <span class="lbl">Pad</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true" style="transform: {{padChev}}"><path d="M15 5l-7 7 7 7"></path></svg>
+          </button>
+        </div>
+        <div style="position: relative"><dc-import name="Keyboard" layout="65" width="960" sound="{{snd}}" volume="{{vol}}" room="{{room}}" plate="brass" typed-code="{{code}}" typed-seq="{{seq}}" hint-size="960px,420px"></dc-import></div>
+      </div>
+    </div>
+
+    <section aria-label="Typing" style="width: 100%; max-width: 1000px; display: flex; flex-direction: column; gap: 16px">
+      <sc-if value="{{isTest}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-wrap: wrap; align-items: stretch; gap: 20px">
+          <p aria-label="Text to type" class="mono" style="flex: 999 1 520px; margin: 0; font-size: 24px; line-height: 36px; font-weight: 700; padding: 14px 18px; border: 3px solid #000; background: var(--sky); color: #000; box-shadow: 5px 5px 0 #000">
+            <sc-for list="{{chars}}" as="c" hint-placeholder-count="40"><span style="color: {{c.col}}; background: {{c.bg}}; text-decoration: {{c.ul}}">{{c.ch}}</span></sc-for>
+          </p>
+          <div style="flex: 1 1 280px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+            <div class="stat" style="background: var(--acc)"><p class="lbl" style="font-size: 10px">WPM</p><p class="mono" style="margin: 0; font-size: 30px; line-height: 36px; font-weight: 700">{{wpm}}</p></div>
+            <div class="stat" style="background: var(--lime)"><p class="lbl" style="font-size: 10px">Accuracy</p><p class="mono" style="margin: 0; font-size: 26px; line-height: 36px; font-weight: 700">{{acc}}</p></div>
+            <div class="stat" style="background: #FFFFFF"><p class="lbl" style="font-size: 10px">Progress</p><p class="mono" style="margin: 0; font-size: 22px; line-height: 36px; font-weight: 700">{{prog}}</p></div>
+          </div>
+        </div>
+        <sc-if value="{{done}}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="display: flex; align-items: center; gap: 14px; padding: 10px 14px; border: 3px solid #000; background: var(--lime); color: #000; align-self: flex-start">
+            <span style="font-size: 16px; font-weight: 900">DONE: {{wpm}} WPM AT {{acc}} ACCURACY</span>
+            <button type="button" class="kc sm" onClick="{{restart}}">Try again</button>
+          </div>
+        </sc-if>
+      </sc-if>
+      <label for="pgd-input" class="lbl">{{inputLabel}}</label>
+      <input id="pgd-input" class="field" type="text" autocomplete="off" spellcheck="false" placeholder="{{placeholder}}" value="{{text}}" onKeyDown="{{keyDown}}" onChange="{{change}}">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 28px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="display: flex; justify-content: space-between"><label for="pgd-vol" class="lbl">Volume</label><span class="mono" style="font-size: 12px; font-weight: 700">{{volPct}}</span></div>
+          <input id="pgd-vol" class="rng" type="range" min="0" max="100" value="{{volN}}" onChange="{{setVol}}">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="display: flex; justify-content: space-between"><label for="pgd-room" class="lbl">Room</label><span class="mono" style="font-size: 12px; font-weight: 700">{{roomWord}}</span></div>
+          <input id="pgd-room" class="rng" type="range" min="0" max="100" value="{{roomN}}" onChange="{{setRoom}}">
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1080}}'>
+const SND = { pitch: 455, bright: .17, decay: 50, thump: 1.05, vol: .7 };
+const PADS = [
+  { id: 'sky', name: 'Sky', stitch: 'rgba(0,0,0,.35)', bg: '#99D6FF' },
+  { id: 'splash', name: 'Splash', stitch: 'rgba(255,253,245,.55)', bg: 'radial-gradient(circle at 10% 20%, #F16B53 0 30px, transparent 31px) 0 0/100% 100%, radial-gradient(circle at 88% 78%, #F16B53 0 46px, transparent 47px) 0 0/100% 100%, radial-gradient(circle at 72% 14%, #FFD24D 0 12px, transparent 13px) 0 0/100% 100%, linear-gradient(115deg, transparent 0 60%, #3A3870 60% 76%, transparent 76%) 0 0/100% 100%, #2C2A5A' },
+  { id: 'grid', name: 'Grid', stitch: 'rgba(0,0,0,.35)', bg: 'linear-gradient(transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/28px 28px, linear-gradient(90deg, transparent calc(100% - 2px), rgba(0,0,0,.16) 0) 0 0/28px 28px, #FFFDF5' },
+  { id: 'dots', name: 'Dots', stitch: 'rgba(0,0,0,.35)', bg: 'radial-gradient(circle, #000 0 2.5px, transparent 3px) 0 0/22px 22px, #FFD24D' },
+  { id: 'stripes', name: 'Stripes', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-linear-gradient(135deg, #C6F079 0 20px, #B2DE63 20px 40px)' },
+  { id: 'checker', name: 'Checker', stitch: 'rgba(0,0,0,.35)', bg: 'repeating-conic-gradient(#FFFDF5 0 25%, #EFE6CD 0 50%) 0 0/36px 36px' },
+  { id: 'walnut', name: 'Walnut desk', stitch: 'rgba(255,253,245,.45)', bg: 'repeating-linear-gradient(92deg, #8A5E3C 0 9px, #7A5233 9px 20px, #93663F 20px 27px)' }
+];
+const PROMPT = 'quiet keys make the best late night thoughts';
+const AMB = {
+  off: { label: 'Off', bg: '#FFFDF5', fg: '#000000' },
+  desk: { label: 'Desk', bg: '#FFE9B8', fg: '#000000', f: 'lowpass', fq: 380, g: .05 },
+  cafe: { label: 'Café', bg: '#F7D2C2', fg: '#000000', f: 'bandpass', fq: 850, g: .07 },
+  night: { label: 'Night', bg: '#2C2A5A', fg: '#FFFDF5', f: 'lowpass', fq: 220, g: .03 }
+};
+function codeFor(e) {
+  if (e.code) return e.code;
+  const k = e.key || '';
+  if (/^[a-z]$/i.test(k)) return 'Key' + k.toUpperCase();
+  if (/^\d$/.test(k)) return 'Digit' + k;
+  if (k === ' ') return 'Space';
+  return k;
+}
+
+class Component extends DCLogic {
+  state = { mode: 'test', amb: null, text: '', code: '', seq: 0, vol: .8, room: .25, start: 0, now: 0, errors: 0, typed: 0, pad: 'sky', padOpen: false };
+
+  ambient(kind) {
+    try {
+      if (this.src) { this.src.stop(); this.src = null; }
+      const A = AMB[kind]; if (!A || !A.f) return;
+      if (!this.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; this.ctx = new AC(); }
+      const ctx = this.ctx; if (ctx.state === 'suspended') ctx.resume();
+      const n = ctx.sampleRate * 2, buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; last = (last + .02 * w) / 1.02; d[i] = kind === 'cafe' ? w * .5 : last * 3.5; }
+      const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+      const f = ctx.createBiquadFilter(); f.type = A.f; f.frequency.value = A.fq;
+      const g = ctx.createGain(); g.gain.value = A.g * this.state.vol;
+      src.connect(f); f.connect(g); g.connect(ctx.destination); src.start();
+      this.src = src;
+    } catch (e) {}
+  }
+  componentWillUnmount() { try { if (this.src) this.src.stop(); } catch (e) {} }
+
+  renderVals() {
+    const s = this.state;
+    const amb = s.amb || (this.props.theme === 'dark' ? 'night' : 'off');
+    const test = s.mode === 'test';
+    const typed = s.text;
+    let correct = 0;
+    for (let i = 0; i < typed.length && i < PROMPT.length; i++) if (typed[i] === PROMPT[i]) correct++;
+    const mins = s.start ? Math.max((s.now - s.start) / 60000, 1 / 60) : 0;
+    const wpm = mins ? Math.round(correct / 5 / mins) : 0;
+    const acc = s.typed ? Math.round(100 * Math.max(0, s.typed - s.errors) / s.typed) : 100;
+    return {
+      padOpen: s.padOpen, padOpenAttr: String(s.padOpen), padChev: s.padOpen ? 'rotate(180deg)' : 'none',
+      togglePad: () => this.setState({ padOpen: !this.state.padOpen }),
+      pad: PADS.find((d) => d.id === s.pad) || PADS[0],
+      pads: PADS.map((d) => ({ name: d.name, bg: d.bg, on: String(d.id === s.pad), pick: () => this.setState({ pad: d.id }) })),
+      theme: this.props.theme || 'light',
+      scene: AMB[amb].bg, sceneFg: AMB[amb].fg,
+      freeOn: String(!test), testOn: String(test),
+      setFree: () => this.setState({ mode: 'free', text: '' }),
+      setTest: () => this.setState({ mode: 'test', text: '', start: 0, errors: 0, typed: 0 }),
+      ambients: Object.keys(AMB).map((k) => ({ label: AMB[k].label, on: String(k === amb), pick: () => { this.setState({ amb: k }); this.ambient(k); } })),
+      snd: SND, vol: s.vol, room: s.room, code: s.code, seq: s.seq,
+      isTest: test, done: test && typed.length >= PROMPT.length,
+      wpm: wpm, acc: acc + '%', prog: Math.min(typed.length, PROMPT.length) + '/' + PROMPT.length,
+      chars: PROMPT.split('').map((ch, i) => {
+        const t = typed[i];
+        const cur = i === typed.length;
+        return { ch: ch, col: t == null ? '#3A4A66' : '#000000', bg: cur ? '#FFD24D' : t != null && t !== ch ? '#F16B53' : 'transparent', ul: cur ? 'underline 3px' : 'none' };
+      }),
+      restart: () => this.setState({ text: '', start: 0, errors: 0, typed: 0 }),
+      inputLabel: test ? 'Click here and type the line above on your own keyboard' : 'Click here and type anything',
+      placeholder: test ? 'Start typing…' : 'Every key plays your build',
+      text: typed,
+      keyDown: (e) => this.setState({ code: codeFor(e), seq: this.state.seq + 1 }),
+      change: (e) => {
+        const v = e.target.value, now = Date.now();
+        const u = { text: test ? v.slice(0, PROMPT.length) : v.slice(-120), now: now };
+        if (test) {
+          if (!this.state.start) u.start = now;
+          if (v.length > this.state.text.length) { const i = v.length - 1; u.typed = this.state.typed + 1; u.errors = this.state.errors + (v[i] !== PROMPT[i] ? 1 : 0); }
+        }
+        this.setState(u);
+      },
+      volN: Math.round(s.vol * 100), volPct: Math.round(s.vol * 100) + '%',
+      setVol: (e) => this.setState({ vol: e.target.value / 100 }),
+      roomN: Math.round(s.room * 100), roomWord: s.room < .15 ? 'DRY' : s.room < .5 ? 'SMALL ROOM' : 'HALL',
+      setRoom: (e) => this.setState({ room: e.target.value / 100 })
+    };
+  }
+}
+</script>
+</body>
+</html>

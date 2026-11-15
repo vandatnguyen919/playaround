@@ -1,0 +1,157 @@
+/* KeyLab base components, as drawn in docs/keylab/design/screens. */
+
+body {
+  margin: 0;
+}
+
+.kl *,
+.kl *::before,
+.kl *::after {
+  box-sizing: border-box;
+}
+
+.kl a {
+  color: inherit;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.mut {
+  color: var(--muted);
+}
+
+/* Button (.kc): 2.5px border, hard shadow, pressed by moving into it. */
+.kc {
+  appearance: none;
+  margin: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  color: #000;
+  background: #fffdf5;
+  border: var(--bw) solid #000;
+  border-radius: 0;
+  min-height: var(--target);
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  box-shadow: var(--shadow);
+  transition: transform var(--press), box-shadow var(--press);
+  white-space: nowrap;
+}
+
+.kc:hover {
+  background: #fff1c7;
+}
+
+.kc:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 #000;
+}
+
+.kc[aria-pressed='true'],
+.kc.on {
+  background: var(--acc);
+}
+
+.kc.primary {
+  background: var(--lime);
+  min-height: 54px;
+  font-size: 17px;
+  font-weight: 900;
+  border-width: var(--bw-thick);
+  box-shadow: var(--shadow-lg);
+}
+
+.kc.primary:active {
+  transform: translate(5px, 5px);
+  box-shadow: 0 0 0 #000;
+}
+
+.kc.coral {
+  background: var(--coral);
+}
+
+.kc.sm {
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.kc.icon {
+  width: var(--target);
+  padding: 0;
+}
+
+/* Keyboard focus: coral ring, everywhere. */
+.kl :focus-visible {
+  outline: 3px solid var(--coral);
+  outline-offset: 3px;
+}
+
+.lbl {
+  font-size: 12px;
+  line-height: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 900;
+  margin: 0;
+}
+
+.h1 {
+  font-size: 52px;
+  line-height: 46px;
+  font-weight: 900;
+  letter-spacing: -0.055em;
+  margin: 0;
+}
+
+.sticker {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border: var(--bw-thin) solid #000;
+  background: var(--acc);
+  color: #000;
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sticker.lime {
+  background: var(--lime);
+}
+
+.sticker.coral {
+  background: var(--coral);
+}
+
+.card {
+  background: var(--surface);
+  color: var(--text);
+  border: var(--bw-thick) solid #000;
+  box-shadow: var(--shadow-md);
+  padding: 16px;
+}
+
+@media (max-width: 767px) {
+  .h1 {
+    font-size: 36px;
+    line-height: 34px;
+    letter-spacing: -0.05em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kc,
+  .nv .ic {
+    transition: none;
+  }
+}

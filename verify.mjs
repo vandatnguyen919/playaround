@@ -44,6 +44,7 @@ const MAILPIT = process.env.MAILPIT_URL ?? "http://localhost:8025"
 const APP = process.env.APP_URL ?? "http://localhost:5174"
 const GATEWAY = process.env.GATEWAY_URL ?? "http://localhost:8181"
 const MANAGEMENT = process.env.MANAGEMENT_URL ?? "http://localhost:9181"
+const KEYLAB_API = process.env.KEYLAB_API_URL ?? "http://localhost:8183"
 const COMPOSE_ENV = process.env.COMPOSE_ENV_FILE ?? join(ROOT, "deploy/compose/.env")
 
 // --- What suites need ---------------------------------------------------------
@@ -97,6 +98,11 @@ const needs = {
     what: `the gateway's management port (${MANAGEMENT})`,
     probe: () => httpUp(`${MANAGEMENT}/actuator/health`, (s) => s === 200),
     fix: "node verify-stack.mjs up",
+  },
+  keylabApi: {
+    what: `keylab-api (${KEYLAB_API}) with its Postgres`,
+    probe: () => httpUp(`${KEYLAB_API}/v1/health`, (s) => s === 200),
+    fix: "node verify-stack.mjs up (keylab-api jar and the postgres compose service)",
   },
   app: {
     what: `the app origin (${APP}) proxying to the gateway`,
@@ -154,12 +160,18 @@ const suites = {
     needs: ["docker"],
     run: gradleTests("api"),
   },
+  keylab: {
+    what: "keylab-api tests: module boundaries, Flyway schemas, tokens and roles, problem+json, paging, ETag, Idempotency-Key (Postgres and Keycloak in Testcontainers)",
+    needs: ["docker"],
+    run: gradleTests("keylab-api"),
+  },
   web: {
-    what: "SPA and theme lint and unit tests",
+    what: "SPA and theme lint and unit tests, KeyLab API types up to date with openapi-v1.yaml",
     needs: [],
     run: () => [
       [npm, ["--prefix", "web", "run", "lint"]],
       [npm, ["--prefix", "web", "test"]],
+      [npm, ["--prefix", "web", "run", "check:api"]],
       [npm, ["--prefix", "keycloak-theme", "run", "lint"]],
       [npm, ["--prefix", "keycloak-theme", "test"]],
     ],
@@ -180,8 +192,8 @@ const suites = {
     run: () => [[process.execPath, ["check-headers.mjs", GATEWAY, MANAGEMENT]]],
   },
   e2e: {
-    what: "Browser flows in Playwright: login, logout, register with email, forgot password, 401 and 403",
-    needs: ["playwright", "keycloak", "mailpit", "app"],
+    what: "Browser flows in Playwright: login, logout, register with email, forgot password, 401 and 403, KeyLab shell through the BFF",
+    needs: ["playwright", "keycloak", "mailpit", "keylabApi", "app"],
     run: (args) => [[npm, ["--prefix", "e2e", "exec", "--", "playwright", "test", "--config", "e2e/playwright.config.ts", ...args]]],
   },
   docs: {

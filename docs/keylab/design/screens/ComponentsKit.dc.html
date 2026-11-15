@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Component sheet (marketing and admin)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.ks{font-family:'Archivo',system-ui,sans-serif;color:#000;background:#FFFDF5;min-height:100vh;padding:40px 48px 56px;display:flex;flex-direction:column;gap:36px;-webkit-font-smoothing:antialiased}
+.ks *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,monospace}
+.sec{display:flex;flex-direction:column;gap:14px;padding-top:18px;border-top:3px solid #000}
+.sh{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.sh h2{margin:0;font-size:22px;line-height:26px;font-weight:900;letter-spacing:-.02em}
+.sh p{margin:0;font-size:13px;line-height:18px;font-weight:500;max-width:760px}
+.cap{font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.06em;font-weight:700;text-transform:uppercase}
+.cell{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+</style>
+</helmet>
+<div class="ks">
+  <header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+    <div>
+      <span class="cap">KeyLab · component sheet 2</span>
+      <h1 style="margin: 4px 0 0; font-size: 40px; line-height: 44px; font-weight: 900; letter-spacing: -.03em">Marketing and admin components</h1>
+    </div>
+    <p style="margin: 0; max-width: 520px; font-size: 13px; line-height: 19px; font-weight: 500">Same tokens as sheet 1: cream #FFFDF5, navy #2C2A5A, yellow #FFD24D for active, lime #C6F079 for go-forward, coral #F16B53 for sound and destructive actions, sky #99D6FF for info. Every instance below is the live component with its state prop set.</p>
+  </header>
+
+  <section class="sec" aria-labelledby="k1">
+    <div class="sh"><h2 id="k1">KPI tile</h2><p>Values stay as placeholders until real numbers exist. Error state offers a retry.</p></div>
+    <div class="row">
+      <div class="cell"><span class="cap">Ready</span><div style="width: 280px"><dc-import name="KpiTile" label="Builds today" value="[BUILDS TODAY]" delta="[+X%]" up="{{ true }}" accent="#C6F079" state="ready" hint-size="280px,136px"></dc-import></div></div>
+      <div class="cell"><span class="cap">Loading</span><div style="width: 280px"><dc-import name="KpiTile" label="Sounds played" state="loading" accent="#99D6FF" hint-size="280px,136px"></dc-import></div></div>
+      <div class="cell"><span class="cap">Empty</span><div style="width: 280px"><dc-import name="KpiTile" label="Pro sign-ups" state="empty" accent="#FFD24D" hint-size="280px,136px"></dc-import></div></div>
+      <div class="cell"><span class="cap">Error</span><div style="width: 280px"><dc-import name="KpiTile" label="Shared builds" state="error" accent="#F16B53" hint-size="280px,136px"></dc-import></div></div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="k2">
+    <div class="sh"><h2 id="k2">Data table row</h2><p>50 px rows, 1.5 px rules. Hover is sun, selected is yellow, focus gets the coral ring.</p></div>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div class="cell"><span class="cap">Default</span><div style="width: 1000px; max-width: 100%"><dc-import name="DataTableRow" state="default" hint-size="100%,56px"></dc-import></div></div>
+      <div class="cell"><span class="cap">Hover</span><div style="width: 1000px; max-width: 100%"><dc-import name="DataTableRow" state="hover" hint-size="100%,56px"></dc-import></div></div>
+      <div class="cell"><span class="cap">Selected</span><div style="width: 1000px; max-width: 100%"><dc-import name="DataTableRow" state="selected" hint-size="100%,56px"></dc-import></div></div>
+      <div class="cell"><span class="cap">Keyboard focus</span><div style="width: 1000px; max-width: 100%"><dc-import name="DataTableRow" state="focus" hint-size="100%,56px"></dc-import></div></div>
+      <div class="cell"><span class="cap">Loading</span><div style="width: 1000px; max-width: 100%"><dc-import name="DataTableRow" state="loading" hint-size="100%,56px"></dc-import></div></div>
+    </div>
+  </section>
+
+  <div class="row" style="gap: 40px">
+    <section class="sec" aria-labelledby="k3" style="flex: 0 0 520px">
+      <div class="sh"><h2 id="k3">Sidebar item</h2></div>
+      <div style="background: #2C2A5A; border: 3px solid #000; padding: 16px; display: grid; grid-template-columns: 220px 220px; gap: 14px 20px">
+        <div class="cell"><span class="cap" style="color: #FFFDF5">Default</span><dc-import name="SidebarItem" label="Switches" icon="switches" hint-size="220px,44px"></dc-import></div>
+        <div class="cell"><span class="cap" style="color: #FFFDF5">Hover</span><dc-import name="SidebarItem" label="Switches" icon="switches" demo="hover" hint-size="220px,44px"></dc-import></div>
+        <div class="cell"><span class="cap" style="color: #FFFDF5">Focus</span><dc-import name="SidebarItem" label="Switches" icon="switches" demo="focus" hint-size="220px,44px"></dc-import></div>
+        <div class="cell"><span class="cap" style="color: #FFFDF5">Active</span><dc-import name="SidebarItem" label="Switches" icon="switches" active="{{ true }}" hint-size="220px,44px"></dc-import></div>
+        <div class="cell"><span class="cap" style="color: #FFFDF5">With badge</span><dc-import name="SidebarItem" label="Community builds" icon="community" badge="3" hint-size="220px,44px"></dc-import></div>
+        <div class="cell"><span class="cap" style="color: #FFFDF5">Compact (tablet)</span><dc-import name="SidebarItem" label="Sound library" icon="sounds" compact="{{ true }}" badge="2" hint-size="64px,44px"></dc-import></div>
+      </div>
+    </section>
+    <section class="sec" aria-labelledby="k4" style="flex: 1 1 560px">
+      <div class="sh"><h2 id="k4">Status badge</h2><p>Text label plus a shape dot, so status never relies on colour alone.</p></div>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px 16px">
+        <dc-import name="StatusBadge" status="recorded" hint-size="110px,24px"></dc-import>
+        <dc-import name="StatusBadge" status="missing" hint-size="110px,24px"></dc-import>
+        <dc-import name="StatusBadge" status="processing" hint-size="110px,24px"></dc-import>
+        <dc-import name="StatusBadge" status="published" hint-size="110px,24px"></dc-import>
+        <dc-import name="StatusBadge" status="draft" hint-size="110px,24px"></dc-import>
+        <dc-import name="StatusBadge" status="hidden" hint-size="110px,24px"></dc-import>
+        <dc-import name="StatusBadge" status="reported" hint-size="110px,24px"></dc-import>
+        <dc-import name="StatusBadge" status="featured" hint-size="110px,24px"></dc-import>
+        <dc-import name="StatusBadge" status="pro" hint-size="110px,24px"></dc-import>
+        <dc-import name="StatusBadge" status="free" hint-size="110px,24px"></dc-import>
+        <dc-import name="StatusBadge" status="active" hint-size="110px,24px"></dc-import>
+        <dc-import name="StatusBadge" status="suspended" hint-size="110px,24px"></dc-import>
+        <dc-import name="StatusBadge" status="invited" hint-size="110px,24px"></dc-import>
+      </div>
+      <div class="sh" style="margin-top: 14px"><h2>Toast</h2></div>
+      <div style="display: flex; flex-direction: column; gap: 12px; width: 440px; max-width: 100%">
+        <dc-import name="Toast" kind="success" title="Coral Pop published" body="It’s live in the public switch library." action="View in library" href="MktLibrary.dc.html" hint-size="100%,72px"></dc-import>
+        <dc-import name="Toast" kind="error" title="Upload failed" body="That file isn’t a WAV. Try again with a .wav recording." action="Retry" hint-size="100%,72px"></dc-import>
+        <dc-import name="Toast" kind="info" title="Draft saved" body="Only admins can see it." hint-size="100%,72px"></dc-import>
+      </div>
+    </section>
+  </div>
+
+  <section class="sec" aria-labelledby="k5">
+    <div class="sh"><h2 id="k5">Upload drop zone</h2><p>Accepts WAV for sounds. Done state draws the waveform and a play button so the editor hears it before publishing.</p></div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+      <div class="cell"><span class="cap">Idle</span><dc-import name="UploadDropZone" label="Press sound" state="idle" hint-size="100%,140px"></dc-import></div>
+      <div class="cell"><span class="cap">Drag over</span><dc-import name="UploadDropZone" label="Press sound" state="dragover" hint-size="100%,140px"></dc-import></div>
+      <div class="cell"><span class="cap">Uploading</span><dc-import name="UploadDropZone" label="Press sound" state="uploading" file-name="coral-pop_stock_press.wav" hint-size="100%,140px"></dc-import></div>
+      <div class="cell"><span class="cap">Done</span><dc-import name="UploadDropZone" label="Press sound" state="done" profile="Poppy" seed="11" file-name="coral-pop_stock_press.wav" hint-size="100%,140px"></dc-import></div>
+      <div class="cell"><span class="cap">Error</span><dc-import name="UploadDropZone" label="Press sound" state="error" file-name="coral-pop_press.mp3" hint-size="100%,140px"></dc-import></div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="k6">
+    <div class="sh"><h2 id="k6">FAQ item</h2><p>Button with aria-expanded; the whole row is the target.</p></div>
+    <div class="row">
+      <div class="cell" style="width: 640px; max-width: 100%"><span class="cap">Closed</span><dc-import name="FaqItem" q="Do I need to sign up to try sounds?" a="No. You can build and listen as a guest. Sign up when you want to save or share a build." uid="kit-a" hint-size="100%,150px"></dc-import></div>
+      <div class="cell" style="width: 640px; max-width: 100%"><span class="cap">Open</span><dc-import name="FaqItem" open="{{ true }}" uid="kit-b" hint-size="100%,150px"></dc-import></div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="k7">
+    <div class="sh"><h2 id="k7">Pricing and testimonial cards</h2><p>Prices and quotes are placeholders. Testimonials stay empty until real people agree to be quoted.</p></div>
+    <div class="row">
+      <div class="cell" style="width: 380px"><span class="cap">Free</span><dc-import name="PricingCard" tier="free" href="MktAuth.dc.html" hint-size="380px,520px"></dc-import></div>
+      <div class="cell" style="width: 380px"><span class="cap">Pro · yearly</span><dc-import name="PricingCard" tier="pro" yearly="{{ true }}" href="MktAuth.dc.html" hint-size="380px,520px"></dc-import></div>
+      <div style="display: flex; flex-direction: column; gap: 14px; width: 380px">
+        <div class="cell"><span class="cap">Paper</span><dc-import name="TestimonialCard" tone="paper" hint-size="380px,230px"></dc-import></div>
+        <div class="cell"><span class="cap">Ink</span><dc-import name="TestimonialCard" tone="ink" hint-size="380px,230px"></dc-import></div>
+      </div>
+    </div>
+    <div class="cell" style="width: 380px"><span class="cap">Sky</span><dc-import name="TestimonialCard" tone="sky" hint-size="380px,230px"></dc-import></div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

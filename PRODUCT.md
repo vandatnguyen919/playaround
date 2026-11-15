@@ -14,6 +14,12 @@ Students (replaced Oracle Cloud on 2026-10-30), later on AWS, to learn the
 platform side (IaC, Kubernetes, CI, secrets, observability). Learning first,
 production readiness where practical. See Deployment platform.
 
+Third goal (2026-11-15, Dan): build KeyLab ("hear a keyboard build before you
+buy it") on this BFF, gateway and realm. Its specs are in `docs/keylab/`
+(start with `docs/keylab/README.md`); its stories are tracked in Notion. KL0
+built the base: `keylab-api` (Spring Modulith, Postgres), the gateway route
+`/bff/keylab/v1/**`, and the KeyLab shell in `web/` under `/keylab`.
+
 ## First useful result
 
 A user can register with full name, email, and password, log in with
@@ -97,6 +103,13 @@ Choices made, with reasons. Versions were checked against official docs on
   each. Keycloakify themes target the latest Keycloak and run on older ones.
   Keycloakify ships a shadcn/ui + Tailwind starter theme, which is our starting
   point for the theme. Revisit the pairing when either major version changes.
+- **KeyLab: Spring Modulith 2.1.0, Postgres 18.6, Flyway 12 (Boot's managed
+  version), JPA (Hibernate 7) with `ddl-auto: validate`.** Modulith 2.1.0 works
+  with Boot 4.1.2. Web: `react-router` 7 and self-hosted fonts
+  (`@fontsource-variable/archivo`, `@fontsource/space-mono`, because the CSP
+  allows fonts from this origin only). API types come from
+  `openapi-typescript` 7.13, run pinned through `npx` (`npm run gen:api`)
+  because it wants TypeScript 5 and `web` is on 6.
 - **These versions are pinned.** Do not re-check them against docs unless a
   build fails or a major upgrade is planned.
 
@@ -540,6 +553,9 @@ layout and the scan are ours).
 
 - `/gateway`: Spring Cloud Gateway BFF. Gradle subproject.
 - `/api`: resource server. Gradle subproject.
+- `/keylab-api`: KeyLab's API, one Spring Modulith app (root package
+  `app.keylab`, 8 modules plus `shared`, one Postgres schema each plus
+  `platform`). Gradle subproject. See `docs/keylab/modulith-plan.md`.
 - `/web`: Vite React TypeScript SPA with Axios. npm.
 - `/keycloak-theme`: Keycloakify theme, builds a theme jar. npm.
 - `/infra`: docker-compose (Keycloak, Redis, Mailpit, dev-only LGTM and Vault),
@@ -551,14 +567,14 @@ layout and the scan are ours).
   Testcontainers, a cookie jar HTTP browser).
 
 Gradle multi-project at the root for the Java modules (`settings.gradle`
-includes `gateway` and `api`), with one Spring Boot and Spring Cloud BOM version
+includes `gateway`, `api` and `keylab-api`), with one Spring Boot and Spring Cloud BOM version
 at the root. npm keeps `/web` and `/keycloak-theme`; Gradle does not drive npm.
 
 ### Also decided
 
 - **Local ports.** Keycloak 8080, Mailpit 8025 (UI) and 1025 (SMTP), Redis 6379,
-  gateway 8181 (management 9181), api 8182, web dev server 5174, Grafana 3300,
-  OTLP 4318, Vault 8200. Ports 8081 and 8082 were already taken by another local stack on
+  gateway 8181 (management 9181), api 8182, keylab-api 8183, Postgres 5432
+  (KeyLab's database), web dev server 5174, Grafana 3300, OTLP 4318, Vault 8200. Ports 8081 and 8082 were already taken by another local stack on
   the dev machine.
 - **React + TypeScript SPA (Vite) with Axios.** Uses a session cookie only and
   never handles tokens, which is the point of the demo.
@@ -1365,8 +1381,13 @@ Rules in force:
 
 Facts worth knowing:
 
-- The access token has name, email, preferred_username and realm roles but no
-  `sub` claim.
+- The access token has `sub` (the `basic` client scope, added for KeyLab, whose
+  `users.id` is the Keycloak `sub`), name, email, preferred_username and realm
+  roles. An audience mapper adds `keylab-api` to `aud`; keylab-api accepts no
+  token without it.
+- KeyLab roles are realm roles: `keylab-user` (default for everyone),
+  `keylab-viewer`, `keylab-editor` (includes viewer) and `keylab-admin`
+  (includes editor). Composites, so a token lists every role it implies.
 - Keycloak `start-dev` re-runs a Quarkus build on every start. The compose
   healthcheck allows up to 8 minutes.
 - Test users (dev only, `infra/playground-users-dev.json`):

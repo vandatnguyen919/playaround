@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Switch library</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Nunito:wght@700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.kl{--bg:#FFFDF5;--surface:#FFFFFF;--surface2:#FFF1C7;--text:#000000;--muted:#3A3A3A;--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--indigo:#2C2A5A;--acc-text:#2C2A5A;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.kl[data-theme="dark"]{--bg:#1E1C3F;--surface:#2C2A5A;--surface2:#3A3870;--text:#FFFDF5;--muted:#D6D3F5;--acc-text:#FFD24D}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc[aria-pressed="true"],.kc[aria-checked="true"],.kc[aria-selected="true"],.kc.on{background:var(--acc)}
+.kc.primary{background:var(--lime);min-height:54px;font-size:16px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc.coral{background:var(--coral)}
+.kc.ghost{background:transparent;color:var(--text);box-shadow:none}
+.kc.ghost[aria-pressed="true"]{background:var(--acc);color:#000;box-shadow:3px 3px 0 #000}
+.kc.sm{padding:0 12px;font-size:13px}
+.kc.icon{width:44px;padding:0}
+.kc:focus-visible,.nv:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.lbl{font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;margin:0}
+.h1{font-size:36px;line-height:34px;font-weight:900;letter-spacing:-.05em;margin:0}
+.sticker{display:inline-flex;align-items:center;padding:1px 6px;border:2px solid #000;background:var(--acc);color:#000;font-size:10px;line-height:14px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.panel{border:3px solid #000;background:#FFFDF5;color:#000;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.spec{background:var(--acc);color:#000;border:2.5px solid #000;padding:7px 8px;display:flex;flex-direction:column;gap:2px}
+.nav{display:flex;gap:2px;padding:8px 8px 22px;background:#FFFFFF;border-top:3px solid #000}
+.nv{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px;flex:1;color:#000;text-decoration:none;font-size:11px;font-weight:800}
+.nv .ic{width:46px;height:32px;display:flex;align-items:center;justify-content:center;border:2.5px solid transparent;transition:transform 70ms}
+.nv:active .ic{transform:translate(2px,2px)}
+.nv.on .ic{background:var(--acc);border-color:#000;box-shadow:3px 3px 0 #000}
+.noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="kl" data-theme="{{theme}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <header style="flex: none; padding: 14px 16px 12px; display: flex; flex-direction: column; gap: 12px; border-bottom: 3px solid #000">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h1 class="h1">Switches</h1>
+        <p style="margin: 0; font-size: 13px; line-height: 17px; font-weight: 600">Tap to hear. Hold = press, let go = release.</p>
+      </div>
+      <button type="button" class="kc sm" aria-pressed="{{compareAttr}}" onClick="{{toggleCompare}}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" aria-hidden="true"><rect x="3" y="4" width="7" height="16"></rect><rect x="14" y="4" width="7" height="16"></rect></svg>
+        Compare
+      </button>
+    </div>
+    <div role="group" aria-label="Switch type" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px">
+      <sc-for list="{{types}}" as="t" hint-placeholder-count="5">
+        <button type="button" class="kc sm" aria-pressed="{{t.on}}" onClick="{{t.pick}}" style="padding: 0; font-size: 12px">{{t.label}}</button>
+      </sc-for>
+    </div>
+    <div class="noscroll" role="group" aria-label="Sound and force" style="display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px">
+      <sc-for list="{{chips}}" as="c" hint-placeholder-count="7">
+        <button type="button" class="kc sm ghost" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="flex: none">{{c.label}}</button>
+      </sc-for>
+    </div>
+  </header>
+
+  <main class="noscroll" style="flex: 1; overflow-y: auto; padding: 16px 16px 180px">
+    <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+      <div style="margin-bottom: 16px; padding: 28px 16px; border: 3px dashed var(--text); display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+        <p style="margin: 0; font-size: 20px; font-weight: 900; letter-spacing: -0.03em">No switches match</p>
+        <p style="margin: 0; font-size: 13px; font-weight: 600">Try removing a sound or force filter.</p>
+        <button type="button" class="kc sm on" onClick="{{clearFilters}}">Clear filters</button>
+      </div>
+    </sc-if>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 14px">
+      <sc-for list="{{list}}" as="sw" hint-placeholder-count="6">
+        <dc-import name="SwitchCard" sw="{{sw.data}}" selected="{{sw.sel}}" compare="{{compare}}" checked="{{sw.chk}}" play-seq="{{sw.seq}}" on-pick="{{pick}}" hint-size="100%,236px"></dc-import>
+      </sc-for>
+    </div>
+  </main>
+
+  <sc-if value="{{open}}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Collapse switch details" onClick="{{collapse}}" style="position: absolute; left: 0; right: 0; top: 0; bottom: 89px; border: 0; padding: 0; margin: 0; background: rgba(0,0,0,.5); cursor: pointer"></button>
+  </sc-if>
+
+  <section aria-label="Switch details" style="position: absolute; left: 0; right: 0; bottom: 89px; height: {{sheetH}}px; background: var(--surface); border-top: 3px solid #000; box-shadow: 0 -6px 0 #000; display: flex; flex-direction: column; transition: height 200ms ease">
+    <button type="button" aria-label="{{handleLabel}}" onClick="{{toggleSheet}}" style="flex: none; height: 24px; border: 0; margin: 0; padding: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center">
+      <span aria-hidden="true" style="width: 48px; height: 6px; background: var(--text)"></span>
+    </button>
+
+    <sc-if value="{{showCompare}}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 2px 16px 14px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <h2 style="margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.04em">Compare <span class="sticker">{{cmpCount}}/3</span></h2>
+          <button type="button" class="kc sm" onClick="{{clearCompare}}">Clear</button>
+        </div>
+        <sc-if value="{{cmpEmpty}}" hint-placeholder-val="{{ true }}">
+          <p style="margin: 0; font-size: 13px; line-height: 18px; font-weight: 600">Pick up to 3 switches above to hear them back to back.</p>
+        </sc-if>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+          <sc-for list="{{cmp}}" as="c" hint-placeholder-count="2">
+            <div style="border: 2.5px solid #000; background: {{c.bg}}; color: #000; padding: 6px; display: flex; flex-direction: column; gap: 4px; box-shadow: 3px 3px 0 #000">
+              <span style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 900; white-space: nowrap; overflow: hidden"><span aria-hidden="true" style="flex: none; width: 9px; height: 9px; border: 2px solid #000; background: {{c.stem}}"></span>{{c.name}}</span>
+              <dc-import name="Waveform" profile="{{c.prof}}" height="26" labels="{{ false }}" seed="{{c.seed}}" hint-size="100%,26px"></dc-import>
+              <span class="mono" style="font-size: 10px; font-weight: 700">{{c.spec}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <button type="button" class="kc primary" onClick="{{playTurn}}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg>
+          Play in turn
+        </button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showPeek}}" hint-placeholder-val="{{ true }}">
+      <div style="padding: 0 16px 14px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span aria-hidden="true" style="flex: none; width: 42px; height: 42px; border: 3px solid #000; background: #FFFDF5; display: flex; align-items: center; justify-content: center"><span style="width: 18px; height: 18px; border: 2px solid #000; background: {{cur.stem}}"></span></span>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 20px; font-weight: 900; letter-spacing: -0.04em">{{cur.name}}</span>
+            <span class="mono" style="font-size: 11px; font-weight: 700">{{cur.line}}</span>
+          </div>
+          <button type="button" class="kc icon coral" aria-label="Play {{cur.name}}" onClick="{{playSel}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg></button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+          <button type="button" class="kc" onClick="{{expand}}">Details + curve</button>
+          <sc-if value="{{notApplied}}" hint-placeholder-val="{{ true }}">
+            <button type="button" class="kc" style="background: var(--lime)" onClick="{{applyAll}}">Apply to all</button>
+          </sc-if>
+          <sc-if value="{{applied}}" hint-placeholder-val="{{ false }}">
+            <a class="kc" style="background: var(--lime)" href="ModsMobile.dc.html">Next: mods
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"></path></svg>
+            </a>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showOpen}}" hint-placeholder-val="{{ false }}">
+      <div class="noscroll" style="flex: 1; overflow-y: auto; padding: 0 16px 20px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span aria-hidden="true" style="flex: none; width: 46px; height: 46px; border: 3px solid #000; background: #FFFDF5; display: flex; align-items: center; justify-content: center"><span style="width: 20px; height: 20px; border: 2px solid #000; background: {{cur.stem}}"></span></span>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 24px; line-height: 24px; font-weight: 900; letter-spacing: -0.05em">{{cur.name}}</span>
+            <span style="display: flex; gap: 6px"><span class="sticker">{{cur.type}}</span><span class="sticker" style="background: var(--sky)">{{cur.prof}}</span></span>
+          </div>
+          <button type="button" class="kc icon coral" aria-label="Play {{cur.name}}" onClick="{{playSel}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg></button>
+        </div>
+
+        <div class="panel">
+          <p class="lbl">Sound waveform</p>
+          <sc-if value="{{cur.hasSound}}" hint-placeholder-val="{{ true }}">
+            <dc-import name="Waveform" profile="{{cur.prof}}" height="56" seed="{{cur.seed}}" hint-size="100%,74px"></dc-import>
+          </sc-if>
+          <sc-if value="{{cur.noSound}}" hint-placeholder-val="{{ false }}">
+            <div style="height: 74px; border: 2.5px dashed #000; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; font-weight: 800">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"></path><path d="M17 9l4 6M21 9l-4 6"></path></svg>
+              No sound recording yet.
+            </div>
+          </sc-if>
+        </div>
+
+        <div class="panel">
+          <p class="lbl">Force curve</p>
+          <dc-import name="ForceCurve" curve="{{cur.curve}}" force="{{cur.force}}" act="{{cur.act}}" total="{{cur.total}}" height="150" hint-size="100%,170px"></dc-import>
+        </div>
+
+        <dl style="margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+          <div class="spec"><dt class="lbl" style="font-size: 9px; letter-spacing: .04em">Actuation</dt><dd class="mono" style="margin: 0; font-size: 14px; font-weight: 700">{{cur.force}}g</dd></div>
+          <div class="spec"><dt class="lbl" style="font-size: 9px; letter-spacing: .04em">Pre-travel</dt><dd class="mono" style="margin: 0; font-size: 14px; font-weight: 700">{{cur.actS}}</dd></div>
+          <div class="spec"><dt class="lbl" style="font-size: 9px; letter-spacing: .04em">Total</dt><dd class="mono" style="margin: 0; font-size: 14px; font-weight: 700">{{cur.totalS}}</dd></div>
+          <div class="spec"><dt class="lbl" style="font-size: 9px; letter-spacing: .04em">Spring</dt><dd class="mono" style="margin: 0; font-size: 14px; font-weight: 700">{{cur.springS}}</dd></div>
+        </dl>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">{{cur.desc}}</p>
+
+        <sc-if value="{{selecting}}" hint-placeholder-val="{{ false }}">
+          <div style="border: 3px solid #000; background: var(--sky); color: #000; padding: 10px 8px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px">
+            <p style="margin: 0; font-size: 13px; font-weight: 700; align-self: flex-start; padding: 0 4px">Tap keys to select them, e.g. spacebar or modifiers.</p>
+            <dc-import name="Keyboard" layout="65" width="330" sound="{{cur.snd}}" selected="{{selKeys}}" marks="{{marks}}" on-key-tap="{{tapKey}}" hint-size="330px,150px"></dc-import>
+          </div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 12px">
+            <button type="button" class="kc" onClick="{{cancelSelect}}">Cancel</button>
+            <button type="button" class="kc primary" onClick="{{applySelected}}">{{applySelLabel}}</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{notSelecting}}" hint-placeholder-val="{{ true }}">
+          <sc-if value="{{appliedNote}}" hint-placeholder-val="{{ false }}">
+            <p role="status" style="margin: 0; padding: 8px 10px; border: 2.5px solid #000; background: var(--lime); color: #000; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="square" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>{{appliedNote}}
+            </p>
+          </sc-if>
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <sc-if value="{{notApplied}}" hint-placeholder-val="{{ true }}">
+              <button type="button" class="kc primary" onClick="{{applyAll}}">Apply to all keys</button>
+            </sc-if>
+            <sc-if value="{{applied}}" hint-placeholder-val="{{ false }}">
+              <a class="kc primary" href="ModsMobile.dc.html">Next: add mods
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"></path></svg>
+              </a>
+            </sc-if>
+            <button type="button" class="kc" onClick="{{startSelect}}">Apply to selected keys only</button>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+  </section>
+
+  <nav class="nav" aria-label="Primary" style="position: absolute; left: 0; right: 0; bottom: 0; height: 89px">
+    <a class="nv" href="Main.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M6 10h1M10 10h1M14 10h1M18 10h1M7 14h10"></path></svg></span>Build</a>
+    <a class="nv on" href="SwitchesMobile.dc.html" aria-current="page"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><path d="M12 2.5v7M8.5 6h7"></path><rect x="4.5" y="11" width="15" height="9.5"></rect></svg></span>Switches</a>
+    <a class="nv" href="ModsMobile.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"></path><rect x="13" y="5" width="4" height="4"></rect><rect x="7" y="15" width="4" height="4"></rect></svg></span>Mods</a>
+    <a class="nv" href="KeycapsMobile.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M3.5 19.5h17L18 6H6z"></path><path d="M9 10.5h6"></path></svg></span>Keycaps</a>
+    <a class="nv" href="BuildsMobile.dc.html"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M6.5 3.5h11v17l-5.5-3.8-5.5 3.8z"></path></svg></span>My builds</a>
+    <a class="nv" href="ProfileMobile.dc.html"><span class="ic"><span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border: 2.5px solid #000; background: #FFD24D; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; letter-spacing: -0.03em">TW</span></span>Profile</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"sheet":{"editor":"enum","options":["peek","open"],"default":"peek"},"$preview":{"width":390,"height":844}}'>
+const SW = [
+  { id: 'milk', name: 'Milk Yellow', type: 'Linear', curve: 'linear', stem: '#E9C46A', housing: 'milky', force: 50, act: 2.0, total: 4.0, spring: 18, prof: 'Deep', desc: 'Smooth and full-bodied. A low, rounded thock that gets deeper with case foam and a light lube.', snd: { pitch: 520, bright: .25, decay: 70, thump: .9, vol: .7 } },
+  { id: 'red', name: 'Classic Red', type: 'Linear', curve: 'linear', stem: '#D64545', housing: 'clear', box: true, force: 45, act: 2.0, total: 4.0, spring: 18, prof: 'Poppy', desc: 'Light and quick, with a clean, mid-pitched pop on the way down.', snd: { pitch: 880, bright: .45, decay: 55, thump: .55, vol: .65 } },
+  { id: 'ink', name: 'Ink Black', type: 'Linear', curve: 'linear', stem: '#2A2E38', housing: 'smoke', force: 60, act: 2.0, total: 4.0, spring: 20, prof: 'Deep', desc: 'Heavier and buttery. Bottoms out with a dense, low knock.', snd: { pitch: 430, bright: .18, decay: 82, thump: 1, vol: .72 } },
+  { id: 'silver', name: 'Speed Silver', type: 'Linear', curve: 'linear', stem: '#B8C0CC', housing: 'clear', force: 45, act: 1.2, total: 3.4, spring: 18, prof: 'Clacky', desc: 'Short travel built for speed. Bright, sharp clack.', snd: { pitch: 1500, bright: .7, decay: 42, thump: .3, vol: .62 } },
+  { id: 'brown', name: 'Bump Brown', type: 'Tactile', curve: 'tactile', stem: '#7A4E2D', housing: 'amber', force: 55, act: 2.0, total: 4.0, spring: 18, prof: 'Muted', desc: 'A soft, rounded bump you can feel without hearing much of it.', snd: { pitch: 640, bright: .3, decay: 58, thump: .6, vol: .55 } },
+  { id: 'peak', name: 'Peak Tactile', type: 'Tactile', curve: 'tactile', stem: '#EFEBE0', housing: 'milky', force: 67, act: 2.0, total: 4.0, spring: 20, prof: 'Poppy', desc: 'A sharp, early bump and a loud, poppy bottom-out.', snd: { pitch: 1050, bright: .55, decay: 60, thump: .7, vol: .75 } },
+  { id: 'blue', name: 'Click Blue', type: 'Clicky', curve: 'clicky', stem: '#2F6FD6', housing: 'ice', box: true, force: 60, act: 2.2, total: 4.0, spring: 18, prof: 'Clacky', desc: 'The classic typewriter click on every press. Not for shared rooms.', snd: { pitch: 1300, bright: .65, decay: 50, thump: .4, vol: .7, click: true } },
+  { id: 'jade', name: 'Jade Clickbar', type: 'Clicky', curve: 'clicky', stem: '#2E9E7A', housing: 'teal', box: true, force: 70, act: 1.8, total: 3.6, spring: 20, prof: 'Clacky', desc: 'A click bar instead of a jacket: crisper and heavier than Click Blue.', snd: { pitch: 1700, bright: .8, decay: 38, thump: .35, vol: .75, click: true } },
+  { id: 'hushr', name: 'Hush Red', type: 'Silent', curve: 'linear', stem: '#E07A7A', housing: 'smoke', force: 45, act: 1.9, total: 3.7, spring: 18, prof: 'Muted', desc: 'Dampened stem for quiet, cushioned presses. Office-friendly.', snd: { pitch: 380, bright: .08, decay: 34, thump: .4, vol: .28 } },
+  { id: 'hushb', name: 'Hush Tactile', type: 'Silent', curve: 'tactile', stem: '#8C6BB1', housing: 'milky', force: 62, act: 2.0, total: 3.7, spring: 18, prof: 'Muted', desc: 'A quiet tactile bump with dampened top and bottom.', snd: { pitch: 420, bright: .1, decay: 36, thump: .45, vol: .3 } },
+  { id: 'proto', name: 'Proto Orange', type: 'Tactile', curve: 'tactile', stem: '#E58A3A', housing: 'clear', force: 58, act: 2.0, total: 3.8, spring: 18, prof: 'Poppy', desc: 'New to the library. Sound recording coming soon.', snd: { none: true }, nosound: true }
+];
+const TYPES = ['All', 'Linear', 'Tactile', 'Clicky', 'Silent'];
+const CHIPS = [
+  { id: 'Deep', kind: 'snd' }, { id: 'Poppy', kind: 'snd' }, { id: 'Clacky', kind: 'snd' }, { id: 'Muted', kind: 'snd' },
+  { id: '≤50g', kind: 'force', test: (s) => s.force <= 50 }, { id: '51–60g', kind: 'force', test: (s) => s.force > 50 && s.force <= 60 }, { id: '61g+', kind: 'force', test: (s) => s.force > 60 },
+  { id: 'Short travel', kind: 'travel', test: (s) => s.act < 1.6 }
+];
+
+class Component extends DCLogic {
+  state = { type: 'All', on: {}, sel: 'milk', sheet: null, compare: false, cmp: [], turn: { id: null, seq: 0 }, applied: null, selecting: false, selKeys: [], marks: {} };
+
+  componentWillUnmount() { (this.tms || []).forEach(clearTimeout); }
+
+  renderVals() {
+    const s = this.state, p = this.props;
+    const sheet = s.sheet || p.sheet || 'peek';
+    const chipOn = CHIPS.filter((c) => s.on[c.id]);
+    const list = SW.filter((sw) => {
+      if (s.type !== 'All' && sw.type !== s.type) return false;
+      const snd = chipOn.filter((c) => c.kind === 'snd');
+      if (snd.length && !snd.some((c) => c.id === sw.prof)) return false;
+      const rest = chipOn.filter((c) => c.kind !== 'snd');
+      if (rest.length && !rest.every((c) => c.test(sw))) return false;
+      return true;
+    });
+    const cur = SW.find((x) => x.id === s.sel) || SW[0];
+    const open = !s.compare && sheet === 'open';
+    const nKeys = s.selKeys.length;
+    return {
+      theme: p.theme || 'light',
+      compare: s.compare, compareAttr: String(s.compare),
+      toggleCompare: () => this.setState({ compare: !s.compare, cmp: [] }),
+      types: TYPES.map((t) => ({ label: t, on: String(s.type === t), pick: () => this.setState({ type: t }) })),
+      chips: CHIPS.map((c) => ({ label: c.id, on: String(!!s.on[c.id]), pick: () => { const on = Object.assign({}, s.on); on[c.id] = !on[c.id]; this.setState({ on: on }); } })),
+      clearFilters: () => this.setState({ on: {}, type: 'All' }),
+      empty: list.length === 0,
+      list: list.map((sw) => ({ data: sw, sel: !s.compare && sw.id === s.sel, chk: s.cmp.indexOf(sw.id) >= 0, seq: s.turn.id === sw.id ? s.turn.seq : 0 })),
+      pick: (sw) => {
+        if (this.state.compare) {
+          const c = this.state.cmp.slice(); const i = c.indexOf(sw.id);
+          if (i >= 0) c.splice(i, 1); else if (c.length < 3) c.push(sw.id);
+          this.setState({ cmp: c });
+        } else if (sw.id !== this.state.sel) this.setState({ sel: sw.id, applied: null, selecting: false, selKeys: [] });
+      },
+      open: open,
+      sheetH: s.compare ? 260 : open ? 560 : 150,
+      handleLabel: open ? 'Collapse switch details' : 'Expand switch details',
+      toggleSheet: () => this.setState({ sheet: open ? 'peek' : 'open' }),
+      collapse: () => this.setState({ sheet: 'peek' }),
+      expand: () => this.setState({ sheet: 'open' }),
+      showCompare: s.compare, showPeek: !s.compare && !open, showOpen: open,
+      cmpCount: s.cmp.length, cmpEmpty: s.cmp.length === 0,
+      cmp: s.cmp.map((id, i) => { const sw = SW.find((x) => x.id === id); return { name: sw.name, stem: sw.stem, prof: sw.prof, seed: i * 13 + 5, spec: sw.force + 'G · ' + sw.prof.toUpperCase(), bg: s.turn.id === id ? '#FFD24D' : '#FFFDF5' }; }),
+      clearCompare: () => this.setState({ cmp: [] }),
+      playTurn: () => {
+        (this.tms || []).forEach(clearTimeout);
+        this.tms = this.state.cmp.map((id, i) => setTimeout(() => this.setState({ turn: { id: id, seq: this.state.turn.seq + 1 } }), i * 800));
+      },
+      playSel: () => this.setState({ turn: { id: s.sel, seq: s.turn.seq + 1 } }),
+      cur: {
+        name: cur.name, type: cur.type, stem: cur.stem, prof: cur.prof, curve: cur.curve, force: cur.force, act: cur.act, total: cur.total, desc: cur.desc, snd: cur.snd,
+        actS: cur.act.toFixed(1) + 'mm', totalS: cur.total.toFixed(1) + 'mm', springS: cur.spring + 'mm',
+        line: (cur.type + ' · ' + cur.force + 'g · ' + cur.prof).toUpperCase(), seed: SW.indexOf(cur) * 7 + 3,
+        hasSound: !cur.nosound, noSound: !!cur.nosound
+      },
+      notApplied: !s.applied, applied: !!s.applied,
+      appliedNote: s.applied === 'all' ? cur.name + ' on all 68 keys' : s.applied ? cur.name + ' on ' + s.applied + ' keys' : '',
+      applyAll: () => this.setState({ applied: 'all', marks: {} }),
+      selecting: s.selecting, notSelecting: !s.selecting,
+      startSelect: () => this.setState({ selecting: true, sheet: 'open' }),
+      cancelSelect: () => this.setState({ selecting: false, selKeys: [] }),
+      selKeys: s.selKeys, marks: s.marks,
+      tapKey: (id) => { const k = this.state.selKeys.slice(); const i = k.indexOf(id); if (i >= 0) k.splice(i, 1); else k.push(id); this.setState({ selKeys: k }); },
+      applySelLabel: nKeys ? 'Apply to ' + nKeys + (nKeys === 1 ? ' key' : ' keys') : 'Select keys first',
+      applySelected: () => {
+        if (!nKeys) return;
+        const m = Object.assign({}, s.marks); s.selKeys.forEach((id) => { m[id] = cur.stem; });
+        this.setState({ marks: m, applied: nKeys, selecting: false, selKeys: [] });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

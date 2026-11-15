@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab admin · Add switch</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+.ad{--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--ink:#2C2A5A;--sun:#FFF1C7;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:#000;background:#EFE8D6;font-size:13px;-webkit-font-smoothing:antialiased}
+.ad *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:13px;font-weight:800;color:#000;background:#FFFDF5;border:2px solid #000;border-radius:0;min-height:34px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;box-shadow:2px 2px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active{transform:translate(2px,2px);box-shadow:0 0 0 #000}
+.kc[aria-checked="true"]{background:var(--acc)}
+.kc.go{background:var(--lime);min-height:42px;font-size:14px;font-weight:900;border-width:2.5px;box-shadow:3px 3px 0 #000}
+.kc.go[aria-disabled="true"]{background:#E6E1D3;color:#3A3A3A;box-shadow:none;cursor:not-allowed}
+.kc:focus-visible,.tg:focus-visible,.field:focus,.sw:focus-visible,.crumb a:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.card{background:#FFFDF5;border:2.5px solid #000;box-shadow:4px 4px 0 #000;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.h2{margin:0;font-size:16px;line-height:20px;font-weight:900;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+.n{width:22px;height:22px;border:2px solid #000;background:var(--acc);display:inline-flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:11px;font-weight:700}
+.lbl{margin:0;font-size:10.5px;line-height:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:900}
+.field{width:100%;height:38px;border:2px solid #000;border-radius:0;background:#FFFFFF;font:inherit;font-size:14px;font-weight:600;padding:0 10px;color:#000}
+.field[aria-invalid="true"]{border-color:#B3261E;border-width:3px;background:#FFF5F2}
+.fg{display:flex;flex-direction:column;gap:5px;min-width:0}
+.unit{position:relative}
+.unit .field{padding-right:38px;font-family:'Space Mono',monospace;font-weight:700}
+.unit span{position:absolute;right:8px;top:10px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700}
+.sw{appearance:none;margin:0;cursor:pointer;width:32px;height:32px;border:2px solid #000;border-radius:0;box-shadow:2px 2px 0 #000;padding:0}
+.sw[aria-checked="true"]{outline:3px solid #000;outline-offset:2px;transform:translate(2px,2px);box-shadow:none}
+.tg{appearance:none;margin:0;cursor:pointer;position:relative;width:52px;height:30px;border:2px solid #000;border-radius:0;background:#FFFFFF;padding:0;box-shadow:2px 2px 0 #000;flex:none}
+.tg[aria-checked="true"]{background:#000}
+.tg span{position:absolute;top:4px;left:4px;width:18px;height:18px;border:2px solid #000;background:#000;transition:left 100ms ease}
+.tg[aria-checked="true"] span{left:26px;background:var(--acc)}
+.pt{width:100%;border-collapse:collapse}
+.pt th{text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;padding:6px 8px;border-bottom:2px solid #000;background:#FFF1C7}
+.pt td{padding:4px 6px;border-bottom:1.5px solid #000}
+.pt .field{height:32px;font-family:'Space Mono',monospace;font-size:13px}
+.crumb{display:flex;gap:6px;font-size:12px;font-weight:700}
+.crumb a{text-decoration:underline;text-underline-offset:3px}
+.err{font-size:12px;font-weight:700;color:#8C1D18}
+</style>
+</helmet>
+<div class="ad" style="min-height: 100vh; display: flex; flex-wrap: wrap">
+  <div style="flex: 0 0 232px; background: #2C2A5A; border-right: 3px solid #000"><dc-import name="AdminSidebar" active="switches" min-height="1500" hint-size="100%,1500px"></dc-import></div>
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="AdminTopbar" title="Add switch" crumb="Catalog · Switches · new" hint-size="100%,66px"></dc-import>
+    <main style="padding: 16px 20px 32px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+        <nav aria-label="Breadcrumb" class="crumb"><a href="AdminSwitches.dc.html">Switches</a><span aria-hidden="true">/</span><span aria-current="page">{{nameOrNew}}</span></nav>
+        <div style="display: flex; gap: 10px; align-items: center">
+          <dc-import name="StatusBadge" status="{{statusKey}}" hint-size="96px,22px"></dc-import>
+          <button type="button" class="kc" onClick="{{saveDraft}}" style="min-height: 42px">Save draft</button>
+          <button type="button" class="kc go" aria-disabled="{{pubDisabled}}" aria-describedby="pub-why" onClick="{{publish}}">Publish to library</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+        <form onSubmit="{{noSubmit}}" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+          <section class="card" aria-labelledby="b-h">
+            <h2 id="b-h" class="h2"><span class="n">1</span>Basics</h2>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+              <div class="fg"><label for="e-name" class="lbl">Name</label><input id="e-name" class="field" value="{{name}}" onChange="{{setName}}" aria-invalid="{{nameBad}}" aria-describedby="e-name-err"><sc-if value="{{nameBadB}}" hint-placeholder-val="{{ false }}"><span id="e-name-err" class="err" role="alert">Give the switch a name.</span></sc-if></div>
+              <div class="fg"><label for="e-brand" class="lbl">Brand</label><input id="e-brand" class="field" value="Clack Works"></div>
+            </div>
+            <div class="fg"><span id="e-type" class="lbl">Type</span>
+              <div role="radiogroup" aria-labelledby="e-type" style="display: flex; gap: 8px; flex-wrap: wrap"><sc-for list="{{types}}" as="t" hint-placeholder-count="4"><button type="button" role="radio" class="kc" aria-checked="{{t.on}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div>
+            </div>
+            <div class="fg"><span id="e-stem" class="lbl">Stem color</span>
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+                <div role="radiogroup" aria-labelledby="e-stem" style="display: flex; gap: 8px"><sc-for list="{{stems}}" as="c" hint-placeholder-count="8"><button type="button" role="radio" class="sw" aria-checked="{{c.on}}" aria-label="{{c.name}}" title="{{c.name}}" onClick="{{c.pick}}" style="background: {{c.hex}}"></button></sc-for></div>
+                <label for="e-hex" class="lbl" style="margin-left: 8px">Hex</label><input id="e-hex" class="field mono" value="{{stem}}" onChange="{{setHex}}" style="width: 110px">
+              </div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="s-h">
+            <h2 id="s-h" class="h2"><span class="n">2</span>Specs and force curve</h2>
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+              <div class="fg"><label for="e-f" class="lbl">Actuation force</label><div class="unit"><input id="e-f" class="field" inputmode="numeric" value="{{force}}" onChange="{{setForce}}"><span>g</span></div></div>
+              <div class="fg"><label for="e-a" class="lbl">Actuation point</label><div class="unit"><input id="e-a" class="field" inputmode="decimal" value="{{act}}" onChange="{{setAct}}"><span>mm</span></div></div>
+              <div class="fg"><label for="e-t" class="lbl">Total travel</label><div class="unit"><input id="e-t" class="field" inputmode="decimal" value="{{total}}" onChange="{{setTotal}}"><span>mm</span></div></div>
+              <div class="fg"><label for="e-s" class="lbl">Spring</label><div class="unit"><input id="e-s" class="field" inputmode="decimal" value="18"><span>mm</span></div></div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 16px">
+              <div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 8px">
+                <span class="lbl">Force curve points</span>
+                <table class="pt">
+                  <thead><tr><th scope="col">Travel (mm)</th><th scope="col">Force (g)</th><th scope="col"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Remove</span></th></tr></thead>
+                  <tbody>
+                    <sc-for list="{{points}}" as="pt" hint-placeholder-count="5">
+                      <tr><td><input class="field" aria-label="{{pt.tLabel}}" value="{{pt.t}}"></td><td><input class="field" aria-label="{{pt.fLabel}}" value="{{pt.f}}"></td><td style="width: 44px"><button type="button" class="kc" aria-label="{{pt.rmLabel}}" style="width: 32px; padding: 0">×</button></td></tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+                <button type="button" class="kc" style="align-self: flex-start">+ Add point</button>
+              </div>
+              <div style="flex: 1.3 1 320px; border: 2px solid #000; background: #FFFFFF; padding: 10px"><dc-import name="ForceCurve" curve="{{curve}}" force="{{forceN}}" act="{{actN}}" total="{{totalN}}" height="180" hint-size="100%,210px"></dc-import></div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="snd-h">
+            <h2 id="snd-h" class="h2"><span class="n">3</span>Sounds</h2>
+            <p style="margin: 0; font-size: 13px; line-height: 18px; font-weight: 500">Upload one press and one release per variant. Stock is required to publish; lubed and foam can follow.</p>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+              <dc-import name="UploadDropZone" label="Stock · press sound" profile="Poppy" seed="11" file-name="coral-pop_stock_press.wav" on-done="{{pressDone}}" hint-size="100%,140px"></dc-import>
+              <dc-import name="UploadDropZone" label="Stock · release sound" profile="Poppy" seed="23" file-name="coral-pop_stock_release.wav" on-done="{{releaseDone}}" hint-size="100%,140px"></dc-import>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="ph-h">
+            <h2 id="ph-h" class="h2"><span class="n">4</span>Photo</h2>
+            <label style="border: 2.5px dashed #000; background: #FFFDF5; min-height: 96px; padding: 14px; display: flex; align-items: center; gap: 14px; cursor: pointer">
+              <span aria-hidden="true" style="flex: none; width: 64px; height: 64px; border: 2.5px solid #000; background: repeating-linear-gradient(45deg, #FFF1C7 0 6px, #FFFDF5 6px 12px); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900">IMG</span>
+              <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 900">Drop a photo or choose a file</span><span class="mono" style="font-size: 11px; font-weight: 700">PNG OR JPG · SQUARE · AT LEAST 800 PX</span></span>
+              <input type="file" accept="image/png,image/jpeg" aria-label="Choose a switch photo" style="width: 110px; font-size: 12px">
+            </label>
+          </section>
+        </form>
+
+        <aside aria-label="Preview and publishing" style="flex: 1 1 280px; min-width: 260px; display: flex; flex-direction: column; gap: 14px">
+          <section class="card" aria-labelledby="pv-h" style="background: var(--sky)">
+            <h2 id="pv-h" class="h2">Library preview</h2>
+            <div style="width: 200px"><dc-import name="SwitchCard" sw="{{previewSw}}" hint-size="200px,236px"></dc-import></div>
+            <span style="font-size: 12px; font-weight: 600">Press the card to hear the stock sound.</span>
+          </section>
+          <section class="card" aria-labelledby="ck-h">
+            <h2 id="ck-h" class="h2">Ready to publish?</h2>
+            <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+              <sc-for list="{{checks}}" as="c" hint-placeholder-count="5">
+                <li style="display: flex; align-items: center; gap: 8px; font-weight: 700"><span aria-hidden="true" style="width: 18px; height: 18px; border: 2px solid #000; background: {{c.bg}}; display: flex; align-items: center; justify-content: center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="4" stroke-linecap="square"><path d="{{c.icon}}"></path></svg></span><span>{{c.label}}</span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">{{c.state}}</span></li>
+              </sc-for>
+            </ul>
+            <p id="pub-why" style="margin: 0; font-size: 12px; line-height: 16px; font-weight: 600">{{pubHint}}</p>
+            <div style="display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 2px solid #000">
+              <button type="button" class="tg" role="switch" aria-checked="{{featureOn}}" aria-labelledby="ft-l" onClick="{{toggleFeature}}"><span></span></button>
+              <span id="ft-l" style="font-weight: 800">Mark as New in the library</span>
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
+        <div style="position: fixed; right: 24px; bottom: 24px; width: 460px; max-width: calc(100% - 48px); z-index: 5"><dc-import name="Toast" kind="{{toastKind}}" title="{{toastTitle}}" body="{{toastBody}}" action="{{toastAction}}" href="MktLibrary.dc.html" on-dismiss="{{dismiss}}" hint-size="100%,72px"></dc-import></div>
+      </sc-if>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+const STEMS = [['Coral', '#F16B53'], ['Milk yellow', '#E9C46A'], ['Red', '#D64545'], ['Ink', '#2A2E38'], ['Brown', '#7A4E2D'], ['Blue', '#2F6FD6'], ['Jade', '#2E9E7A'], ['Lilac', '#8C6BB1']];
+const CURVE = { Linear: 'linear', Tactile: 'tactile', Clicky: 'clicky', Silent: 'linear' };
+class Component extends DCLogic {
+  state = { name: 'Coral Pop', type: 'Tactile', stem: '#F16B53', force: '62', act: '2.0', total: '3.8', press: false, release: false, published: false, draft: false, feature: true, toast: null };
+  renderVals() {
+    const s = this.state;
+    const nameOk = s.name.trim().length > 0;
+    const ready = nameOk && s.press && s.release;
+    const F = Math.max(30, Math.min(90, parseFloat(s.force) || 60)), A = Math.max(1, Math.min(3, parseFloat(s.act) || 2)), T = Math.max(3, Math.min(4.5, parseFloat(s.total) || 4));
+    const ok = 'M5 12.5l4.5 4.5L19 7.5', no = 'M6 12h12';
+    const check = (label, done) => ({ label: label, bg: done ? '#C6F079' : '#FFFFFF', icon: done ? ok : no, state: done ? 'done' : 'to do' });
+    return {
+      name: s.name, setName: (e) => this.setState({ name: e.target.value }), nameBad: String(!nameOk), nameBadB: !nameOk,
+      nameOrNew: nameOk ? s.name : 'New switch',
+      types: ['Linear', 'Tactile', 'Clicky', 'Silent'].map((t) => ({ label: t, on: String(t === s.type), pick: () => this.setState({ type: t }) })),
+      stems: STEMS.map((c) => ({ name: c[0], hex: c[1], on: String(c[1] === s.stem), pick: () => this.setState({ stem: c[1] }) })),
+      stem: s.stem, setHex: (e) => this.setState({ stem: e.target.value }),
+      force: s.force, act: s.act, total: s.total,
+      setForce: (e) => this.setState({ force: e.target.value }), setAct: (e) => this.setState({ act: e.target.value }), setTotal: (e) => this.setState({ total: e.target.value }),
+      curve: CURVE[s.type], forceN: F, actN: A, totalN: T,
+      points: [[0, 0], [0.4, 38], [0.8, F + 14], [A, F], [T, 92]].map((q, i) => ({ t: Number(q[0]).toFixed(1), f: Math.round(q[1]), tLabel: 'Point ' + (i + 1) + ' travel', fLabel: 'Point ' + (i + 1) + ' force', rmLabel: 'Remove point ' + (i + 1) })),
+      pressDone: () => this.setState({ press: true }), releaseDone: () => this.setState({ release: true }),
+      previewSw: { id: 'preview', name: nameOk ? s.name : 'New switch', type: s.type, stem: s.stem, housing: 'milky', force: F, act: A, total: T, prof: 'Poppy', snd: s.press ? { pitch: 980, bright: .5, decay: 56, thump: .7, vol: .72 } : { none: true }, nosound: !s.press },
+      checks: [check('Name and type', nameOk), check('Specs and force curve', true), check('Stock press sound', s.press), check('Stock release sound', s.release), check('Photo (optional)', false)],
+      pubDisabled: String(!ready || s.published),
+      pubHint: s.published ? 'Live in the public library.' : ready ? 'Everything required is in. Publishing makes it visible to everyone.' : 'Upload the stock press and release sounds to publish.',
+      statusKey: s.published ? 'published' : 'draft',
+      featureOn: String(s.feature), toggleFeature: () => this.setState({ feature: !s.feature }),
+      noSubmit: (e) => e.preventDefault(),
+      saveDraft: () => this.setState({ draft: true, toast: 'draft' }),
+      publish: () => { if (!ready || s.published) { this.setState({ toast: ready ? null : 'blocked' }); return; } this.setState({ published: true, toast: 'published' }); },
+      toast: !!s.toast,
+      toastKind: s.toast === 'blocked' ? 'error' : s.toast === 'draft' ? 'info' : 'success',
+      toastTitle: s.toast === 'blocked' ? 'Can’t publish yet' : s.toast === 'draft' ? 'Draft saved' : s.name + ' published',
+      toastBody: s.toast === 'blocked' ? 'Add the stock press and release sounds first.' : s.toast === 'draft' ? 'Only admins can see it.' : 'It’s live in the public switch library.',
+      toastAction: s.toast === 'published' ? 'View in library' : '',
+      dismiss: () => this.setState({ toast: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

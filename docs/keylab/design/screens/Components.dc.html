@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyLab · Components and states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&amp;family=Nunito:wght@700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.kl{--acc:#FFD24D;--lime:#C6F079;--coral:#F16B53;--sky:#99D6FF;--indigo:#2C2A5A;--text:#000;--surface2:#FFF1C7;font-family:'Archivo',system-ui,-apple-system,sans-serif;color:#000;background:#FFFDF5;-webkit-font-smoothing:antialiased}
+.kl *{box-sizing:border-box}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.kc{appearance:none;margin:0;cursor:pointer;font:inherit;font-size:14px;font-weight:800;color:#000;background:#FFFDF5;border:2.5px solid #000;border-radius:0;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:3px 3px 0 #000;transition:transform 70ms ease,box-shadow 70ms ease;white-space:nowrap}
+.kc:hover{background:#FFF1C7}
+.kc:active,.kc.down{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.kc[aria-pressed="true"],.kc.on{background:var(--acc)}
+.kc.primary{background:var(--lime);min-height:54px;font-size:16px;font-weight:900;border-width:3px;box-shadow:5px 5px 0 #000}
+.kc.primary.down,.kc.primary:active{transform:translate(5px,5px);box-shadow:0 0 0 #000}
+.kc.coral{background:var(--coral)}
+.kc.ghost{background:transparent;box-shadow:none}
+.kc.ghost[aria-pressed="true"]{background:var(--acc);box-shadow:3px 3px 0 #000}
+.kc.sm{padding:0 12px;font-size:13px}
+.kc.icon{width:44px;padding:0}
+.kc:focus-visible,.kc.focus{outline:3px solid var(--coral);outline-offset:3px}
+.sec{display:flex;flex-direction:column;gap:14px}
+.h2{margin:0;font-size:24px;line-height:26px;font-weight:900;letter-spacing:-.045em}
+.lbl{font-size:12px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;margin:0}
+.box{background:#FFFFFF;border:3px solid #000;box-shadow:6px 6px 0 #000;padding:18px}
+.sticker{display:inline-flex;align-items:center;padding:1px 6px;border:2px solid #000;background:var(--acc);color:#000;font-size:10px;line-height:14px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.tag{padding:2px 7px;border:2px solid #000;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+</style>
+</helmet>
+<div class="kl" style="width: 1440px; min-height: 1900px; padding: 48px; display: flex; flex-direction: column; gap: 44px">
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding-bottom: 22px; border-bottom: 4px solid #000">
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="sticker" style="align-self: flex-start">KeyLab · working name</span>
+      <h1 style="margin: 0; font-size: 64px; line-height: 56px; font-weight: 900; letter-spacing: -0.06em">COMPONENTS,<br>STATES &amp; TOKENS</h1>
+    </div>
+    <p style="margin: 0; max-width: 480px; font-size: 15px; line-height: 22px; font-weight: 600">Neo-Brutalist zine. Everything is flat: 2.5–3px black outlines, hard 0-blur black shadows, square corners. A press slides the element into its own shadow. Circles only for slider handles.</p>
+  </div>
+
+  <div style="display: flex; gap: 28px; align-items: stretch">
+    <section class="sec box" style="flex: 0 0 640px" aria-labelledby="tok-h">
+      <h2 id="tok-h" class="h2">Color tokens</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+        <sc-for list="{{palettes}}" as="pal" hint-placeholder-count="2">
+          <div style="border: 3px solid #000; padding: 12px; background: {{pal.bg}}; display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 13px; font-weight: 900; color: {{pal.fg}}">{{pal.name}}</span>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+              <sc-for list="{{pal.tokens}}" as="t" hint-placeholder-count="9">
+                <div style="display: flex; flex-direction: column; gap: 3px">
+                  <span style="height: 32px; border: 2.5px solid #000; background: {{t.hex}}"></span>
+                  <span style="font-size: 11px; font-weight: 900; color: {{pal.fg}}">{{t.name}}</span>
+                  <span class="mono" style="font-size: 9px; font-weight: 700; color: {{pal.fg}}">{{t.hex}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section class="sec box" style="flex: 1 1 0; min-width: 0" aria-labelledby="type-h">
+      <h2 id="type-h" class="h2">Type</h2>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; border-bottom: 2px solid #000; padding-bottom: 6px"><span style="font-size: 52px; line-height: 46px; font-weight: 900; letter-spacing: -0.055em">Display</span><span class="mono" style="font-size: 10px; font-weight: 700">52/46 · 900</span></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; border-bottom: 2px solid #000; padding-bottom: 6px"><span style="font-size: 36px; line-height: 34px; font-weight: 900; letter-spacing: -0.05em">Title</span><span class="mono" style="font-size: 10px; font-weight: 700">36/34 · 900</span></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; border-bottom: 2px solid #000; padding-bottom: 6px"><span style="font-size: 17px; line-height: 20px; font-weight: 900; letter-spacing: -0.03em">Card title</span><span class="mono" style="font-size: 10px; font-weight: 700">17/20 · 900</span></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; border-bottom: 2px solid #000; padding-bottom: 6px"><span style="font-size: 14px; line-height: 20px; font-weight: 500">Body text for descriptions</span><span class="mono" style="font-size: 10px; font-weight: 700">14/20 · 500</span></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; border-bottom: 2px solid #000; padding-bottom: 6px"><span class="lbl">Label caps</span><span class="mono" style="font-size: 10px; font-weight: 700">12/14 · 900 · +8%</span></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px"><span class="mono" style="font-size: 13px; font-weight: 700">45G · 2.0MM · 4.0MM</span><span class="mono" style="font-size: 10px; font-weight: 700">Space Mono · specs</span></div>
+        <p style="margin: 4px 0 0; font-size: 12px; line-height: 17px; font-weight: 600">Archivo (black weights, tight tracking) for UI, Space Mono for specs and numbers.</p>
+      </div>
+    </section>
+
+    <section class="sec box" style="flex: 0 0 360px" aria-labelledby="btn-h">
+      <h2 id="btn-h" class="h2">Buttons</h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center">
+        <button type="button" class="kc primary">Primary</button>
+        <button type="button" class="kc primary down">Pressed</button>
+        <button type="button" class="kc coral">Coral CTA</button>
+        <button type="button" class="kc">Default</button>
+        <button type="button" class="kc down">Pressed</button>
+        <button type="button" class="kc on">Active</button>
+        <button type="button" class="kc ghost">Ghost</button>
+        <button type="button" class="kc focus">Focused</button>
+        <button type="button" class="kc icon coral" aria-label="Play"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4v16l14-8z"></path></svg></button>
+      </div>
+      <p style="margin: 0; font-size: 12px; line-height: 17px; font-weight: 600">Press: the button slides 3px (5px on primary) into its own shadow. Lime for go-forward, coral for sound and playground, yellow for active.</p>
+    </section>
+  </div>
+
+  <div style="display: flex; gap: 28px; align-items: stretch">
+    <section class="sec box" style="flex: 1 1 0" aria-labelledby="chip-h">
+      <h2 id="chip-h" class="h2">Tabs, chips, tags &amp; slider</h2>
+      <p class="lbl">Layout tabs</p>
+      <div style="display: flex; gap: 10px">
+        <button type="button" class="kc sm" aria-pressed="false" style="width: 66px">60%</button>
+        <button type="button" class="kc sm" aria-pressed="true" style="width: 66px">65%</button>
+        <button type="button" class="kc sm" aria-pressed="false" style="width: 66px">75%</button>
+        <button type="button" class="kc sm" aria-pressed="false" style="width: 66px">TKL</button>
+        <button type="button" class="kc sm" aria-pressed="false" style="width: 66px">100%</button>
+      </div>
+      <p class="lbl">Sound &amp; force filters (multi)</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px">
+        <button type="button" class="kc sm ghost" aria-pressed="true">Deep</button>
+        <button type="button" class="kc sm ghost" aria-pressed="false">Poppy</button>
+        <button type="button" class="kc sm ghost" aria-pressed="false">Clacky</button>
+        <button type="button" class="kc sm ghost" aria-pressed="false">Muted</button>
+        <button type="button" class="kc sm ghost" aria-pressed="true">≤50g</button>
+        <button type="button" class="kc sm ghost" aria-pressed="false">Short travel</button>
+      </div>
+      <p class="lbl">Type tags</p>
+      <div style="display: flex; gap: 8px">
+        <span class="tag" style="background: #2C2A5A; color: #FFFFFF">Linear</span>
+        <span class="tag" style="background: #FFD24D">Tactile</span>
+        <span class="tag" style="background: #99D6FF">Clicky</span>
+        <span class="tag" style="background: #FFFFFF">Silent</span>
+        <span class="sticker" style="background: var(--lime)">Picked</span>
+      </div>
+      <p class="lbl">Deep ↔ bright meter</p>
+      <div aria-hidden="true" style="display: flex; flex-direction: column; gap: 8px; max-width: 420px">
+        <div style="position: relative; height: 3px; background: #000; margin: 8px 0"><span style="position: absolute; top: 50%; left: 30%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2.5px solid #000; background: var(--coral)"></span><span style="position: absolute; top: 50%; left: 72%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2.5px solid #000; background: var(--lime)"></span></div>
+        <div class="mono" style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700"><span>DEEP</span><span>BRIGHT</span></div>
+      </div>
+    </section>
+
+    <section class="sec box" style="flex: 0 0 420px" aria-labelledby="wf-h">
+      <h2 id="wf-h" class="h2">Sound waveform</h2>
+      <sc-for list="{{profiles}}" as="p" hint-placeholder-count="4">
+        <div style="display: grid; grid-template-columns: 70px minmax(0, 1fr); align-items: center; gap: 10px; padding: 6px 8px; border: 2.5px solid #000; background: #FFFDF5">
+          <span style="font-size: 14px; font-weight: 900">{{p.name}}</span>
+          <dc-import name="Waveform" profile="{{p.name}}" height="32" labels="{{ false }}" seed="{{p.seed}}" hint-size="100%,32px"></dc-import>
+        </div>
+      </sc-for>
+      <p style="margin: 0; font-size: 12px; line-height: 17px; font-weight: 600">Indigo bars = press, coral bars = release. Deep profiles ring longer; clacky ones spike and stop.</p>
+    </section>
+  </div>
+
+  <section class="sec" aria-labelledby="sc-h">
+    <h2 id="sc-h" class="h2">Switch card · states</h2>
+    <div style="display: grid; grid-template-columns: repeat(6, 184px); gap: 22px">
+      <sc-for list="{{cards}}" as="c" hint-placeholder-count="6">
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <dc-import name="SwitchCard" sw="{{c.sw}}" selected="{{c.sel}}" compare="{{c.cmp}}" checked="{{c.chk}}" state="{{c.state}}" hint-size="184px,236px"></dc-import>
+          <span class="mono" style="font-size: 11px; font-weight: 700">{{c.label}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="tg-h">
+    <h2 id="tg-h" class="h2">Mod toggle card</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start">
+      <dc-import name="ToggleCard" title="Case foam" desc="Fills the hollow under the PCB. Cuts ping and echo for a tighter, deeper sound." impact="deeper · less echo" on="{{ true }}" hint-size="100%,170px"></dc-import>
+      <dc-import name="ToggleCard" title="O-rings" desc="Rubber rings under the keycaps shorten travel and soften the bottom-out." impact="quieter · shorter" on="{{ false }}" hint-size="100%,170px"></dc-import>
+      <dc-import name="ToggleCard" title="Lube" desc="Lubing stems and springs smooths the stroke and rounds off scratchy noise." impact="smoother · deeper" levels="{{lubeLevels}}" level="{{lubeLevel}}" hint-size="100%,220px"></dc-import>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="fc-h">
+    <h2 id="fc-h" class="h2">Force curve</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+      <sc-for list="{{curves}}" as="f" hint-placeholder-count="3">
+        <div class="box" style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 16px; font-weight: 900; letter-spacing: -0.02em">{{f.label}}</span>
+          <dc-import name="ForceCurve" curve="{{f.curve}}" force="{{f.force}}" act="{{f.act}}" total="{{f.total}}" height="150" hint-size="100%,170px"></dc-import>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <div style="display: flex; gap: 32px; align-items: flex-start">
+    <section class="sec" style="flex: 0 0 auto" aria-labelledby="bc-h">
+      <h2 id="bc-h" class="h2">Build summary &amp; share card</h2>
+      <div style="display: flex; gap: 24px; align-items: flex-start">
+        <dc-import name="BuildCard" width="360" hint-size="360px,450px"></dc-import>
+        <dc-import name="BuildCard" variant="share" width="300" hint-size="300px,390px"></dc-import>
+      </div>
+    </section>
+
+    <section class="sec" style="flex: 1 1 0; min-width: 0" aria-labelledby="st-h">
+      <h2 id="st-h" class="h2">Empty, loading &amp; no-sound states</h2>
+      <div class="box" style="display: flex; align-items: center; gap: 18px">
+        <div aria-hidden="true" style="flex: none; position: relative; width: 100px; height: 84px">
+          <span style="position: absolute; left: 4px; top: 28px; width: 48px; height: 46px; border: 3px solid #000; background: var(--sky); box-shadow: 4px 4px 0 #000; transform: rotate(-8deg)"></span>
+          <span style="position: absolute; left: 44px; top: 8px; width: 48px; height: 46px; border: 3px solid #000; background: var(--acc); box-shadow: 4px 4px 0 #000; transform: rotate(7deg)"></span>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 22px; font-weight: 900; letter-spacing: -0.04em">No builds yet</span>
+          <span style="font-size: 14px; line-height: 20px; font-weight: 500">Start from a preset, or pick a layout and try some switches. Your builds save here.</span>
+        </div>
+        <button type="button" class="kc primary">Start a build</button>
+      </div>
+
+      <div class="box" style="display: flex; flex-direction: column; gap: 12px" aria-busy="true" aria-label="Loading keyboard preview">
+        <div style="border: 3px solid #000; background: var(--sky); padding: 14px; display: flex; flex-direction: column; gap: 5px">
+          <sc-for list="{{skeleton}}" as="r" hint-placeholder-count="5">
+            <div style="display: flex; gap: 5px">
+              <sc-for list="{{r.keys}}" as="k" hint-placeholder-count="14"><span style="flex: {{k}} 1 0; height: 22px; border: 2px dashed #000; background: {{r.col}}"></span></sc-for>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span style="flex: 1; height: 14px; border: 2.5px solid #000; background: #FFFFFF; display: flex"><span style="width: 45%; background: repeating-linear-gradient(45deg, #000 0 4px, #FFD24D 4px 10px)"></span></span>
+          <span style="font-size: 13px; font-weight: 900">LOADING SWITCH SOUNDS…</span>
+        </div>
+      </div>
+
+      <div role="status" class="box" style="display: flex; align-items: center; gap: 14px; background: #FFF1C7">
+        <span aria-hidden="true" style="flex: none; width: 46px; height: 46px; border: 3px solid #000; background: #000; color: #FFFDF5; display: flex; align-items: center; justify-content: center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><path d="M4 9v6h4l5 4V5L8 9z"></path><path d="M17 9l4 6M21 9l-4 6"></path></svg>
+        </span>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 17px; font-weight: 900">No sound for Proto Orange yet</span>
+          <span style="font-size: 13px; line-height: 18px; font-weight: 500">You can still compare its specs and force curve. Key presses use a silent preview.</span>
+        </div>
+        <button type="button" class="kc sm">Notify me</button>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+const T = ['bg', 'surface', 'cream', 'ink', 'yellow', 'lime', 'coral', 'sky', 'indigo'];
+const PAPER = ['#FFFDF5', '#FFFFFF', '#FFF1C7', '#000000', '#FFD24D', '#C6F079', '#F16B53', '#99D6FF', '#2C2A5A'];
+const INK = ['#1E1C3F', '#2C2A5A', '#3A3870', '#FFFDF5', '#FFD24D', '#C6F079', '#F16B53', '#99D6FF', '#000000'];
+const SWS = {
+  milk: { id: 'milk', name: 'Milk Yellow', type: 'Linear', stem: '#E9C46A', housing: 'milky', force: 50, act: 2.0, total: 4.0, prof: 'Deep', snd: { pitch: 520, bright: .25, decay: 70, thump: .9, vol: .7 } },
+  peak: { id: 'peak', name: 'Peak Tactile', type: 'Tactile', stem: '#EFEBE0', housing: 'milky', force: 67, act: 2.0, total: 4.0, prof: 'Poppy', snd: { pitch: 1050, bright: .55, decay: 60, thump: .7, vol: .75 } },
+  blue: { id: 'blue', name: 'Click Blue', type: 'Clicky', stem: '#2F6FD6', housing: 'ice', box: true, force: 60, act: 2.2, total: 4.0, prof: 'Clacky', snd: { pitch: 1300, bright: .65, decay: 50, thump: .4, vol: .7, click: true } },
+  hush: { id: 'hushr', name: 'Hush Red', type: 'Silent', stem: '#E07A7A', housing: 'smoke', force: 45, act: 1.9, total: 3.7, prof: 'Muted', snd: { pitch: 380, bright: .08, decay: 34, thump: .4, vol: .28 } },
+  proto: { id: 'proto', name: 'Proto Orange', type: 'Tactile', stem: '#E58A3A', housing: 'clear', force: 58, act: 2.0, total: 3.8, prof: 'Poppy', snd: { none: true }, nosound: true }
+};
+class Component extends DCLogic {
+  renderVals() {
+    const key = (n) => Array.from({ length: n }, () => 1);
+    return {
+      palettes: [
+        { name: 'Paper (default)', bg: '#FFFDF5', fg: '#000000', tokens: T.map((n, i) => ({ name: n, hex: PAPER[i] })) },
+        { name: 'Ink variant', bg: '#1E1C3F', fg: '#FFFDF5', tokens: T.map((n, i) => ({ name: i === 8 ? 'outline' : n, hex: INK[i] })) }
+      ],
+      profiles: [{ name: 'Deep', seed: 3 }, { name: 'Poppy', seed: 11 }, { name: 'Clacky', seed: 19 }, { name: 'Muted', seed: 27 }],
+      cards: [
+        { sw: SWS.milk, sel: false, cmp: false, chk: false, state: 'default', label: 'DEFAULT' },
+        { sw: SWS.milk, sel: true, cmp: false, chk: false, state: 'default', label: 'SELECTED' },
+        { sw: SWS.blue, sel: false, cmp: true, chk: true, state: 'default', label: 'COMPARE · PICKED' },
+        { sw: SWS.hush, sel: false, cmp: true, chk: false, state: 'default', label: 'COMPARE · NOT PICKED' },
+        { sw: SWS.proto, sel: false, cmp: false, chk: false, state: 'default', label: 'NO SOUND AVAILABLE' },
+        { sw: SWS.peak, sel: false, cmp: false, chk: false, state: 'loading', label: 'LOADING' }
+      ],
+      lubeLevels: ['None', 'Light', 'Heavy'], lubeLevel: 1,
+      curves: [
+        { label: 'Linear · Milk Yellow', curve: 'linear', force: 50, act: 2.0, total: 4.0 },
+        { label: 'Tactile · Peak Tactile', curve: 'tactile', force: 67, act: 2.0, total: 4.0 },
+        { label: 'Clicky · Click Blue', curve: 'clicky', force: 60, act: 2.2, total: 4.0 }
+      ],
+      skeleton: [
+        { keys: key(13).concat([2]), col: '#FFFDF5' },
+        { keys: [1.5].concat(key(12), [1.5]), col: '#FFFFFF' },
+        { keys: [1.75].concat(key(11), [2.25]), col: '#FFFDF5' },
+        { keys: [2.25].concat(key(10), [2.75]), col: '#FFFFFF' },
+        { keys: [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1.25, 1.25], col: '#FFFDF5' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

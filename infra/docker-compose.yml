@@ -85,6 +85,28 @@ services:
       timeout: 3s
       retries: 10
 
+  # KeyLab's database: one database, one schema per module, created by
+  # keylab-api's Flyway migrations at startup. Dev Keycloak keeps its own
+  # embedded store, so this Postgres is KeyLab's alone.
+  postgres:
+    image: postgres:18.6-alpine
+    environment:
+      POSTGRES_DB: keylab
+      POSTGRES_USER: keylab
+      POSTGRES_PASSWORD: ${KEYLAB_DB_PASSWORD:-keylab-dev-password}
+    volumes:
+      # Postgres 18 images keep data under /var/lib/postgresql/<major>/docker.
+      - keylab-db:/var/lib/postgresql
+    ports:
+      # Loopback only: keylab-api runs on the host in dev.
+      - "127.0.0.1:${KEYLAB_DB_PORT:-5432}:5432"
+    mem_limit: 300m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keylab -d keylab"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   mailpit:
     image: axllent/mailpit:v1.31.6
     ports:
@@ -140,5 +162,6 @@ services:
       retries: 20
 
 volumes:
+  keylab-db:
   redis-data:
   vault-data:
