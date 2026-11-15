@@ -85,6 +85,40 @@ public class SwitchRepository {
             .update() == 1;
     }
 
+    /**
+     * Puts the switch in the public library (ADM-03, US-39). The SQL repeats
+     * the sound check, so a switch whose sounds were just pulled cannot slip
+     * through. The first publish date stays when a pulled switch comes back.
+     *
+     * @param newUntil until when the New sticker shows, or null for none
+     * @return false when the row is gone or its stock sounds are not ready
+     */
+    public boolean publish(UUID id, Instant newUntil, String userId, Instant now) {
+        return jdbc.sql("""
+                UPDATE catalog.switches SET status = 'published', published_at = COALESCE(published_at, :now),
+                  new_until = :newUntil, updated_by = :userId, updated_at = :now, version = version + 1
+                WHERE id = :id AND sound_status = 'recorded'
+                """)
+            .param("id", id)
+            .param("newUntil", newUntil == null ? null : Timestamp.from(newUntil))
+            .param("userId", userId)
+            .param("now", Timestamp.from(now))
+            .update() == 1;
+    }
+
+    /** Pulls a published switch from the library; it stays for builds that use it ("hidden"). */
+    public void unpublish(UUID id, String userId, Instant now) {
+        jdbc.sql("""
+                UPDATE catalog.switches SET status = 'hidden', new_until = NULL, updated_by = :userId,
+                  updated_at = :now, version = version + 1
+                WHERE id = :id AND status = 'published'
+                """)
+            .param("id", id)
+            .param("userId", userId)
+            .param("now", Timestamp.from(now))
+            .update();
+    }
+
     private Map<String, Object> params(SwitchSpecs specs, UUID id, String slug, String userId, Instant now) {
         Map<String, Object> params = new HashMap<>();
         params.put("id", id);
@@ -106,7 +140,8 @@ public class SwitchRepository {
         return params;
     }
 
-    private Switch row(ResultSet rs, int rowNum) throws SQLException {
+    /** Maps a {@code catalog.switches} row; LibraryRepository reads the same rows. */
+    Switch row(ResultSet rs, int rowNum) throws SQLException {
         String profile = rs.getString("profile");
         SwitchSpecs specs = new SwitchSpecs(rs.getString("name"), rs.getString("brand"),
                 SwitchType.valueOf(rs.getString("type")), profile == null ? null : SoundProfile.valueOf(profile),
@@ -121,7 +156,7 @@ public class SwitchRepository {
     }
 
     /** NUMERIC(5,1) reads back as 62.0; the API sends 62. */
-    private static BigDecimal plain(BigDecimal value) {
+    static BigDecimal plain(BigDecimal value) {
         if (value == null) {
             return null;
         }

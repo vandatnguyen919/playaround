@@ -33,6 +33,8 @@ class SecurityConfig {
             .authorizeHttpRequests((authorize) -> authorize
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.GET, "/v1/health").permitAll()
+                // The public catalog (CAT): published items only, guests welcome.
+                .requestMatchers(HttpMethod.GET, "/v1/switches", "/v1/switches/**").permitAll()
                 // Each admin endpoint names its lowest role; none works below viewer.
                 .requestMatchers("/v1/admin/**").hasRole(Roles.VIEWER)
                 .anyRequest().authenticated())

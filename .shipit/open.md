@@ -169,7 +169,85 @@ Done and checked locally: see Current state in PRODUCT.md. Left:
 - **Multi-arch image to GHCR:** CI publishes it on `main` (see Images
   above).
 
-## US-37 Add or edit a switch (branch feature/kl0-keylab-foundation, PR open)
+## US-04 Switch page (branch feature/kl0-keylab-foundation, 2026-11-15)
+
+Verified: `SwitchDetailApiTest` (CAT-02 specs, curve, `include`, 304; CAT-03 order and
+empty list; CAT-04 ranking, never itself, default four, bad `page_size`; drafts, pulled
+and unknown are 404), web tests for picking and resampling sounds, `tsc`, lint,
+`vite build`, `check:api`, and `keylab-switch-page.spec.ts` (page, pickers play the
+right recordings from a test-served CDN, card playback, related, "Use in a build") plus
+the other KeyLab e2e against the local stack, after restarting keylab-api from the new
+jar (Dan approved). Left:
+
+- **Audio from a CDN is blocked by the gateway CSP** (`default-src 'self'`, no
+  `media-src`). The e2e runs on the Vite dev server, which sends no CSP. Next action: when
+  US-38 picks the CDN host, add it to `media-src` in the gateway's SecurityConfig.
+- **Copy and data not in the design:** the lede is built from the data ("A soft & muted
+  silent switch by E2E Works.") because switches have no description field; the stem row
+  shows the hex code, not a colour name; "No sound yet" on the badge and play button;
+  "Switch not found" / "This switch is not in the library."; "No similar switches yet.";
+  the play error "This sound could not be played."; and on the build page "Switch",
+  "Selected for this build." and "Change switch". Next action: Dan reviews, and decides
+  whether switches get a description field (ADM-02).
+- **The builder is still a placeholder:** "Use in a build" shows the picked switch on
+  `/keylab`, nothing more, until KL2. The app's selected-switch sheet (SwitchesLight)
+  belongs to that builder and is not built.
+- **"Compare with others"** links to the app library; compare mode is US-03.
+- **Sound summary words** for each profile are invented (api-design-v1.md lists them).
+
+## US-02 Browse the switch library (branch feature/kl0-keylab-foundation, 2026-11-15)
+
+Verified: `SwitchLibraryApiTest` (paging of 24 with no repeats, force sort across pages,
+a token from another sort refused, every filter incl. literal `%` in search, bad values
+400), web tests for the URL-to-query mapping, `tsc`, lint, `vite build`, `check:api`,
+and `keylab-library.spec.ts` (public and app library, filters, empty state with
+"Clear filters") plus the other KeyLab e2e against the local stack. Left:
+
+- **App page scope:** `/keylab/switches` has the head, chips and grid of SwitchesDesktop
+  and SwitchesMobile. The keyboard preview, desk pad, "Apply to all", compare mode, the
+  selected-switch panel and the "Short travel" chip need the builder and are left out;
+  each card links to its page instead. Next action: the builder stories.
+- **Copy not in the design:** the public "Recording" filter with "Has sound" and "No sound
+  yet" (US-02 asks for a sound status filter, the screens draw none), "Details" under each
+  app card, and the app empty state ("No switches match these filters", "No switches
+  yet"). Next action: Dan reviews.
+- **No search on the app page:** the app screens draw no search box. `?q=` still works in
+  the URL. Next action: Dan decides if the app page needs one.
+- **Each e2e run leaves two more pulled test switches** in the dev database.
+
+## US-39 Publish a switch (branch feature/kl0-keylab-foundation, 2026-11-15)
+
+Verified: `PublishSwitchApiTest` (409 until stock press and release, the
+SoundProcessed listener incl. late and failed events and two at once, library with
+New sticker, 304 on the ETag, pull and republish), `AdminSwitchApiTest` (drafts not in
+CAT-01), `ModularityTests`, web tests, `tsc`, lint, `vite build`, `check:api`, and
+`keylab-publish.spec.ts` plus the other KeyLab e2e against the local stack. Left:
+
+- **No real sound yet:** US-38 must publish `app.keylab.sound.SoundProcessed` when a
+  recording finishes. Until then the e2e (and anyone trying it locally) seeds
+  `catalog.switch_recordings` with `docker exec … psql` (`e2e/tests/keylab-support.ts`).
+  Next action: US-38.
+- **Module cycle to decide in US-38:** catalog depends on sound (it listens to
+  `SoundProcessed`), so sound cannot use a catalog type such as `SwitchPublished`.
+  Next action: decide where that event type lives before US-38 needs it (modulith-plan).
+- **`KeycloakTokenIntegrationTest` failed once** in a full `keylab-api` run (Keycloak
+  container not ready in time) and passed when rerun alone. See "Keycloak in
+  Testcontainers is slow here" under Verification.
+- **Copy not in the design:** "Pull from library", "Save changes", the "[name] pulled" and
+  "Changes saved" toasts, "Hidden" badge, the public "Show more switches" button, the
+  "24+ switches" count when more pages exist, the unfiltered empty state ("No switches
+  yet" / "The first recorded switches arrive soon."), and "This page is not built yet."
+  for public links with no page. Next action: Dan reviews.
+- **"popular" sort** has no play counts, so it lists the newest first. Next action: when
+  plays are recorded.
+- **Local stack:** keylab-api was restarted from the new jar (Dan approved) with
+  `COMPOSE_PROJECT_NAME=playground-verify MANAGEMENT_PORT=9191` and JDK 27; e2e needs
+  `COMPOSE_PROJECT_NAME=playground-verify` to find the Postgres container. `verify-stack.mjs up`
+  starts the jar that is there, so run `./gradlew :keylab-api:bootJar` first. Each e2e run leaves one pulled
+  ("hidden") test switch in the dev database by design (published switches
+  cannot be deleted).
+
+## US-37 Add or edit a switch (merged in PR #50)
 
 Verified 2026-11-15: `keylab-api` tests all green (new `AdminSwitchApiTest`,
 `AdminSwitchesTest`), web unit tests, `tsc -b`, lint, `vite build`, `check:api`,
@@ -180,9 +258,6 @@ stack. keylab-api on :8183 was restarted from the new jar. Left:
   API refuses `photoUploadId` (`422 photo_upload_unavailable`) and the picker is drawn
   disabled. Next action: US-38 lifts the refusal and wires the picker. Notion tickets
   US-37 and US-38 updated to match.
-- **"Drafts never appear in the public library"** holds because no public switch route
-  exists yet (tested: guests get 401). Next action: CAT-01 (US-02, US-39) must read
-  `status = 'published'` only; add the check to its tests.
 - **Audit events:** api-design says every admin write records one (ADM-13); nothing
   records them yet. Next action: part of US-44.
 - **Copy not in the design:** "Edit switch" title and slug crumb when editing, the
@@ -191,8 +266,7 @@ stack. keylab-api on :8183 was restarted from the new jar. Left:
   and editor-role messages, error toast bodies ("Check the fields marked in red.",
   "Someone else saved it first. Reload to see their version."), "Draft deleted".
   Next action: Dan reviews.
-- **Drawn but inactive until their stories:** sound drop zones (US-38), Publish and
-  "Mark as New" (US-39), the admin topbar search, range, bell and account, sidebar
+- **Drawn but inactive until their stories:** sound drop zones (US-38), the admin topbar search, range, bell and account, sidebar
   counts and "Last publish". Release force points can be sent through the API and are
   drawn, but the table edits press points only.
 - **PR:** open for review against main.

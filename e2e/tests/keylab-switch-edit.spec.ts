@@ -137,11 +137,14 @@ test('an editor adds, edits and deletes a draft switch with its force curve', as
   await testInfo.attach('switch-1024', { path: await shot(page, testInfo.outputPath('switch-1024.png')), contentType: 'image/png' })
   await page.setViewportSize({ width: 1440, height: 1500 })
 
-  // The draft is not for guests: the admin API wants a sign-in, and no public route serves it.
+  // The draft is not for guests: the admin API wants a sign-in, and the public library leaves it out.
   const guest = await page.context().browser()!.newContext({ baseURL: page.url() })
   const guestGet = await guest.request.get(`/bff/keylab/v1/admin/switches/${sw.id}`)
   expect(guestGet.status()).toBe(401)
-  expect((await guest.request.get(`/bff/keylab/v1/switches/${sw.slug}`)).status()).toBe(401)
+  expect((await guest.request.get(`/bff/keylab/v1/switches/${sw.slug}`)).status()).toBe(404)
+  const library = await guest.request.get(`/bff/keylab/v1/switches?q=${encodeURIComponent(name)}`)
+  expect(library.status()).toBe(200)
+  expect((await library.json()).data).toHaveLength(0)
   await guest.close()
 
   // Publishing waits for sounds (US-38, US-39).
