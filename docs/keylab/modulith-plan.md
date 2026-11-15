@@ -31,6 +31,8 @@ There is no admin module. Each module exposes its own `/v1/admin/...` controller
 
 The three events shown are examples: `sound` needs to hear about published switches, `catalog` waits for `SoundProcessed` before it allows publishing, and `community` builds its activity timeline from `BuildPublished`.
 
+Listening to an event is a dependency on the module that owns the event type. Since US-39 `catalog` listens to `SoundProcessed`, so `catalog` depends on `sound`, and `sound` must not refer to any `catalog` type (`ModularityTests` would fail on the cycle). If `sound` later needs `SwitchPublished`, decide first where that type lives (for example in `shared`, or the event moves to a third module); this is open for US-38.
+
 ## Package structure
 
 One Spring Boot app, root package `app.keylab`. Every direct sub-package is an application module; anything below it is internal unless it sits in the module's root package or a `@NamedInterface` package. Controllers are named after the endpoint IDs in [api-design-v1.md](api-design-v1.md).
@@ -43,13 +45,14 @@ keylab-api/
       UserId.java, Money.java
       problem/                   RFC 9457: ProblemTypes, ApiProblem, FieldError, ProblemAdvice
       security/                  resource server (audience keylab-api), realm roles to ROLE_*
-      web/                       KeyLab-API-Revision header, GET /v1/health (SYS-01)
+      web/                       KeyLab-API-Revision header, GET /v1/health (SYS-01), PublicCache
+                                 (public, max-age=300, ETag from the body, 304)
       paging/                    PageQuery (page_size, page_token), Cursor, PageResult
       concurrency/               ETags, IfMatch (412 on a stale tag)
       idempotency/               IdempotencyKeys, stored in schema "platform"
       persistence/               ModuleMigrations: one Flyway per schema
     catalog/
-      package-info.java          @ApplicationModule(allowedDependencies = "shared")
+      package-info.java          @ApplicationModule(allowedDependencies = { "shared", "sound" })
       CatalogApi.java            public: the only type other modules may call
       SwitchSummary.java         public read model
       SwitchPublished.java       public event
@@ -58,12 +61,15 @@ keylab-api/
         KeycapSetController.java, ModController.java, CaseOptionController.java
         admin/AdminSwitchController.java   ADM-02, ADM-03, ADM-06
         admin/AdminCatalogController.java  ADM-07
-      application/AdminSwitches.java   ADM-02 (US-37); CatalogService, PublishSwitch to come
+      application/AdminSwitches.java   ADM-02 (US-37)
+      application/SwitchPublication.java  ADM-03 (US-39)
+      application/SwitchLibrary.java   CAT-01 filters and paging (US-39, US-02)
       domain/Switch.java, SwitchSpecs.java, SwitchSpecsValidator.java, ForceCurvePoint.java, …
-      persistence/SwitchRepository.java  JdbcClient, schema "catalog"
-      events/SoundStatusListener.java  @ApplicationModuleListener on SoundProcessed
+      persistence/SwitchRepository.java, LibraryRepository.java  JdbcClient, schema "catalog"
+      events/SoundStatusListener.java  @ApplicationModuleListener on SoundProcessed (US-39), keeps
+                                       catalog.switch_recordings and switches.sound_status
     sound/
-      SoundApi.java, SoundProcessed.java
+      SoundApi.java, SoundProcessed.java   SoundProcessed exists since US-39; US-38 publishes it
       web/SoundRecipeController.java   BLD-10
       web/admin/                       ADM-04, ADM-05
       processing/                      upload, decode, peaks, loudness

@@ -130,7 +130,7 @@ The catalog is read-only and public: only published items appear, and admins cha
 
 | ID | Endpoint | What it does | Access | Stories |
 | --- | --- | --- | --- | --- |
-| CAT-01 | `GET /v1/switches` | List switches. Filters: `type` (linear, tactile, clicky, silent), `profile` (deep, poppy, clacky, muted), `sound` (recorded, missing), `q`, `is_new`. Sort: `popular`, `-publishedAt`, `force`. | Public | US-02, US-03, US-39 |
+| CAT-01 | `GET /v1/switches` | List published switches. Filters: `type` (linear, tactile, clicky, silent), `profile` (deep, poppy, clacky, muted), `sound` (recorded, missing), `q` (name or brand), `is_new`, `force_min` and `force_max` (grams, inclusive). Sort: `popular`, `-publishedAt`, `force`. | Public | US-02, US-03, US-39 |
 | CAT-02 | `GET /v1/switches/{slug}` | One switch: specs (force g, actuation and travel mm, spring, stem colour, housing), force curve points, sound summary. `include=sounds,related`. | Public | US-04 |
 | CAT-03 | `GET /v1/switches/{slug}/sounds` | Recordings by variant (stock, lubed, foam) and stroke (press, release): CDN URL, `durationMs`, `loudnessLufs`, waveform peaks. A switch with no recording returns `[]` and `soundStatus: "missing"`. | Public | US-03, US-04 |
 | CAT-04 | `GET /v1/switches/{slug}/related` | Switches that sound similar, for “Sounds similar”. | Public | US-04 |
@@ -138,6 +138,8 @@ The catalog is read-only and public: only published items appear, and admins cha
 | CAT-06 | `GET /v1/keycap-sets/{slug}` | One keycap set with its colourway for the keyboard preview. | Public | US-06 |
 | CAT-07 | `GET /v1/mods` | Mods with their effect on pitch, thock, volume and rattle, and the levels a mod offers (lube: none, light, heavy). | Public | US-05 |
 | CAT-08 | `GET /v1/case-options` | Case materials, colours, plates and mount styles, each with its sound effect. | Public | US-07 |
+
+CAT-01 details (US-39, US-02): only `status = 'published'` rows, so drafts and pulled switches never show. `popular` lists the newest first until play counts exist. A bad filter value is `400 invalid_parameter`; a `page_token` from another sort is `400 invalid_page_token`. The `ETag` is a hash of the body, and a matching `If-None-Match` gets `304`, so a change shows within one cache window (300 s).
 
 A switch in a list response:
 
@@ -246,6 +248,8 @@ Keycloak owns credentials: changing email or password, and linking Google or App
 Everything under `/v1/admin` needs at least `keylab-viewer`; each row names the lowest role that may call it, and every write records an audit event (ADM-13). A switch is a draft until it is published, and publishing is refused (`409 missing_required_sounds`) until the stock press and release recordings are ready.
 
 ADM-02 details (US-37): a switch is created as a draft and only editors see it. `PATCH` merges, then checks the whole result as a create would, so one `422` lists every field to fix (`/forceCurve/2/travelMm` points at a single curve point). Limits: name and brand up to 60 characters, force 10 to 150 g, travel 0.5 to 6 mm, actuation 0.1 mm up to below the travel, up to 50 curve points within the travel at 0 to 250 g, no two points of one stroke at the same travel. A draft's `slug` follows its name (`coral-pop`, then `coral-pop-2`); a published one keeps it. `DELETE` is for drafts only (`409 switch_not_draft`); a published switch is pulled with ADM-03 instead, because builds may use it. `photoUploadId` is refused (`422 photo_upload_unavailable`) until ADM-04 uploads exist; US-38 adds the photo. Unknown or malformed ids are `404 switch_not_found`.
+
+ADM-03 details (US-39): `POST …/publication` publishes once `soundStatus` is `recorded`, which means catalog holds a ready stock press and stock release (lubed and foam do not count); otherwise `409 missing_required_sounds`. Catalog learns this from the `sound` module's `SoundProcessed` event and keeps its own copy of the ready recordings (`catalog.switch_recordings`); a failed recording leaves the last ready one in place. Publishing bumps the row version (the ETag), keeps the first `publishedAt` when a pulled switch comes back, and sets the New sticker for 30 days when `markNew` is true (cleared when false). `DELETE …/publication` sets a published switch to `hidden`; on a draft or a hidden switch it changes nothing. Both answer `404 switch_not_found` for an unknown id. The AdminSwitch body always carries `sounds`, so the publish checklist ticks each stock stroke.
 
 | ID | Endpoint | What it does | Access | Stories |
 | --- | --- | --- | --- | --- |

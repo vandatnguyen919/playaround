@@ -1,0 +1,209 @@
+/* Switch card (SwitchCard.dc.html) */
+.scard {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  color: #000;
+  text-align: left;
+  border-radius: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 236px;
+  border: 3px solid #000;
+  background: #ffffff;
+  box-shadow: 4px 4px 0 #000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.scard-top {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 128px;
+  background: #fffdf5;
+  border-bottom: 3px solid #000;
+}
+
+.scard-tag {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  padding: 2px 6px;
+  border: 2px solid #000;
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--indigo);
+  color: #ffffff;
+}
+
+.scard-tag.tactile {
+  background: var(--acc);
+  color: #000;
+}
+
+.scard-tag.clicky {
+  background: var(--sky);
+  color: #000;
+}
+
+.scard-tag.silent {
+  background: #ffffff;
+  color: #000;
+}
+
+.scard-nosound {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 26px;
+  background: #000;
+  color: #fffdf5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.scard-body {
+  flex: 1;
+  padding: 9px 11px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.scard-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.scard-name {
+  font-size: 15px;
+  line-height: 19px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scard-stem {
+  flex: none;
+}
+
+.scard-spec {
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.scard-hint {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+button.scard {
+  cursor: pointer;
+  transition:
+    transform 70ms ease,
+    box-shadow 70ms ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button.scard:focus-visible {
+  outline: 3px solid var(--coral);
+  outline-offset: 3px;
+}
+
+button.scard.down {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 #000;
+}
+
+.scard-body {
+  background: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.scard-playing {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  height: 24px;
+  padding: 0 7px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.scard-playing span {
+  width: 3px;
+  background: var(--acc);
+}
+
+.scard-playing span:nth-child(1) {
+  height: 8px;
+}
+
+.scard-playing span:nth-child(2) {
+  height: 14px;
+}
+
+.scard-playing span:nth-child(3) {
+  height: 6px;
+}
+
+.scard-playing span:nth-child(4) {
+  height: 11px;
+}
+
+.scard-skel-art {
+  width: 72px;
+  height: 72px;
+  border: 3px dashed #000;
+  background: repeating-linear-gradient(45deg, #fff1c7 0 8px, #fffdf5 8px 16px);
+}
+
+.scard-skel {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scard-skel-l1 {
+  width: 70%;
+  height: 14px;
+  background: #000;
+}
+
+.scard-skel-l2 {
+  width: 45%;
+  height: 10px;
+  background: #c9c4b4;
+}
+
+.scard-skel-l3 {
+  width: 55%;
+  height: 10px;
+  background: #c9c4b4;
+}

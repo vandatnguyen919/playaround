@@ -8,9 +8,12 @@ import java.util.List;
 import java.util.UUID;
 
 import app.keylab.catalog.application.AdminSwitches;
+import app.keylab.catalog.application.SwitchPublication;
 import app.keylab.catalog.domain.ForceCurvePoint;
+import app.keylab.catalog.domain.Recording;
 import app.keylab.catalog.domain.Switch;
 import app.keylab.catalog.domain.SwitchSpecs;
+import app.keylab.catalog.persistence.LibraryRepository;
 import app.keylab.shared.UserId;
 import app.keylab.shared.idempotency.IdempotencyKeys;
 import app.keylab.shared.idempotency.IdempotencyKeys.Stored;
@@ -42,8 +45,9 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * ADM-02 for one switch (US-37): create a draft, read, edit with JSON Merge
- * Patch and If-Match, delete a draft. Editor and up. The list (US-36) joins
- * this controller with its own story.
+ * Patch and If-Match, delete a draft. ADM-03 (US-39): publish to, or pull
+ * from, the public library. Editor and up. The list (US-36) joins this
+ * controller with its own story.
  */
 @RestController
 @RequestMapping("/v1/admin/switches")
@@ -54,12 +58,17 @@ class AdminSwitchController {
     private static final CacheControl PRIVATE = CacheControl.noStore().cachePrivate();
 
     private final AdminSwitches switches;
+    private final SwitchPublication publication;
+    private final LibraryRepository library;
     private final IdempotencyKeys idempotencyKeys;
     private final JsonMapper json;
     private final Clock clock = Clock.systemUTC();
 
-    AdminSwitchController(AdminSwitches switches, IdempotencyKeys idempotencyKeys, JsonMapper json) {
+    AdminSwitchController(AdminSwitches switches, SwitchPublication publication, LibraryRepository library,
+            IdempotencyKeys idempotencyKeys, JsonMapper json) {
         this.switches = switches;
+        this.publication = publication;
+        this.library = library;
         this.idempotencyKeys = idempotencyKeys;
         this.json = json;
     }
@@ -111,6 +120,26 @@ class AdminSwitchController {
         return ResponseEntity.noContent().build();
     }
 
+    /** ADM-03: publish once the stock press and release are ready, else 409 missing_required_sounds. */
+    @PostMapping(path = "/{id}/publication", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<AdminSwitch> publish(@PathVariable String id, @RequestBody(required = false) PublishInput body,
+            @AuthenticationPrincipal Jwt jwt) {
+        boolean markNew = body != null && Boolean.TRUE.equals(body.markNew());
+        Switch sw = publication.publish(parse(id), markNew, UserId.of(jwt));
+        return ResponseEntity.ok().cacheControl(PRIVATE).eTag(AdminSwitches.etag(sw)).body(view(sw));
+    }
+
+    /** ADM-03: pull from the public library; the switch stays for builds that use it. */
+    @DeleteMapping("/{id}/publication")
+    ResponseEntity<Void> unpublish(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
+        publication.unpublish(parse(id), UserId.of(jwt));
+        return ResponseEntity.noContent().build();
+    }
+
+    /** PublishInput in openapi-v1.yaml. */
+    record PublishInput(Boolean markNew) {
+    }
+
     /** Anything that is not a UUID names no switch: 404, like an id that does not exist. */
     private static UUID parse(String id) {
         try {
@@ -127,14 +156,19 @@ class AdminSwitchController {
         return new AdminSwitch(sw.id(), sw.slug(), s.name(), s.brand(), s.type().name(),
                 s.profile() == null ? null : s.profile().name(), s.stemColor(), s.forceG(), s.actuationMm(),
                 s.travelMm(), sw.soundStatus(), sw.newUntil() != null && sw.newUntil().isAfter(now),
-                sw.publishedAt(), s.spring(), s.housing(), s.bottomOutG(), s.forceCurve(), sw.status().name());
+                sw.publishedAt(), s.spring(), s.housing(), s.bottomOutG(), s.forceCurve(),
+                library.recordings(sw.id()), sw.status().name());
     }
 
-    /** AdminSwitch in openapi-v1.yaml. Unset optional fields are left out. */
+    /**
+     * AdminSwitch in openapi-v1.yaml. Unset optional fields are left out.
+     * {@code sounds} always comes, so the publish checklist can tick the stock
+     * press and release one by one.
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     record AdminSwitch(UUID id, String slug, String name, String brand, String type, String profile,
             String stemColor, BigDecimal forceG, BigDecimal actuationMm, BigDecimal travelMm, String soundStatus,
             boolean isNew, Instant publishedAt, String spring, String housing, BigDecimal bottomOutG,
-            List<ForceCurvePoint> forceCurve, String status) {
+            List<ForceCurvePoint> forceCurve, List<Recording> sounds, String status) {
     }
 }

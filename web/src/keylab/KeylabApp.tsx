@@ -5,6 +5,8 @@ import AppShell from './layout/AppShell.tsx'
 import { BuildPage, Placeholder } from './pages/Pages.tsx'
 import AdminShell, { AdminPlaceholder } from './admin/AdminShell.tsx'
 import SwitchEditPage from './admin/switches/SwitchEditPage.tsx'
+import SiteFrame, { SitePlaceholder } from './site/SiteFrame.tsx'
+import LibraryPage from './site/LibraryPage.tsx'
 
 // The KeyLab app, under /keylab. The gateway serves index.html for /keylab/**
 // (SpaConfig), and main.tsx loads this chunk for those paths only.
@@ -27,6 +29,15 @@ const router = createBrowserRouter([
       { path: 'reports', element: <AdminPlaceholder title="Reports" /> },
       { path: 'settings', element: <AdminPlaceholder title="Settings" /> },
       { path: '*', element: <AdminPlaceholder title="Nothing here" /> },
+    ],
+  },
+  {
+    // The public site: marketing nav and footer, open to guests.
+    path: '/keylab',
+    element: <SiteFrame />,
+    children: [
+      { path: 'library', element: <LibraryPage /> },
+      { path: 'pages/:page', element: <SitePlaceholder /> },
     ],
   },
   {

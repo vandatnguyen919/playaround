@@ -23,6 +23,13 @@ US-37 (2026-11-15) added the first feature: editors add, edit and delete draft
 switches with specs and force curve (ADM-02 for one switch, `catalog.switches`)
 on the admin screen `/keylab/admin/switches/new` (admin frame under
 `/keylab/admin`). In review.
+US-39 (2026-11-15): editors publish a switch (ADM-03) only once its stock
+press and release are ready, which catalog learns from `sound`'s
+`SoundProcessed` event (`catalog.switch_recordings`). Published switches show
+in the public library at `/keylab/library` (CAT-01, cached 300 s with ETag),
+the first page of the public site frame (marketing nav and footer). Sound
+uploads are still US-38, so nothing can be published on a real stack yet
+without seeding recordings.
 
 ## First useful result
 

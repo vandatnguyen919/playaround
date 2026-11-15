@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { createSwitch, deleteSwitch, getSwitch, updateSwitch } from '../../api/adminSwitches.ts'
+import {
+  createSwitch,
+  deleteSwitch,
+  getSwitch,
+  publishSwitch,
+  unpublishSwitch,
+  updateSwitch,
+  type AdminSwitch,
+} from '../../api/adminSwitches.ts'
 import { ApiProblem, SIGN_IN_URL, toApiProblem } from '../../api/problem.ts'
 import { useHealth } from '../../api/useHealth.ts'
 import { AdminTopbar } from '../AdminShell.tsx'
@@ -23,13 +31,38 @@ import {
 
 // Add / edit switch (US-37), AdminSwitchEdit.dc.html. One route for both,
 // /keylab/admin/switches/new and /keylab/admin/switches/:id, so saving a new
-// switch moves to its own URL without losing the page. Sounds (US-38),
-// photos (they need ADM-04 uploads) and publishing (US-39) are drawn but
+// switch moves to its own URL without losing the page. Publishing (US-39)
+// saves, then publishes once the stock press and release sounds are ready.
+// Sound uploads (US-38) and photos (they need ADM-04 uploads) are drawn but
 // not active yet.
 
 const EDITOR = 'keylab-editor'
 
-type Loaded = { id: string; slug: string; etag: string; status: string; profile?: string }
+type Loaded = {
+  id: string
+  slug: string
+  etag: string
+  status: string
+  profile?: string
+  isNew: boolean
+  press: boolean
+  release: boolean
+}
+
+function loadedFrom(sw: AdminSwitch, etag: string): Loaded {
+  const stock = (stroke: 'press' | 'release') =>
+    (sw.sounds ?? []).some((sound) => sound.variant === 'stock' && sound.stroke === stroke)
+  return {
+    id: sw.id,
+    slug: sw.slug,
+    etag,
+    status: sw.status,
+    profile: sw.profile,
+    isNew: sw.isNew === true,
+    press: stock('press'),
+    release: stock('release'),
+  }
+}
 
 export default function SwitchEditPage() {
   const health = useHealth()
@@ -99,7 +132,10 @@ function SwitchEditor({ id }: { id: string }) {
           return
         }
         setForm(formFromSwitch(sw as SwitchData))
-        setLoaded({ id: sw.id, slug: sw.slug, etag, status: sw.status, profile: sw.profile })
+        setLoaded(loadedFrom(sw, etag))
+        if (sw.status === 'published') {
+          setMarkNew(sw.isNew === true)
+        }
       })
       .catch((error: unknown) => {
         if (active) {
@@ -162,34 +198,115 @@ function SwitchEditor({ id }: { id: string }) {
   }
 
   const { nameOk, specsOk } = readiness(form)
+  const ready = nameOk && loaded?.press === true && loaded?.release === true
   const nameBad = (nameTouched && !nameOk) || 'name' in errors
   const nameMessage = errors.name ?? 'Give the switch a name.'
   const typeLabel = TYPES.find((type) => type.value === form.type)?.label ?? 'Linear'
 
-  async function save() {
+  /** Saves the form; returns what was saved, or null after showing why it was not. */
+  async function persist(): Promise<Loaded | null> {
     if (!nameOk) {
       setNameTouched(true)
       nameInput.current?.focus()
+      return null
+    }
+    try {
+      const body = bodyFromForm(form)
+      let saved: Loaded
+      if (loaded === null) {
+        const { sw, etag } = await createSwitch(body, idempotencyKey.current)
+        idempotencyKey.current = crypto.randomUUID()
+        saved = loadedFrom(sw, etag)
+        setForm(formFromSwitch(sw as SwitchData))
+        navigate(`/keylab/admin/switches/${sw.id}`, { replace: true })
+      } else {
+        const { sw, etag } = await updateSwitch(loaded.id, body, loaded.etag)
+        saved = loadedFrom(sw, etag)
+        setForm(formFromSwitch(sw as SwitchData))
+      }
+      setLoaded(saved)
+      setErrors({})
+      return saved
+    } catch (error) {
+      showSaveProblem(error)
+      return null
+    }
+  }
+
+  async function save() {
+    setBusy(true)
+    setNotice(null)
+    try {
+      const saved = await persist()
+      if (saved) {
+        setNotice(
+          saved.status === 'draft'
+            ? { kind: 'info', title: 'Draft saved', body: 'Only admins can see it.' }
+            : { kind: 'info', title: 'Changes saved', body: 'The library shows them within 5 minutes.' },
+        )
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function publish() {
+    if (!ready) {
+      setNotice({ kind: 'error', title: 'Can’t publish yet', body: 'Add the stock press and release sounds first.' })
       return
     }
     setBusy(true)
     setNotice(null)
     try {
-      const body = bodyFromForm(form)
-      if (loaded === null) {
-        const { sw, etag } = await createSwitch(body, idempotencyKey.current)
-        idempotencyKey.current = crypto.randomUUID()
-        setLoaded({ id: sw.id, slug: sw.slug, etag, status: sw.status, profile: sw.profile })
-        setForm(formFromSwitch(sw as SwitchData))
-        navigate(`/keylab/admin/switches/${sw.id}`, { replace: true })
-      } else {
-        const { sw, etag } = await updateSwitch(loaded.id, body, loaded.etag)
-        setLoaded({ id: sw.id, slug: sw.slug, etag, status: sw.status, profile: sw.profile })
-        setForm(formFromSwitch(sw as SwitchData))
+      const saved = await persist()
+      if (!saved) {
+        return
       }
-      setErrors({})
-      setNotice({ kind: 'info', title: 'Draft saved', body: 'Only admins can see it.' })
+      const { sw, etag } = await publishSwitch(saved.id, markNew)
+      setLoaded(loadedFrom(sw, etag))
+      setNotice({
+        kind: 'success',
+        title: `${sw.name} published`,
+        body: 'It’s live in the public switch library.',
+        action: { label: 'View in library', to: '/keylab/library' },
+      })
     } catch (error) {
+      const problem = toApiProblem(error)
+      setNotice(
+        problem.code === 'missing_required_sounds'
+          ? { kind: 'error', title: 'Can’t publish yet', body: 'Add the stock press and release sounds first.' }
+          : { kind: 'error', title: problem.title, body: problem.detail ?? 'Try again in a moment.' },
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function pull() {
+    if (loaded === null) {
+      return
+    }
+    setBusy(true)
+    setNotice(null)
+    try {
+      await unpublishSwitch(loaded.id)
+      const { sw, etag } = await getSwitch(loaded.id)
+      setLoaded(loadedFrom(sw, etag))
+      setNotice({
+        kind: 'info',
+        title: `${sw.name} pulled`,
+        body: 'It’s out of the public library. Builds that use it keep it.',
+      })
+    } catch (error) {
+      const problem = toApiProblem(error)
+      setNotice({ kind: 'error', title: problem.title, body: problem.detail ?? 'Try again in a moment.' })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function showSaveProblem(error: unknown) {
+    {
       const problem = toApiProblem(error)
       if (problem.status === 422 && problem.errors.length > 0) {
         const { fields, other } = fieldErrorsFrom(problem.errors, form)
@@ -204,8 +321,6 @@ function SwitchEditor({ id }: { id: string }) {
       } else {
         setNotice({ kind: 'error', title: problem.title, body: problem.detail ?? 'Try again in a moment.' })
       }
-    } finally {
-      setBusy(false)
     }
   }
 
@@ -248,11 +363,18 @@ function SwitchEditor({ id }: { id: string }) {
   const checks = [
     { label: 'Name and type', done: nameOk },
     { label: 'Specs and force curve', done: specsOk },
-    { label: 'Stock press sound', done: false },
-    { label: 'Stock release sound', done: false },
+    { label: 'Stock press sound', done: loaded?.press === true },
+    { label: 'Stock release sound', done: loaded?.release === true },
     { label: 'Photo (optional)', done: false },
   ]
-  const draft = (loaded?.status ?? 'draft') === 'draft'
+  const status = loaded?.status ?? 'draft'
+  const draft = status === 'draft'
+  const published = status === 'published'
+  const pubHint = published
+    ? 'Live in the public library.'
+    : ready
+      ? 'Everything required is in. Publishing makes it visible to everyone.'
+      : 'Upload the stock press and release sounds to publish.'
 
   return (
     <>
@@ -265,9 +387,9 @@ function SwitchEditor({ id }: { id: string }) {
             <span aria-current="page">{nameOk ? form.name.trim() : 'New switch'}</span>
           </nav>
           <div className="se-actions">
-            <span className={`sbadge ${draft ? 'draft' : 'published'}`}>
+            <span className={`sbadge ${status}`}>
               <span aria-hidden="true" className="sbadge-dot" />
-              {draft ? 'Draft' : 'Published'}
+              {published ? 'Published' : status === 'hidden' ? 'Hidden' : 'Draft'}
             </span>
             {loaded !== null && draft && !confirmDelete && (
               <button type="button" className="kc tall" disabled={busy} onClick={() => setConfirmDelete(true)}>
@@ -275,17 +397,27 @@ function SwitchEditor({ id }: { id: string }) {
               </button>
             )}
             <button type="submit" form="switch-form" className="kc tall" disabled={busy} aria-busy={busy}>
-              Save draft
+              {draft ? 'Save draft' : 'Save changes'}
             </button>
-            <button
-              type="button"
-              className="kc go"
-              aria-disabled="true"
-              aria-describedby="pub-why"
-              onClick={() => setNotice({ kind: 'error', title: 'Can’t publish yet', body: 'Add the stock press and release sounds first.' })}
-            >
-              Publish to library
-            </button>
+            {published ? (
+              <button type="button" className="kc tall" disabled={busy} onClick={() => void pull()}>
+                Pull from library
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="kc go"
+                aria-disabled={!ready || busy}
+                aria-describedby="pub-why"
+                onClick={() => {
+                  if (!busy) {
+                    void publish()
+                  }
+                }}
+              >
+                Publish to library
+              </button>
+            )}
           </div>
         </div>
 
@@ -583,6 +715,7 @@ function SwitchEditor({ id }: { id: string }) {
                   force={form.force}
                   act={form.act}
                   profile={loaded?.profile}
+                  noSound={!(loaded?.press === true && loaded?.release === true)}
                 />
               </div>
               <span className="se-small">Press the card to hear the stock sound.</span>
@@ -605,10 +738,18 @@ function SwitchEditor({ id }: { id: string }) {
                 ))}
               </ul>
               <p id="pub-why" className="se-small">
-                Upload the stock press and release sounds to publish.
+                {pubHint}
               </p>
               <div className="se-toggle">
-                <button type="button" className="tg" role="switch" aria-checked={markNew} aria-labelledby="ft-l" onClick={() => setMarkNew(!markNew)}>
+                <button
+                  type="button"
+                  className="tg"
+                  role="switch"
+                  aria-checked={markNew}
+                  aria-labelledby="ft-l"
+                  disabled={published}
+                  onClick={() => setMarkNew(!markNew)}
+                >
                   <span />
                 </button>
                 <span id="ft-l" className="se-toggle-l">

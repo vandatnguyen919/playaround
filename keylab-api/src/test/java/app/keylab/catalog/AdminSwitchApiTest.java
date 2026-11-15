@@ -269,9 +269,11 @@ class AdminSwitchApiTest extends IntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON).content(CORAL_POP))
             .andExpect(status().isForbidden());
 
-        // The public library has no way to a draft: no anonymous switch route answers.
-        mvc.perform(get("/v1/switches")).andExpect(status().isUnauthorized());
-        mvc.perform(get("/v1/switches/" + slug)).andExpect(status().isUnauthorized());
+        // The public library (CAT-01, CAT-02) lists published switches only: a draft is not there.
+        mvc.perform(get("/v1/switches").param("q", slug.replace('-', ' ')).param("page_size", "100"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data[?(@.slug == '" + slug + "')]").isEmpty());
+        mvc.perform(get("/v1/switches/" + slug)).andExpect(status().isNotFound());
         assertThat(jdbc.sql("SELECT status FROM catalog.switches WHERE slug = ?").param(slug)
             .query(String.class).single()).isEqualTo("draft");
     }

@@ -33,7 +33,7 @@ export interface paths {
         };
         /**
          * List switches
-         * @description **CAT-01** · access: Public · stories: US-02, US-03, US-39 · module: `catalog`
+         * @description **CAT-01** · access: Public · stories: US-02, US-03, US-39 · module: `catalog`. Published switches only. `popular` lists the newest first until play counts exist. `force_min` and `force_max` are inclusive grams. Answers carry `Cache-Control: public, max-age=300` and an `ETag`; a matching `If-None-Match` gets `304`. A bad filter value is `400 invalid_parameter`; a `page_token` from another sort is `400 invalid_page_token`.
          */
         get: operations["listSwitches"];
         put?: never;
@@ -1167,12 +1167,12 @@ export interface paths {
         put?: never;
         /**
          * Publish to the public library
-         * @description **ADM-03** · access: Editor · stories: US-39 · module: `catalog`
+         * @description **ADM-03** · access: Editor · stories: US-39 · module: `catalog`. Only once the stock press and release recordings are ready (`soundStatus: recorded`), else `409 missing_required_sounds`. Publishing again is allowed and sets the New sticker as asked; a pulled (`hidden`) switch comes back with its first `publishedAt`.
          */
         post: operations["publishSwitch"];
         /**
          * Pull from the public library
-         * @description **ADM-03** · access: Editor · stories: US-39 · module: `catalog`
+         * @description **ADM-03** · access: Editor · stories: US-39 · module: `catalog`. Sets a published switch to `hidden`: out of the library, kept for builds. A draft or hidden switch is left as it is.
          */
         delete: operations["unpublishSwitch"];
         options?: never;
@@ -2215,6 +2215,8 @@ export interface components {
             status: "draft" | "published" | "hidden";
             photoUrl?: string;
             updatedBy?: components["schemas"]["UserRef"];
+            /** @description Always present on AdminSwitch, so the publish checklist can tick the stock press and release. */
+            sounds?: components["schemas"]["Recording"][];
         };
         AdminSwitchInput: {
             name: string;
@@ -2562,6 +2564,10 @@ export interface operations {
                 sound?: "recorded" | "missing";
                 q?: string;
                 is_new?: boolean;
+                /** @description Lowest actuation force in grams, inclusive. */
+                force_min?: number;
+                /** @description Highest actuation force in grams, inclusive. */
+                force_max?: number;
             };
             header?: never;
             path?: never;
@@ -2583,6 +2589,14 @@ export interface operations {
                     };
                 };
             };
+            /** @description Not modified (the `If-None-Match` tag still matches). */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
             410: components["responses"]["Gone"];
             429: components["responses"]["TooManyRequests"];
         };

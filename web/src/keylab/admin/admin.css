@@ -717,6 +717,15 @@
   background: #000;
 }
 
+.sbadge.hidden {
+  background: #000;
+  color: #fffdf5;
+}
+
+.sbadge.hidden .sbadge-dot {
+  border-color: #fffdf5;
+}
+
 /* Photo drop area */
 .se-photo {
   border: 2.5px dashed #000;
@@ -849,118 +858,6 @@
 
 .udz-pick[aria-disabled='true'] {
   cursor: not-allowed;
-}
-
-/* Library preview card (SwitchCard.dc.html, no sound) */
-.scard {
-  width: 100%;
-  height: 236px;
-  border: 3px solid #000;
-  background: #ffffff;
-  box-shadow: 4px 4px 0 #000;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.scard-top {
-  position: relative;
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 128px;
-  background: #fffdf5;
-  border-bottom: 3px solid #000;
-}
-
-.scard-tag {
-  position: absolute;
-  left: 6px;
-  top: 6px;
-  padding: 2px 6px;
-  border: 2px solid #000;
-  font-size: 10px;
-  line-height: 13px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: var(--indigo);
-  color: #ffffff;
-}
-
-.scard-tag.tactile {
-  background: var(--acc);
-  color: #000;
-}
-
-.scard-tag.clicky {
-  background: var(--sky);
-  color: #000;
-}
-
-.scard-tag.silent {
-  background: #ffffff;
-  color: #000;
-}
-
-.scard-nosound {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 26px;
-  background: #000;
-  color: #fffdf5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.scard-body {
-  flex: 1;
-  padding: 9px 11px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.scard-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.scard-name {
-  font-size: 15px;
-  line-height: 19px;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.scard-stem {
-  flex: none;
-}
-
-.scard-spec {
-  font-size: 11px;
-  line-height: 15px;
-}
-
-.scard-hint {
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 600;
-  color: #333;
 }
 
 /* Force curve (ForceCurve.dc.html) */

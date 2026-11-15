@@ -36,3 +36,21 @@ export async function updateSwitch(id: string, patch: unknown, etag: string): Pr
 export async function deleteSwitch(id: string, etag: string): Promise<void> {
   await keylab.delete(`/admin/switches/${encodeURIComponent(id)}`, { headers: { 'If-Match': etag } })
 }
+
+/**
+ * ADM-03 (US-39): into the public library. 409 missing_required_sounds until
+ * the stock press and release recordings are ready.
+ */
+export async function publishSwitch(id: string, markNew: boolean): Promise<Versioned> {
+  const response = await keylab.post<AdminSwitch>(
+    `/admin/switches/${encodeURIComponent(id)}/publication`,
+    { markNew },
+    { headers: { 'Content-Type': 'application/json' } },
+  )
+  return { sw: response.data, etag: etagOf(response.headers) }
+}
+
+/** ADM-03: out of the public library. The switch stays for builds that use it. */
+export async function unpublishSwitch(id: string): Promise<void> {
+  await keylab.delete(`/admin/switches/${encodeURIComponent(id)}/publication`)
+}

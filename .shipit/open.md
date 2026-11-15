@@ -169,6 +169,36 @@ Done and checked locally: see Current state in PRODUCT.md. Left:
 - **Multi-arch image to GHCR:** CI publishes it on `main` (see Images
   above).
 
+## US-39 Publish a switch (branch feature/kl0-keylab-foundation, 2026-11-15)
+
+Verified: `PublishSwitchApiTest` (409 until stock press and release, the
+SoundProcessed listener incl. late and failed events and two at once, library with
+New sticker, 304 on the ETag, pull and republish), `AdminSwitchApiTest` (drafts not in
+CAT-01), `ModularityTests`, web tests, `tsc`, lint, `vite build`, `check:api`, and
+`keylab-publish.spec.ts` plus the other KeyLab e2e against the local stack. Left:
+
+- **No real sound yet:** US-38 must publish `app.keylab.sound.SoundProcessed` when a
+  recording finishes. Until then the e2e (and anyone trying it locally) seeds
+  `catalog.switch_recordings` with `docker exec … psql` (`e2e/tests/keylab-support.ts`).
+  Next action: US-38.
+- **Module cycle to decide in US-38:** catalog depends on sound (it listens to
+  `SoundProcessed`), so sound cannot use a catalog type such as `SwitchPublished`.
+  Next action: decide where that event type lives before US-38 needs it (modulith-plan).
+- **Library cards do not play yet:** they say "Tap or hold to hear"; playback needs the
+  recordings endpoint (CAT-03), which US-04 builds in this session.
+- **Copy not in the design:** "Pull from library", "Save changes", the "[name] pulled" and
+  "Changes saved" toasts, "Hidden" badge, the public "Show more switches" button, the
+  "24+ switches" count when more pages exist, the unfiltered empty state ("No switches
+  yet" / "The first recorded switches arrive soon."), and "This page is not built yet."
+  for public links with no page. Next action: Dan reviews.
+- **"popular" sort** has no play counts, so it lists the newest first. Next action: when
+  plays are recorded.
+- **Local stack:** keylab-api was restarted from the new jar (Dan approved) with
+  `COMPOSE_PROJECT_NAME=playground-verify MANAGEMENT_PORT=9191` and JDK 27; e2e needs
+  `COMPOSE_PROJECT_NAME=playground-verify` to find the Postgres container. Each e2e run leaves one pulled
+  ("hidden") test switch in the dev database by design (published switches
+  cannot be deleted).
+
 ## US-37 Add or edit a switch (branch feature/kl0-keylab-foundation, PR open)
 
 Verified 2026-11-15: `keylab-api` tests all green (new `AdminSwitchApiTest`,
@@ -180,9 +210,6 @@ stack. keylab-api on :8183 was restarted from the new jar. Left:
   API refuses `photoUploadId` (`422 photo_upload_unavailable`) and the picker is drawn
   disabled. Next action: US-38 lifts the refusal and wires the picker. Notion tickets
   US-37 and US-38 updated to match.
-- **"Drafts never appear in the public library"** holds because no public switch route
-  exists yet (tested: guests get 401). Next action: CAT-01 (US-02, US-39) must read
-  `status = 'published'` only; add the check to its tests.
 - **Audit events:** api-design says every admin write records one (ADM-13); nothing
   records them yet. Next action: part of US-44.
 - **Copy not in the design:** "Edit switch" title and slug crumb when editing, the
@@ -191,8 +218,7 @@ stack. keylab-api on :8183 was restarted from the new jar. Left:
   and editor-role messages, error toast bodies ("Check the fields marked in red.",
   "Someone else saved it first. Reload to see their version."), "Draft deleted".
   Next action: Dan reviews.
-- **Drawn but inactive until their stories:** sound drop zones (US-38), Publish and
-  "Mark as New" (US-39), the admin topbar search, range, bell and account, sidebar
+- **Drawn but inactive until their stories:** sound drop zones (US-38), the admin topbar search, range, bell and account, sidebar
   counts and "Last publish". Release force points can be sent through the API and are
   drawn, but the table edits press points only.
 - **PR:** open for review against main.
