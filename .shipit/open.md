@@ -169,6 +169,26 @@ Done and checked locally: see Current state in PRODUCT.md. Left:
 - **Multi-arch image to GHCR:** CI publishes it on `main` (see Images
   above).
 
+## US-02 Browse the switch library (branch feature/kl0-keylab-foundation, 2026-11-15)
+
+Verified: `SwitchLibraryApiTest` (paging of 24 with no repeats, force sort across pages,
+a token from another sort refused, every filter incl. literal `%` in search, bad values
+400), web tests for the URL-to-query mapping, `tsc`, lint, `vite build`, `check:api`,
+and `keylab-library.spec.ts` (public and app library, filters, empty state with
+"Clear filters") plus the other KeyLab e2e against the local stack. Left:
+
+- **App page scope:** `/keylab/switches` has the head, chips and grid of SwitchesDesktop
+  and SwitchesMobile. The keyboard preview, desk pad, "Apply to all", compare mode, the
+  selected-switch panel and the "Short travel" chip need the builder and are left out;
+  each card links to its page instead. Next action: the builder stories.
+- **Copy not in the design:** the public "Recording" filter with "Has sound" and "No sound
+  yet" (US-02 asks for a sound status filter, the screens draw none), "Details" under each
+  app card, and the app empty state ("No switches match these filters", "No switches
+  yet"). Next action: Dan reviews.
+- **No search on the app page:** the app screens draw no search box. `?q=` still works in
+  the URL. Next action: Dan decides if the app page needs one.
+- **Each e2e run leaves two more pulled test switches** in the dev database.
+
 ## US-39 Publish a switch (branch feature/kl0-keylab-foundation, 2026-11-15)
 
 Verified: `PublishSwitchApiTest` (409 until stock press and release, the
@@ -186,6 +206,9 @@ CAT-01), `ModularityTests`, web tests, `tsc`, lint, `vite build`, `check:api`, a
   Next action: decide where that event type lives before US-38 needs it (modulith-plan).
 - **Library cards do not play yet:** they say "Tap or hold to hear"; playback needs the
   recordings endpoint (CAT-03), which US-04 builds in this session.
+- **`KeycloakTokenIntegrationTest` failed once** in a full `keylab-api` run (Keycloak
+  container not ready in time) and passed when rerun alone. See "Keycloak in
+  Testcontainers is slow here" under Verification.
 - **Copy not in the design:** "Pull from library", "Save changes", the "[name] pulled" and
   "Changes saved" toasts, "Hidden" badge, the public "Show more switches" button, the
   "24+ switches" count when more pages exist, the unfiltered empty state ("No switches

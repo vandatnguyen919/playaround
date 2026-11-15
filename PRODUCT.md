@@ -30,6 +30,10 @@ in the public library at `/keylab/library` (CAT-01, cached 300 s with ETag),
 the first page of the public site frame (marketing nav and footer). Sound
 uploads are still US-38, so nothing can be published on a real stack yet
 without seeding recordings.
+US-02 (2026-11-15): the library filters by type, sound profile, force,
+recording and search, 24 a page with "Show more", on the public page and on
+the app page `/keylab/switches` (filters and grid only; the builder parts of
+that screen come with their own stories).
 
 ## First useful result
 

@@ -1,0 +1,144 @@
+/* App switch library (SwitchesDesktop.dc.html, SwitchesMobile.dc.html). */
+
+.sw-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 3px solid var(--text);
+}
+
+.sw-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sw-sub {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.sw-m {
+  display: none;
+}
+
+.sw-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.sw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sw-divider {
+  width: 3px;
+  height: 32px;
+  background: var(--text);
+  margin: 0 6px;
+}
+
+.kl .kc.ghost {
+  background: transparent;
+  box-shadow: none;
+}
+
+.kl .kc.ghost[aria-pressed='true'] {
+  background: var(--acc);
+  box-shadow: 3px 3px 0 #000;
+}
+
+.sw-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(172px, 1fr));
+  gap: 18px;
+}
+
+.sw-grid > li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.sw-dl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 2.5px solid #000;
+  border-top: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.sw-dl:hover {
+  background: var(--acc);
+  color: #000;
+}
+
+.sw-new {
+  position: absolute;
+  right: -6px;
+  top: -10px;
+  transform: rotate(4deg);
+  pointer-events: none;
+}
+
+.sw-empty {
+  padding: 40px;
+  border: 3px dashed var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.sw-empty-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.sw-more {
+  align-self: center;
+}
+
+@media (max-width: 767px) {
+  .sw-d {
+    display: none;
+  }
+
+  .sw-m {
+    display: inline;
+  }
+
+  .sw-head {
+    flex-wrap: nowrap;
+  }
+
+  .sw-divider {
+    display: none;
+  }
+
+  .sw-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}

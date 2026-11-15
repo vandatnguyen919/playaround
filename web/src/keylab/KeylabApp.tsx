@@ -3,6 +3,7 @@ import './styles/tokens.css'
 import './styles/base.css'
 import AppShell from './layout/AppShell.tsx'
 import { BuildPage, Placeholder } from './pages/Pages.tsx'
+import SwitchesPage from './pages/SwitchesPage.tsx'
 import AdminShell, { AdminPlaceholder } from './admin/AdminShell.tsx'
 import SwitchEditPage from './admin/switches/SwitchEditPage.tsx'
 import SiteFrame, { SitePlaceholder } from './site/SiteFrame.tsx'
@@ -45,7 +46,7 @@ const router = createBrowserRouter([
     element: <AppShell />,
     children: [
       { index: true, element: <BuildPage /> },
-      { path: 'switches', element: <Placeholder label="Switches" title="Switch library" /> },
+      { path: 'switches', element: <SwitchesPage /> },
       { path: 'mods', element: <Placeholder label="Mods" title="Mods" /> },
       { path: 'keycaps', element: <Placeholder label="Keycaps" title="Keycaps" /> },
       { path: 'case', element: <Placeholder label="Case & plate" title="Case & plate" /> },

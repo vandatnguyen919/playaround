@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { listSwitches, type LibraryQuery, type SwitchSummary } from '../api/switches.ts'
-import { toApiProblem, type ApiProblem } from '../api/problem.ts'
 import SwitchCard, { SwitchCardLoading } from '../catalog/SwitchCard.tsx'
+import { countLabel, isFiltered, queryFrom, useLibrary, type ForceBucket } from '../catalog/useLibrary.ts'
 
 // The public switch library (US-39, US-02): MktLibrary.dc.html and
 // MktLibraryMobile.dc.html. Published switches from CAT-01, 24 at a time.
@@ -23,8 +22,15 @@ const PROFILES = [
   { value: 'muted', label: 'Muted' },
 ]
 
+// Recorded or not (US-02). Not drawn in MktLibrary; it sits with the other
+// desktop filters and uses the card's own "No sound yet" wording.
+const SOUNDS = [
+  { value: 'recorded', label: 'Has sound' },
+  { value: 'missing', label: 'No sound yet' },
+]
+
 // Force accepts one decimal place, so the buckets meet at 50.1 and 62.1.
-const FORCES: { value: string; label: string; min?: number; max?: number }[] = [
+const FORCES: ForceBucket[] = [
   { value: 'light', label: '≤50g', max: 50 },
   { value: 'medium', label: '51–62g', min: 50.1, max: 62 },
   { value: 'heavy', label: '63g+', min: 62.1 },
@@ -37,35 +43,15 @@ const EXPLAIN = [
   { t: 'silent', label: 'Silent', h: 'Dampened top and bottom', d: 'Rubber dampeners soften both strokes. Good for shared rooms and late nights.' },
 ]
 
-const PAGE_SIZE = 24
-
-type Results =
-  | { state: 'loading' }
-  | { state: 'error'; problem: ApiProblem }
-  | { state: 'ready'; items: SwitchSummary[]; next: string | null; more: boolean }
-
-export function queryFrom(params: URLSearchParams): LibraryQuery {
-  const force = FORCES.find((f) => f.value === params.get('force'))
-  const q = (params.get('q') ?? '').trim()
-  return {
-    type: params.get('type') || undefined,
-    profile: params.get('profile') || undefined,
-    q: q || undefined,
-    force_min: force?.min,
-    force_max: force?.max,
-    page_size: PAGE_SIZE,
-  }
-}
-
 export default function LibraryPage() {
   const [params, setParams] = useSearchParams()
   const [q, setQ] = useState(params.get('q') ?? '')
-  const [results, setResults] = useState<Results>({ state: 'loading' })
   const type = params.get('type') ?? ''
   const profile = params.get('profile') ?? ''
   const force = params.get('force') ?? ''
-  const filtered = Boolean(type || profile || force || (params.get('q') ?? '').trim())
-  const key = params.toString()
+  const sound = params.get('sound') ?? ''
+  const filtered = isFiltered(params)
+  const { results, showMore } = useLibrary(queryFrom(params, FORCES))
 
   useEffect(() => {
     document.title = 'Switch library · KeyLab'
@@ -81,25 +67,6 @@ export default function LibraryPage() {
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q])
-
-  useEffect(() => {
-    let active = true
-    setResults({ state: 'loading' })
-    listSwitches(queryFrom(new URLSearchParams(key)))
-      .then((page) => {
-        if (active) {
-          setResults({ state: 'ready', items: page.data, next: page.nextPageToken, more: false })
-        }
-      })
-      .catch((error: unknown) => {
-        if (active) {
-          setResults({ state: 'error', problem: toApiProblem(error) })
-        }
-      })
-    return () => {
-      active = false
-    }
-  }, [key])
 
   function set(changes: Record<string, string>) {
     const next = new URLSearchParams(params)
@@ -118,26 +85,7 @@ export default function LibraryPage() {
     setParams(new URLSearchParams(), { replace: true })
   }
 
-  async function showMore() {
-    if (results.state !== 'ready' || !results.next) {
-      return
-    }
-    setResults({ ...results, more: true })
-    try {
-      const page = await listSwitches({ ...queryFrom(params), page_token: results.next })
-      setResults({ state: 'ready', items: [...results.items, ...page.data], next: page.nextPageToken, more: false })
-    } catch (error) {
-      setResults({ state: 'error', problem: toApiProblem(error) })
-    }
-  }
-
   const count = results.state === 'ready' ? results.items.length : 0
-  const countLabel =
-    results.state === 'loading'
-      ? 'Loading switches…'
-      : results.state === 'error'
-        ? 'Switches'
-        : `${count}${results.next ? '+' : ''} ${count === 1 && !results.next ? 'switch' : 'switches'}`
 
   return (
     <main id="mk-main" className="mk-main" tabIndex={-1}>
@@ -202,6 +150,24 @@ export default function LibraryPage() {
             </div>
           </div>
           <div className="lib-fg desktop-filter">
+            <span id="sd-h" className="mk-lbl">
+              Recording
+            </span>
+            <div role="group" aria-labelledby="sd-h" className="lib-chips">
+              {SOUNDS.map((x) => (
+                <button
+                  key={x.value}
+                  type="button"
+                  className="kc sm ghost"
+                  aria-pressed={sound === x.value}
+                  onClick={() => set({ sound: sound === x.value ? '' : x.value })}
+                >
+                  {x.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="lib-fg desktop-filter">
             <span id="fo-h" className="mk-lbl">
               Force
             </span>
@@ -226,7 +192,7 @@ export default function LibraryPage() {
         <div className="wrap lib-results-in">
           <div className="lib-head">
             <h2 id="res-h" className="mk-h2" aria-live="polite">
-              {countLabel}
+              {countLabel(results)}
             </h2>
             {filtered && results.state === 'ready' && count > 0 && (
               <button type="button" className="kc sm" onClick={clear}>
