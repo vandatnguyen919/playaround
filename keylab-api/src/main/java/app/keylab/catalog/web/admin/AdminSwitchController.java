@@ -12,13 +12,14 @@ import app.keylab.catalog.application.SwitchPublication;
 import app.keylab.catalog.domain.ForceCurvePoint;
 import app.keylab.catalog.domain.Recording;
 import app.keylab.catalog.domain.Switch;
+import app.keylab.catalog.domain.SwitchNotFound;
 import app.keylab.catalog.domain.SwitchSpecs;
 import app.keylab.catalog.persistence.LibraryRepository;
 import app.keylab.shared.UserId;
+import app.keylab.shared.idempotency.IdempotencyKeys.Stored;
 import app.keylab.shared.idempotency.IdempotencyKeys;
 import app.keylab.shared.paging.PageQuery;
 import app.keylab.shared.paging.PageResult;
-import app.keylab.shared.idempotency.IdempotencyKeys.Stored;
 import app.keylab.shared.problem.ApiProblem;
 import app.keylab.shared.problem.ProblemTypes;
 import app.keylab.shared.security.Roles;
@@ -108,7 +109,7 @@ class AdminSwitchController {
         try {
             response.eTag(AdminSwitches.etag(switches.get(id)));
         }
-        catch (ApiProblem gone) {
+        catch (SwitchNotFound gone) {
             // Deleted since the first request: the replay still answers as the first one did.
         }
         return response.body(result.body());

@@ -5,11 +5,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
+import app.keylab.catalog.domain.MissingRequiredSounds;
 import app.keylab.catalog.domain.Switch;
 import app.keylab.catalog.persistence.SwitchRepository;
 import app.keylab.shared.UserId;
-import app.keylab.shared.problem.ApiProblem;
-import app.keylab.shared.problem.ProblemTypes;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,8 +51,7 @@ public class SwitchPublication {
         Instant now = clock.instant();
         if (!"recorded".equals(current.soundStatus())
                 || !switches.publish(id, markNew ? now.plus(NEW_FOR) : null, editor.toString(), now)) {
-            throw ApiProblem.of(ProblemTypes.CONFLICT, "missing_required_sounds",
-                    "Upload the stock press and release sounds to publish.");
+            throw new MissingRequiredSounds();
         }
         return admin.get(id);
     }

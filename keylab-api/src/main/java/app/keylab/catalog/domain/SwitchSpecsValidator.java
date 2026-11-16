@@ -13,8 +13,6 @@ import java.util.regex.Pattern;
 import app.keylab.catalog.domain.ForceCurvePoint.Stroke;
 import app.keylab.catalog.domain.SwitchSpecs.SoundProfile;
 import app.keylab.catalog.domain.SwitchSpecs.SwitchType;
-import app.keylab.shared.problem.ApiProblem;
-import app.keylab.shared.problem.FieldError;
 
 import tools.jackson.databind.JsonNode;
 
@@ -40,19 +38,19 @@ public final class SwitchSpecsValidator {
 
     private static final Pattern HEX = Pattern.compile("^#[0-9A-Fa-f]{6}$");
 
-    private final List<FieldError> errors = new ArrayList<>();
+    private final List<Violation> errors = new ArrayList<>();
 
     private SwitchSpecsValidator() {
     }
 
-    /** @throws ApiProblem 422 validation_failed with one entry per field to fix */
+    /** @throws InvalidSwitchSpecs with one entry per field to fix */
     public static SwitchSpecs validate(JsonNode body) {
         return new SwitchSpecsValidator().read(body);
     }
 
     private SwitchSpecs read(JsonNode body) {
         if (body == null || !body.isObject()) {
-            throw ApiProblem.validation(List.of(new FieldError("", "invalid_body", "Send the switch as a JSON object.")));
+            throw new InvalidSwitchSpecs(List.of(new Violation("", "invalid_body", "Send the switch as a JSON object.")));
         }
         String name = text(body, "name", MAX_TEXT, true, "Give the switch a name.");
         String brand = text(body, "brand", MAX_TEXT, false, null);
@@ -78,7 +76,7 @@ public final class SwitchSpecsValidator {
             error("/photoUploadId", "upload_not_found", "No upload with this id.");
         }
         if (!errors.isEmpty()) {
-            throw ApiProblem.validation(errors);
+            throw new InvalidSwitchSpecs(errors);
         }
         return new SwitchSpecs(name, brand, type, profile, stemColor, forceG, actuationMm, travelMm, bottomOutG,
                 spring, housing, curve);
@@ -245,7 +243,7 @@ public final class SwitchSpecsValidator {
     }
 
     private void error(String pointer, String code, String message) {
-        errors.add(new FieldError(pointer, code, message));
+        errors.add(new Violation(pointer, code, message));
     }
 
     private static boolean isUuid(JsonNode node) {

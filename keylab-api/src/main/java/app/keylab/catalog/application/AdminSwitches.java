@@ -9,19 +9,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import app.keylab.catalog.domain.SlugTaken;
 import app.keylab.catalog.domain.Switch;
+import app.keylab.catalog.domain.SwitchChangedMeanwhile;
+import app.keylab.catalog.domain.SwitchNotDraft;
+import app.keylab.catalog.domain.SwitchNotFound;
 import app.keylab.catalog.domain.SwitchSpecs;
 import app.keylab.catalog.domain.SwitchSpecsValidator;
 import app.keylab.catalog.persistence.SwitchRepository;
+import app.keylab.catalog.query.InvalidPageToken;
 import app.keylab.shared.Ids;
 import app.keylab.shared.UserId;
 import app.keylab.shared.concurrency.ETags;
+import app.keylab.shared.concurrency.IfMatch;
 import app.keylab.shared.paging.Cursor;
 import app.keylab.shared.paging.PageQuery;
 import app.keylab.shared.paging.PageResult;
-import app.keylab.shared.concurrency.IfMatch;
-import app.keylab.shared.problem.ApiProblem;
-import app.keylab.shared.problem.ProblemTypes;
 import app.keylab.sound.SoundApi;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,8 +84,7 @@ public class AdminSwitches {
                 afterId = UUID.fromString(page.cursor().value(1));
             }
             catch (IllegalArgumentException ex) {
-                throw ApiProblem.of(ProblemTypes.BAD_REQUEST, "invalid_page_token",
-                        "page_token is not a token from a previous page");
+                throw new InvalidPageToken();
             }
         }
         String query = q == null || q.isBlank() ? null : q.strip();
@@ -137,12 +139,12 @@ public class AdminSwitches {
         String slug = current.isDraft() && renamed ? uniqueSlug(specs.name(), current.slug()) : current.slug();
         try {
             if (!switches.update(id, current.version(), slug, specs, editor.toString(), clock.instant())) {
-                throw ApiProblem.of(ProblemTypes.PRECONDITION_FAILED);
+                throw new SwitchChangedMeanwhile();
             }
         }
         catch (DuplicateKeyException ex) {
             // Lost a race for the slug; the editor saves again and gets the next free one.
-            throw ApiProblem.of(ProblemTypes.CONFLICT, "slug_taken", "Another switch just took this name. Save again.");
+            throw new SlugTaken(ex);
         }
         if (photo.changes()) {
             switches.setPhoto(id, photo.url());
@@ -158,11 +160,10 @@ public class AdminSwitches {
         Switch current = get(id);
         IfMatch.check(ifMatch, etag(current));
         if (!current.isDraft()) {
-            throw ApiProblem.of(ProblemTypes.CONFLICT, "switch_not_draft",
-                    "Only drafts can be deleted. Pull it from the library instead.");
+            throw new SwitchNotDraft();
         }
         if (!switches.deleteDraft(id, current.version())) {
-            throw ApiProblem.of(ProblemTypes.PRECONDITION_FAILED);
+            throw new SwitchChangedMeanwhile();
         }
     }
 
@@ -233,7 +234,7 @@ public class AdminSwitches {
         return slug.isEmpty() ? "switch" : slug;
     }
 
-    private static ApiProblem notFound() {
-        return ApiProblem.of(ProblemTypes.NOT_FOUND, "switch_not_found", "No switch with this id");
+    private static SwitchNotFound notFound() {
+        return SwitchNotFound.byId();
     }
 }

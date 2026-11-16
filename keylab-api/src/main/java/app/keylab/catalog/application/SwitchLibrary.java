@@ -8,11 +8,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import app.keylab.catalog.domain.LibraryFilter;
 import app.keylab.catalog.domain.LibraryFilter.Sort;
+import app.keylab.catalog.domain.LibraryFilter;
 import app.keylab.catalog.domain.Recording;
 import app.keylab.catalog.domain.Switch;
+import app.keylab.catalog.domain.SwitchNotFound;
 import app.keylab.catalog.persistence.LibraryRepository;
+import app.keylab.catalog.query.InvalidPageToken;
 import app.keylab.shared.paging.Cursor;
 import app.keylab.shared.paging.PageQuery;
 import app.keylab.shared.paging.PageResult;
@@ -57,23 +59,21 @@ public class SwitchLibrary {
         Cursor after = page.cursor();
         if (after != null && !filter.sort().wire().equals(after.value(0))) {
             // A token from another sort would move the window over the wrong rows.
-            throw ApiProblem.of(ProblemTypes.BAD_REQUEST, "invalid_page_token",
-                    "page_token is not a token from a previous page");
+            throw new InvalidPageToken();
         }
         try {
             return PageResult.of(library.published(filter, after, page.limit(), now()), page,
                     (sw) -> LibraryRepository.cursorAfter(sw, filter.sort()));
         }
         catch (IllegalArgumentException | java.time.format.DateTimeParseException ex) {
-            throw ApiProblem.of(ProblemTypes.BAD_REQUEST, "invalid_page_token",
-                    "page_token is not a token from a previous page");
+            throw new InvalidPageToken();
         }
     }
 
     /** One published switch (CAT-02). Drafts and pulled switches are not found. @throws ApiProblem 404 switch_not_found */
     public Switch published(String slug) {
         return library.publishedBySlug(slug == null ? "" : slug)
-            .orElseThrow(() -> ApiProblem.of(ProblemTypes.NOT_FOUND, "switch_not_found", "No switch with this name"));
+            .orElseThrow(SwitchNotFound::bySlug);
     }
 
     /** Ready recordings of a published switch (CAT-03). */
