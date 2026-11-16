@@ -82,6 +82,14 @@ public class ProblemAdvice extends ResponseEntityExceptionHandler {
         return respond(ApiProblem.of(ProblemTypes.forStatus(status.value())), headers, path(request));
     }
 
+    /**
+     * The response for a problem a module mapped from its own errors, for example a
+     * module's {@code @RestControllerAdvice} that turns domain errors into problems.
+     */
+    public static ResponseEntity<Object> respond(ApiProblem problem, HttpServletRequest request) {
+        return respond(problem, new HttpHeaders(), request.getRequestURI());
+    }
+
     private static ResponseEntity<Object> respond(ApiProblem problem, HttpHeaders headers, String instance) {
         HttpHeaders out = new HttpHeaders();
         out.putAll(headers);

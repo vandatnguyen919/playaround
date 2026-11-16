@@ -194,12 +194,14 @@ class CatalogContractTest extends IntegrationTest {
         record("publish no body", asEditor(post(SWITCHES + "/" + id + "/publication"))
             .contentType(MediaType.APPLICATION_JSON));
 
-        String actual = json.writerWithDefaultPrettyPrinter().writeValueAsString(cases) + "\n";
+        // The pretty printer ends lines with the platform's separator; the recording uses \n.
+        String actual = json.writerWithDefaultPrettyPrinter().writeValueAsString(cases).replace("\r\n", "\n") + "\n";
         if (System.getenv("KEYLAB_CONTRACT_RECORD") != null) {
             Files.createDirectories(GOLDEN.getParent());
             Files.writeString(GOLDEN, actual, StandardCharsets.UTF_8);
         }
-        assertThat(actual).isEqualTo(Files.readString(GOLDEN, StandardCharsets.UTF_8));
+        // Git may check the file out with CRLF line ends on Windows.
+        assertThat(actual).isEqualTo(Files.readString(GOLDEN, StandardCharsets.UTF_8).replace("\r\n", "\n"));
     }
 
     // --- Recording ------------------------------------------------------------------------
