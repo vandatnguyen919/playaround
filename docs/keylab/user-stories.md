@@ -75,7 +75,7 @@ As a visitor, I want to filter switches by type and sound profile, so I can find
 
 As a visitor, I want to play the press and release of up to three switches side by side, so I hear the difference.
 
-- **Module:** `sound` · **Endpoints:** CAT-01, CAT-03 · **Depends on:** US-02 · **Points:** 3 · **Priority:** High
+- **Module:** `sound` · **Endpoints:** CAT-01, CAT-03, CAT-02 (`include=sounds`, for the compare panel's force curves) · **Depends on:** US-02 · **Points:** 3 · **Priority:** High
 - **Screens:** Landing compare strip, Switches → [MktLanding](design/screens/MktLanding.png), [MktLandingMobile](design/screens/MktLandingMobile.png), [SwitchesDesktop](design/screens/SwitchesDesktop.png), [SwitchesMobile](design/screens/SwitchesMobile.png)
 - **Ticket:** [Notion](https://www.notion.so/4130b3b780c681dbbe98eefe11de5e05)
 

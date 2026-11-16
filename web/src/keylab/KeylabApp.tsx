@@ -10,6 +10,7 @@ import SoundLibraryPage from './admin/sounds/SoundLibraryPage.tsx'
 import SiteFrame, { SitePlaceholder } from './site/SiteFrame.tsx'
 import LibraryPage from './site/LibraryPage.tsx'
 import SwitchPage from './site/SwitchPage.tsx'
+import LandingPage from './site/LandingPage.tsx'
 
 // The KeyLab app, under /keylab. The gateway serves index.html for /keylab/**
 // (SpaConfig), and main.tsx loads this chunk for those paths only.
@@ -39,6 +40,8 @@ const router = createBrowserRouter([
     path: '/keylab',
     element: <SiteFrame />,
     children: [
+      // The landing page. /keylab itself is the builder (the app).
+      { path: 'home', element: <LandingPage /> },
       { path: 'library', element: <LibraryPage /> },
       { path: 'library/:slug', element: <SwitchPage /> },
       { path: 'pages/:page', element: <SitePlaceholder /> },

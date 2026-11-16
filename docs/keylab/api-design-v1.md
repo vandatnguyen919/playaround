@@ -131,7 +131,7 @@ The catalog is read-only and public: only published items appear, and admins cha
 | ID | Endpoint | What it does | Access | Stories |
 | --- | --- | --- | --- | --- |
 | CAT-01 | `GET /v1/switches` | List published switches. Filters: `type` (linear, tactile, clicky, silent), `profile` (deep, poppy, clacky, muted), `sound` (recorded, missing), `q` (name or brand), `is_new`, `force_min` and `force_max` (grams, inclusive). Sort: `popular`, `-publishedAt`, `force`. | Public | US-02, US-03, US-39 |
-| CAT-02 | `GET /v1/switches/{slug}` | One switch: specs (force g, actuation and travel mm, spring, stem colour, housing), force curve points, sound summary. `include=sounds,related`. | Public | US-04 |
+| CAT-02 | `GET /v1/switches/{slug}` | One switch: specs (force g, actuation and travel mm, spring, stem colour, housing), force curve points, sound summary. `include=sounds,related`. | Public | US-03, US-04 |
 | CAT-03 | `GET /v1/switches/{slug}/sounds` | Recordings by variant (stock, lubed, foam) and stroke (press, release): CDN URL, `durationMs`, `loudnessLufs`, waveform peaks. A switch with no recording returns `[]` and `soundStatus: "missing"`. | Public | US-03, US-04 |
 | CAT-04 | `GET /v1/switches/{slug}/related` | Switches that sound similar, for “Sounds similar”. | Public | US-04 |
 | CAT-05 | `GET /v1/keycap-sets` | Keycap sets: material, profile, colours, and the sound shift on the deep ↔ bright scale. | Public | US-06 |
@@ -279,7 +279,7 @@ All 44 stories map to at least one endpoint, and every endpoint except the billi
 | --- | --- | --- | --- |
 | US-01 | As a new member, I want to answer three questions (experience, sound, layout) so the builder starts set up for me. | Onboarding | ME-06 |
 | US-02 | As a visitor, I want to filter switches by type and sound profile so I can find candidates fast. | Switch library | CAT-01 |
-| US-03 | As a visitor, I want to play the press and release of up to three switches side by side so I hear the difference. | Landing, Switches | CAT-01, CAT-03 |
+| US-03 | As a visitor, I want to play the press and release of up to three switches side by side so I hear the difference. | Landing, Switches | CAT-01, CAT-02, CAT-03 |
 | US-04 | As a visitor, I want a switch page with specs, force curve and similar switches so I can decide. | Switch detail | CAT-02, CAT-03, CAT-04 |
 | US-05 | As a builder, I want to toggle mods and hear before and after so I know what each mod does. | Mods workshop | CAT-07, BLD-10 |
 | US-06 | As a builder, I want to pick a keycap set and hear how it shifts the sound. | Keycaps studio | CAT-05, CAT-06, BLD-10 |

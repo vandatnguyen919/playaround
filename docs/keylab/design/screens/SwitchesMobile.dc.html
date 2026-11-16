@@ -271,7 +271,7 @@ class Component extends DCLogic {
       pick: (sw) => {
         if (this.state.compare) {
           const c = this.state.cmp.slice(); const i = c.indexOf(sw.id);
-          if (i >= 0) c.splice(i, 1); else if (c.length < 3) c.push(sw.id);
+          if (i >= 0) c.splice(i, 1); else if (c.length < 3 && !sw.nosound) c.push(sw.id);
           this.setState({ cmp: c });
         } else if (sw.id !== this.state.sel) this.setState({ sel: sw.id, applied: null, selecting: false, selKeys: [] });
       },

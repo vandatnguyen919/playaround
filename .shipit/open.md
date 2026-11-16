@@ -169,14 +169,40 @@ Done and checked locally: see Current state in PRODUCT.md. Left:
 - **Multi-arch image to GHCR:** CI publishes it on `main` (see Images
   above).
 
-## US-38 Sound uploads (branch feature/us-38-sound-uploads, 2026-11-16)
+## US-03 Compare switch sounds (branch feature/us-03-compare-sounds, 2026-11-16)
+
+Verified: web unit tests (36, incl. `compare.test.ts`), `tsc`, lint, `vite build`,
+`check:api`, and all 15 KeyLab e2e incl. the new `keylab-compare.spec.ts` (landing strip
+plays the right files and draws waveforms before any audio is fetched; compare mode picks
+three, ignores a fourth and a switch with no sound, plays in turn in pick order; mobile)
+against the local stack. No backend change: CAT-01 to CAT-03 already serve it. Left:
+
+- **Module:** the story names `sound`, but CAT-01 to CAT-03 live in `catalog`
+  (modulith-plan.md) and needed nothing new, so no `sound` code changed.
+- **Endpoint added to the story:** the compare panel draws force curves, which only CAT-02
+  has, so it calls CAT-02 with `include=sounds`. user-stories.md and api-design-v1.md now
+  list CAT-02 for US-03.
+- **Landing page is partial:** `/keylab/home` has the hero copy and the compare strip only.
+  The hero keyboard and switch picker, and the other sections (how it works, library,
+  mods, keycaps, playground, community, testimonials, FAQ, final call) wait for their
+  stories. Next action: Dan confirms `/keylab/home` as the landing URL (the logo points
+  there; `/keylab` stays the builder).
+- **Design changed:** SwitchCard, SwitchesDesktop and SwitchesMobile `.dc.html` let a
+  no-sound card be picked in compare mode; the story says it cannot, so they now block it,
+  hide its check box and say "Sound coming soon".
+- **Copy not in the design:** "This switch could not be loaded." in a compare row,
+  "The first recorded switches arrive soon." when the landing has no recorded switch, and
+  the card's spoken label ", sound coming soon, cannot be compared". "Try the sound" plays
+  the first switch of the strip. Next action: Dan reviews.
+
+## US-38 Sound uploads (merged in PR #53)
 
 Verified: `keylab-api` tests (new `SoundApiTest` with 10 cases, `WavAnalysisTest` incl.
 BS.1770 loudness, `AdminSwitchApiTest`, `ModularityTests`), web unit tests (33), `tsc`,
 lint, `vite build`, `check:api`, and all 13 KeyLab e2e incl. the new
 `keylab-sounds.spec.ts` (ticket, signed PUT, 202, ready and failed, no-sound state,
 photo refused then attached) against the local stack, after restarting keylab-api from
-the new jar (Dan approved). PR open for review. Left:
+the new jar (Dan approved). Left:
 
 - **Storage is local disk** (`KEYLAB_STORAGE_DIR`, default the temp folder) behind
   `BlobStore`, and keylab-api serves files at `/v1/assets/…` from the app's own origin, so
@@ -220,7 +246,8 @@ jar (Dan approved). Left:
 - **The builder is still a placeholder:** "Use in a build" shows the picked switch on
   `/keylab`, nothing more, until KL2. The app's selected-switch sheet (SwitchesLight)
   belongs to that builder and is not built.
-- **"Compare with others"** links to the app library; compare mode is US-03.
+- **"Compare with others"** links to the app library, where compare mode now lives (US-03);
+  it does not turn compare mode on by itself.
 - **Sound summary words** for each profile are invented (api-design-v1.md lists them).
 
 ## US-02 Browse the switch library (branch feature/kl0-keylab-foundation, 2026-11-15)
@@ -233,7 +260,8 @@ and `keylab-library.spec.ts` (public and app library, filters, empty state with
 
 - **App page scope:** `/keylab/switches` has the head, chips and grid of SwitchesDesktop
   and SwitchesMobile. The keyboard preview, desk pad, "Apply to all", compare mode, the
-  selected-switch panel and the "Short travel" chip need the builder and are left out;
+  selected-switch panel and the "Short travel" chip need the builder and are left out
+  (compare mode came with US-03);
   each card links to its page instead. Next action: the builder stories.
 - **Copy not in the design:** the public "Recording" filter with "Has sound" and "No sound
   yet" (US-02 asks for a sound status filter, the screens draw none), "Details" under each

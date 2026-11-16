@@ -120,6 +120,128 @@
   align-self: center;
 }
 
+
+/* Compare mode (US-03): the library and, beside it, the compare aside. */
+.sw-page {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 28px;
+}
+
+.sw-col {
+  flex: 999 1 560px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.cmp {
+  flex: 1 1 360px;
+  min-width: 0;
+  position: sticky;
+  top: 30px;
+  border: 3px solid #000;
+  background: var(--surface);
+  color: var(--text);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 7px 7px 0 #000;
+}
+
+.cmp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cmp-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.045em;
+}
+
+.cmp-empty {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.cmp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cmp-row {
+  border: 3px solid #000;
+  background: #fffdf5;
+  color: #000;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cmp-row.on {
+  background: var(--acc);
+}
+
+.cmp-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cmp-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cmp-stem {
+  flex: none;
+}
+
+.cmp-spec {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cmp-wave-skel {
+  height: 34px;
+  background: repeating-linear-gradient(45deg, #fff1c7 0 8px, #fffdf5 8px 16px);
+  border: 2px dashed #000;
+}
+
+.cmp-err {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cmp .kc.primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
 @media (max-width: 767px) {
   .sw-d {
     display: none;
@@ -140,5 +262,84 @@
   .sw-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
+  }
+
+  .sw-cmp-btn {
+    min-height: 44px;
+    padding: 0 12px;
+    font-size: 13px;
+    flex: none;
+  }
+
+  .sw-page {
+    display: block;
+  }
+
+  .sw-col {
+    gap: 20px;
+  }
+
+  /* The sheet above the tab bar (SwitchesMobile, compare open). */
+  .cmp {
+    position: sticky;
+    top: auto;
+    bottom: 89px;
+    z-index: 4;
+    margin: 20px -16px 0;
+    padding: 14px 16px;
+    gap: 10px;
+    border-width: 3px 0 0;
+    box-shadow: 0 -6px 0 #000;
+  }
+
+  .cmp-title {
+    font-size: 22px;
+    letter-spacing: -0.04em;
+  }
+
+  .cmp-empty {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .cmp-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .cmp-row {
+    border-width: 2.5px;
+    padding: 6px;
+    gap: 4px;
+    box-shadow: 3px 3px 0 #000;
+  }
+
+  /* Name, waveform, then specs, as the mobile tile draws them. */
+  .cmp-row-head {
+    display: contents;
+  }
+
+  .cmp-row > .mono,
+  .cmp-row-head > .cmp-spec {
+    order: 3;
+  }
+
+  .cmp-name {
+    max-width: 100%;
+    gap: 5px;
+    font-size: 12px;
+  }
+
+  .cmp-spec {
+    font-size: 10px;
+  }
+
+  .cmp-curve {
+    display: none;
+  }
+
+  .cmp-row .wave {
+    height: 26px;
   }
 }
