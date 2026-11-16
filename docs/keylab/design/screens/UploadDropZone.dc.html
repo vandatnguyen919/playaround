@@ -104,8 +104,8 @@ class Component extends DCLogic {
     return {
       label: label, idle: st === 'idle', uploading: st === 'uploading', done: st === 'done', error: st === 'error',
       zoneBg: over ? '#FFD24D' : '#FFFDF5',
-      dropText: over ? 'Drop to upload' : 'Drag a WAV or FLAC here',
-      accept: '48 kHz · 24-bit · mono · under 10 MB', acceptAttr: '.wav,.flac,audio/wav,audio/flac',
+      dropText: over ? 'Drop to upload' : 'Drag a WAV here',
+      accept: '48 kHz · 24-bit · mono · under 10 MB', acceptAttr: '.wav,audio/wav',
       inputLabel: 'Choose a ' + label.toLowerCase() + ' file',
       file: s.file || p.fileName || 'proto-orange_press.wav',
       pct: pct, pctW: pct + '%',

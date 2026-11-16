@@ -16,6 +16,8 @@ import app.keylab.catalog.domain.SwitchSpecs;
 import app.keylab.catalog.persistence.LibraryRepository;
 import app.keylab.shared.UserId;
 import app.keylab.shared.idempotency.IdempotencyKeys;
+import app.keylab.shared.paging.PageQuery;
+import app.keylab.shared.paging.PageResult;
 import app.keylab.shared.idempotency.IdempotencyKeys.Stored;
 import app.keylab.shared.problem.ApiProblem;
 import app.keylab.shared.problem.ProblemTypes;
@@ -38,6 +40,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import tools.jackson.databind.JsonNode;
@@ -71,6 +74,12 @@ class AdminSwitchController {
         this.library = library;
         this.idempotencyKeys = idempotencyKeys;
         this.json = json;
+    }
+
+    /** ADM-02 list, drafts included, by name. US-36 adds its filters and sorts. */
+    @GetMapping
+    ResponseEntity<PageResult<AdminSwitch>> list(@RequestParam(required = false) String q, PageQuery page) {
+        return ResponseEntity.ok().cacheControl(PRIVATE).body(switches.list(q, page).map(this::view));
     }
 
     @GetMapping("/{id}")
@@ -157,7 +166,7 @@ class AdminSwitchController {
                 s.profile() == null ? null : s.profile().name(), s.stemColor(), s.forceG(), s.actuationMm(),
                 s.travelMm(), sw.soundStatus(), sw.newUntil() != null && sw.newUntil().isAfter(now),
                 sw.publishedAt(), s.spring(), s.housing(), s.bottomOutG(), s.forceCurve(),
-                library.recordings(sw.id()), sw.status().name());
+                library.recordings(sw.id()), sw.status().name(), sw.photoUrl());
     }
 
     /**
@@ -169,6 +178,6 @@ class AdminSwitchController {
     record AdminSwitch(UUID id, String slug, String name, String brand, String type, String profile,
             String stemColor, BigDecimal forceG, BigDecimal actuationMm, BigDecimal travelMm, String soundStatus,
             boolean isNew, Instant publishedAt, String spring, String housing, BigDecimal bottomOutG,
-            List<ForceCurvePoint> forceCurve, List<Recording> sounds, String status) {
+            List<ForceCurvePoint> forceCurve, List<Recording> sounds, String status, String photoUrl) {
     }
 }

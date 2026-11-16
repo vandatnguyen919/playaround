@@ -17,7 +17,8 @@ public record Switch(
         Instant newUntil,
         Instant publishedAt,
         long version,
-        Instant updatedAt) {
+        Instant updatedAt,
+        String photoUrl) {
 
     public enum Status {
         draft, published, hidden

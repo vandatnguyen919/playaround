@@ -812,6 +812,523 @@
   cursor: not-allowed;
 }
 
+.udz-btn {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.udz-btn:hover {
+  background: #fff1c7;
+}
+
+.udz-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+.udz-btn:focus-visible {
+  outline: 3px solid var(--coral);
+  outline-offset: 3px;
+}
+
+.udz-btn.coral {
+  background: var(--coral);
+}
+
+.udz-play {
+  width: 40px;
+  padding: 0;
+  justify-content: center;
+}
+
+.udz-zone {
+  transition: background 100ms ease;
+}
+
+.udz-zone.over {
+  background: var(--acc);
+}
+
+.udz-pick input {
+  cursor: pointer;
+}
+
+.udz-busy,
+.udz-done {
+  box-sizing: border-box;
+  border: 2.5px solid #000;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.udz-busy {
+  min-height: 112px;
+  padding: 14px;
+  justify-content: center;
+  gap: 10px;
+}
+
+.udz-busy-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.udz-file {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.udz-busy-note {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.udz-bar {
+  height: 16px;
+  border: 2.5px solid #000;
+  background: #fffdf5;
+  display: flex;
+}
+
+.udz-bar span {
+  background: repeating-linear-gradient(45deg, #000 0 4px, var(--acc) 4px 10px);
+  background-size: 28px 100%;
+  animation: udzMove 0.8s linear infinite;
+  transition: width 200ms ease;
+}
+
+@keyframes udzMove {
+  to {
+    background-position: 28px 0;
+  }
+}
+
+.udz-done {
+  padding: 12px 14px;
+  gap: 8px;
+}
+
+.udz-done-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.udz-done-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.udz-done-note {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+}
+
+.udz-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border: 2px solid #000;
+  background: var(--lime);
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.udz-error {
+  min-height: 112px;
+  box-sizing: border-box;
+  border: 2.5px solid #000;
+  border-left-width: 8px;
+  border-left-color: var(--coral);
+  background: #fff1c7;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.udz-error-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.udz-error-title {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 900;
+}
+
+.udz-error-body {
+  font-size: 12px;
+  line-height: 17px;
+  font-weight: 500;
+}
+
+.sw-wave {
+  display: block;
+}
+
+/* Sound status badges (StatusBadge.dc.html) */
+.sbadge.recorded {
+  background: var(--lime);
+}
+
+.sbadge.recorded .sbadge-dot {
+  background: #000;
+}
+
+.sbadge.missing,
+.sbadge.failed {
+  background: var(--coral);
+}
+
+.sbadge.processing {
+  background: var(--sky);
+}
+
+.sbadge.processing .sbadge-dot {
+  background: repeating-linear-gradient(45deg, #000 0 2px, transparent 2px 4px);
+}
+
+/* Photo (section 4 of AdminSwitchEdit) */
+.se-photo.over {
+  background: var(--acc);
+}
+
+.se-photo-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.se-photo-input {
+  cursor: pointer;
+}
+
+/* --- Sound library (AdminSounds.dc.html) ----------------------------------------- */
+
+.snd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.ad-card.snd-nav {
+  flex: 0 1 280px;
+  min-width: 240px;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+
+.snd-find {
+  padding: 12px;
+  border-bottom: 2.5px solid #000;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #fff1c7;
+}
+
+.snd-find .field {
+  width: 100%;
+}
+
+.snd-empty {
+  margin: 0;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.snd-pick {
+  appearance: none;
+  margin: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+  min-height: 50px;
+  background: #fffdf5;
+  border: 0;
+  border-bottom: 1.5px solid #000;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #000;
+}
+
+.snd-pick:last-child {
+  border-bottom: 0;
+}
+
+.snd-pick:hover {
+  background: #fff1c7;
+}
+
+.snd-pick[aria-current='true'] {
+  background: var(--acc);
+}
+
+.snd-pick:focus-visible {
+  outline: 3px solid var(--coral);
+  outline-offset: -3px;
+}
+
+.snd-stem {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #000;
+}
+
+.snd-pick-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.snd-pick-name {
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.snd-pick-files {
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.snd-main {
+  flex: 999 1 560px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.snd-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.snd-who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.snd-big-stem {
+  width: 40px;
+  height: 40px;
+  border: 2.5px solid #000;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.ad .h2.snd-name {
+  font-size: 22px;
+  line-height: 26px;
+}
+
+.snd-meta,
+.snd-sub {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 17px;
+  font-weight: 500;
+}
+
+.snd-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.ad .kc[aria-selected='true'] {
+  background: var(--acc);
+}
+
+.snd-table {
+  border: 2.5px solid #000;
+  background: #ffffff;
+}
+
+.snd-vt {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) 84px 92px 112px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1.5px solid #000;
+}
+
+.snd-vt:last-child {
+  border-bottom: 0;
+}
+
+.snd-vt-head {
+  background: #fff1c7;
+  border-bottom: 2.5px solid #000;
+}
+
+.snd-stroke {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ad .kc.snd-play {
+  width: 34px;
+  padding: 0;
+}
+
+.ad .kc.snd-play:disabled {
+  cursor: not-allowed;
+  background: #e6e1d3;
+  box-shadow: none;
+}
+
+.snd-stroke-name {
+  font-weight: 900;
+}
+
+.snd-wave {
+  min-width: 0;
+}
+
+.snd-fail {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+}
+
+.snd-num {
+  font-weight: 700;
+}
+
+.snd-note {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.snd-none {
+  border: 2.5px dashed #000;
+  background: #fff5f2;
+  padding: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.snd-none-text {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.snd-none-text strong {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.snd-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.ad-card.snd-add {
+  flex: 1.4 1 340px;
+  gap: 12px;
+}
+
+.ad-card.snd-check {
+  flex: 1 1 260px;
+  gap: 12px;
+}
+
+.snd-selects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.snd-add .udz-label {
+  font-size: 10.5px;
+}
+
+.snd-check ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.snd-check li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.snd-box {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  border: 2px solid #000;
+  background: #fffdf5;
+}
+
+@media (max-width: 760px) {
+  /* Stroke and status on top, the waveform full width, then length and loudness. */
+  .snd-vt {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .snd-vt-head {
+    display: none;
+  }
+
+  .snd-wave {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .snd-vt > .sbadge {
+    grid-row: 1;
+    grid-column: 3;
+  }
+}
+
 /* Toast (Toast.dc.html) */
 .tst-wrap {
   position: fixed;

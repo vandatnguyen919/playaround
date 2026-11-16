@@ -242,13 +242,13 @@ class AdminSwitchApiTest extends IntegrationTest {
     }
 
     @Test
-    void photosAreRefusedUntilUploadsExist() throws Exception {
+    void aPhotoMustNameAnUploadThatExists() throws Exception {
         mvc.perform(asEditor(post(SWITCHES)).contentType(MediaType.APPLICATION_JSON).content("""
                 { "name": "With photo", "type": "linear", "photoUploadId": "0193f2c4-7a1e-7c5b-9d2e-4f8a1b3c5d6e" }
                 """))
             .andExpect(status().isUnprocessableContent())
             .andExpect(jsonPath("$.errors[0].pointer").value("/photoUploadId"))
-            .andExpect(jsonPath("$.errors[0].code").value("photo_upload_unavailable"));
+            .andExpect(jsonPath("$.errors[0].code").value("upload_not_found"));
     }
 
     // --- Drafts stay private -----------------------------------------------------------

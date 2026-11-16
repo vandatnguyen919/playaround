@@ -35,6 +35,10 @@ class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/v1/health").permitAll()
                 // The public catalog (CAT): published items only, guests welcome.
                 .requestMatchers(HttpMethod.GET, "/v1/switches", "/v1/switches/**").permitAll()
+                // Content-addressed sound and photo files (US-38): public, like a CDN.
+                .requestMatchers(HttpMethod.GET, "/v1/assets/**").permitAll()
+                // Presigned upload URLs (ADM-04): the signature in the URL is the permission.
+                .requestMatchers(HttpMethod.PUT, "/v1/uploads/*").permitAll()
                 // Each admin endpoint names its lowest role; none works below viewer.
                 .requestMatchers("/v1/admin/**").hasRole(Roles.VIEWER)
                 .anyRequest().authenticated())

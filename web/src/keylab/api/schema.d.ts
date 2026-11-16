@@ -1119,7 +1119,7 @@ export interface paths {
         put?: never;
         /**
          * Create a draft switch
-         * @description **ADM-02** · access: Editor · stories: US-37 · module: `catalog`. `photoUploadId` is refused with `422 photo_upload_unavailable` until ADM-04 uploads exist.
+         * @description **ADM-02** · access: Editor · stories: US-37, US-38 · module: `catalog`. `photoUploadId` names a received `switch_photo` upload (ADM-04): a square PNG or JPG of at least 800 px, else 422 at /photoUploadId.
          */
         post: operations["adminCreateSwitch"];
         delete?: never;
@@ -1664,7 +1664,18 @@ export interface components {
              * @example switch_not_found
              * @example switch_not_draft
              * @example slug_taken
-             * @example photo_upload_unavailable
+             * @example upload_not_found
+             * @example upload_not_received
+             * @example upload_already_used
+             * @example upload_wrong_purpose
+             * @example unsupported_content_type
+             * @example file_too_large
+             * @example photo_not_square
+             * @example photo_too_small
+             * @example invalid_upload_signature
+             * @example upload_url_expired
+             * @example sound_not_found
+             * @example sound_in_use
              */
             code: string;
             detail?: string;
@@ -1769,8 +1780,8 @@ export interface components {
             /** @enum {string} */
             stroke: "press" | "release";
             /**
-             * Format: uri
-             * @description Content-addressed CDN URL, never changes once published.
+             * Format: uri-reference
+             * @description Content-addressed URL, never changes once published (`/bff/keylab/v1/assets/sounds/<sha256>.wav` while keylab-api serves files itself).
              */
             url: string;
             durationMs?: number;
@@ -2046,7 +2057,10 @@ export interface components {
         UploadTicket: {
             /** Format: uuid */
             uploadId: string;
-            /** Format: uri */
+            /**
+             * Format: uri-reference
+             * @description Where to PUT the file, with the headers below, before expiresAt. The signature in the URL is the permission. Relative to the app's origin when keylab-api stores files itself (`/bff/keylab/v1/uploads/{id}?expires=…&signature=…`).
+             */
             url: string;
             /** Format: date-time */
             expiresAt: string;
@@ -2254,13 +2268,26 @@ export interface components {
              * @example image/png
              */
             contentType: string;
+            /** @description Size of the file to come, if known. Files must be under 10 MB. */
             bytes?: number;
+            /** @description The file's own name, shown in the sound library. */
+            fileName?: string;
         };
+        /** @description A Recording with its processing status. url, durationMs, loudnessLufs and peaks come once ready; while processing or failed there is no url. */
         AdminSound: components["schemas"]["Recording"] & {
             /** @enum {string} */
             status: "processing" | "ready" | "failed";
+            /** Format: uuid */
+            switchId: string;
+            /** @description Not filled in v1; the admin pages take switch names from ADM-02. */
             switch?: components["schemas"]["SwitchSummary"];
+            fileName?: string;
+            /** @description Why processing failed, in words for the editor. Only when failed. */
             error?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            processedAt?: string;
         };
         BulkAction: {
             /** @enum {string} */
@@ -4564,7 +4591,6 @@ export interface operations {
             201: {
                 headers: {
                     "KeyLab-API-Revision": components["headers"]["Revision"];
-                    Location: components["headers"]["Location"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4619,6 +4645,8 @@ export interface operations {
                 /** @description Opaque; from page.nextPageToken. */
                 page_token?: components["parameters"]["pageToken"];
                 status?: "processing" | "ready" | "failed";
+                /** @description Only this switch's recordings. Newest first either way. */
+                switch_id?: string;
             };
             header?: never;
             path?: never;

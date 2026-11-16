@@ -27,9 +27,7 @@ US-39 (2026-11-15): editors publish a switch (ADM-03) only once its stock
 press and release are ready, which catalog learns from `sound`'s
 `SoundProcessed` event (`catalog.switch_recordings`). Published switches show
 in the public library at `/keylab/library` (CAT-01, cached 300 s with ETag),
-the first page of the public site frame (marketing nav and footer). Sound
-uploads are still US-38, so nothing can be published on a real stack yet
-without seeding recordings.
+the first page of the public site frame (marketing nav and footer).
 US-02 (2026-11-15): the library filters by type, sound profile, force,
 recording and search, 24 a page with "Show more", on the public page and on
 the app page `/keylab/switches` (filters and grid only; the builder parts of
@@ -38,6 +36,12 @@ US-04 (2026-11-15): each switch has a page at `/keylab/library/:slug` (CAT-02
 to CAT-04) with specs, force curve, a stroke and mod-variant player, and a
 "Sounds similar" row; library cards play their stock press and release.
 "Use in a build" opens `/keylab?switch=slug`, which shows the picked switch.
+US-38 (2026-11-16): editors upload press and release WAVs (48 kHz, 24-bit mono)
+per variant and a switch photo through signed upload URLs (ADM-04), and see
+processing move to ready or failed with peaks, length and loudness (ADM-05) in
+the sound library `/keylab/admin/sounds` and on the switch page. Files sit on
+local disk behind a port and are served by keylab-api from the app's own
+origin; an object store comes with deployment. In review.
 
 ## First useful result
 

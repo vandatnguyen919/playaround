@@ -46,6 +46,31 @@ public class SwitchRepository {
         return jdbc.sql("SELECT * FROM catalog.switches WHERE id = ?").param(id).query(this::row).optional();
     }
 
+    /**
+     * ADM-02 list (drafts too), by name then id, from the cursor on.
+     *
+     * @param q part of the name or brand, or null
+     */
+    public List<Switch> listByName(String q, String afterName, UUID afterId, int limit) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM catalog.switches WHERE true");
+        List<Object> params = new java.util.ArrayList<>();
+        if (q != null) {
+            String like = "%" + q.toLowerCase(java.util.Locale.ROOT).replace("!", "!!").replace("%", "!%")
+                .replace("_", "!_") + "%";
+            sql.append(" AND (lower(name) LIKE ? ESCAPE '!' OR lower(coalesce(brand, '')) LIKE ? ESCAPE '!')");
+            params.add(like);
+            params.add(like);
+        }
+        if (afterName != null) {
+            sql.append(" AND (lower(name), id) > (?, ?)");
+            params.add(afterName);
+            params.add(afterId);
+        }
+        sql.append(" ORDER BY lower(name), id LIMIT ?");
+        params.add(limit);
+        return jdbc.sql(sql.toString()).params(params).query(this::row).list();
+    }
+
     public List<String> slugsStartingWith(String base) {
         return jdbc.sql("SELECT slug FROM catalog.switches WHERE slug = ? OR slug LIKE ?")
             .params(base, base.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "-%")
@@ -76,6 +101,14 @@ public class SwitchRepository {
             .params(params(specs, id, slug, userId, now))
             .param("version", expectedVersion)
             .update() == 1;
+    }
+
+    /**
+     * Sets or clears the photo (US-38). It rides on the save that names it,
+     * so it does not move the version again.
+     */
+    public void setPhoto(UUID id, String photoUrl) {
+        jdbc.sql("UPDATE catalog.switches SET photo_url = ? WHERE id = ?").params(photoUrl, id).update();
     }
 
     /** @return false when the row is gone, no longer a draft, or no longer at {@code expectedVersion} */
@@ -152,7 +185,7 @@ public class SwitchRepository {
         return new Switch(rs.getObject("id", UUID.class), rs.getString("slug"), specs,
                 Switch.Status.valueOf(rs.getString("status")), rs.getString("sound_status"),
                 instant(rs.getTimestamp("new_until")), instant(rs.getTimestamp("published_at")),
-                rs.getLong("version"), instant(rs.getTimestamp("updated_at")));
+                rs.getLong("version"), instant(rs.getTimestamp("updated_at")), rs.getString("photo_url"));
     }
 
     /** NUMERIC(5,1) reads back as 62.0; the API sends 62. */

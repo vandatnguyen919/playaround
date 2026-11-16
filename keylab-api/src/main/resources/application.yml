@@ -52,3 +52,13 @@ keylab:
     # Date of the last additive release of v1, sent as KeyLab-API-Revision on
     # every response (api-design-v1.md, Versioning).
     revision: "2026-11-08"
+  storage:
+    # Uploads, recordings and photos (US-38). A local folder stands in for an
+    # object store and its CDN; BlobStore is the seam to swap it.
+    root: ${KEYLAB_STORAGE_DIR:${java.io.tmpdir}/keylab-storage}
+    # HMAC key for presigned upload URLs. Blank: a random key per start.
+    signing-key: ${KEYLAB_UPLOAD_SIGNING_KEY:}
+    # How the browser reaches this API (through the gateway BFF). Upload URLs
+    # and file URLs start with it, so audio and photos load from the app's
+    # own origin and the gateway CSP needs no extra media host.
+    public-base: ${KEYLAB_PUBLIC_API_BASE:/bff/keylab/v1}

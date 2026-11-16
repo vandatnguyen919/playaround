@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type DragEvent, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import {
   createSwitch,
@@ -9,7 +9,11 @@ import {
   updateSwitch,
   type AdminSwitch,
 } from '../../api/adminSwitches.ts'
+import { putFile, requestUpload, type AdminSound } from '../../api/adminSounds.ts'
 import { ApiProblem, SIGN_IN_URL, toApiProblem } from '../../api/problem.ts'
+import { refuseFile } from '../sounds/soundLibrary.ts'
+import UploadDropZone from '../sounds/UploadDropZone.tsx'
+import { useSoundUpload } from '../sounds/useSoundUpload.ts'
 import { useHealth } from '../../api/useHealth.ts'
 import { AdminTopbar } from '../AdminShell.tsx'
 import Toast, { type Notice } from '../Toast.tsx'
@@ -33,8 +37,8 @@ import {
 // /keylab/admin/switches/new and /keylab/admin/switches/:id, so saving a new
 // switch moves to its own URL without losing the page. Publishing (US-39)
 // saves, then publishes once the stock press and release sounds are ready.
-// Sound uploads (US-38) and photos (they need ADM-04 uploads) are drawn but
-// not active yet.
+// The stock sounds and the photo upload through ADM-04 (US-38); a new switch
+// is saved as a draft first, since a recording needs a switch to belong to.
 
 const EDITOR = 'keylab-editor'
 
@@ -47,11 +51,19 @@ type Loaded = {
   isNew: boolean
   press: boolean
   release: boolean
+  pressTake?: AdminSound
+  releaseTake?: AdminSound
+  photoUrl?: string
 }
 
 function loadedFrom(sw: AdminSwitch, etag: string): Loaded {
-  const stock = (stroke: 'press' | 'release') =>
-    (sw.sounds ?? []).some((sound) => sound.variant === 'stock' && sound.stroke === stroke)
+  // Catalog's copy of the ready takes, as the drop zones show them.
+  const stock = (stroke: 'press' | 'release'): AdminSound | undefined => {
+    const take = (sw.sounds ?? []).find((sound) => sound.variant === 'stock' && sound.stroke === stroke)
+    return take?.id ? { ...take, id: take.id, switchId: sw.id, status: 'ready', createdAt: '' } : undefined
+  }
+  const pressTake = stock('press')
+  const releaseTake = stock('release')
   return {
     id: sw.id,
     slug: sw.slug,
@@ -59,8 +71,11 @@ function loadedFrom(sw: AdminSwitch, etag: string): Loaded {
     status: sw.status,
     profile: sw.profile,
     isNew: sw.isNew === true,
-    press: stock('press'),
-    release: stock('release'),
+    press: pressTake !== undefined,
+    release: releaseTake !== undefined,
+    pressTake,
+    releaseTake,
+    photoUrl: sw.photoUrl,
   }
 }
 
@@ -324,6 +339,31 @@ function SwitchEditor({ id }: { id: string }) {
     }
   }
 
+  /** The switch's id, saving a new switch as a draft first; null when it cannot be saved yet. */
+  async function ensureSaved(): Promise<string | null> {
+    if (loaded !== null) {
+      return loaded.id
+    }
+    const saved = await persist()
+    if (saved) {
+      setNotice({ kind: 'info', title: 'Draft saved', body: 'Only admins can see it.' })
+    }
+    return saved?.id ?? null
+  }
+
+  function soundReady(stroke: 'press' | 'release', sound: AdminSound) {
+    if (sound.status !== 'ready') {
+      return
+    }
+    setLoaded((current) =>
+      current === null
+        ? current
+        : stroke === 'press'
+          ? { ...current, press: true, pressTake: sound }
+          : { ...current, release: true, releaseTake: sound },
+    )
+  }
+
   async function remove() {
     if (loaded === null) {
       return
@@ -365,7 +405,7 @@ function SwitchEditor({ id }: { id: string }) {
     { label: 'Specs and force curve', done: specsOk },
     { label: 'Stock press sound', done: loaded?.press === true },
     { label: 'Stock release sound', done: loaded?.release === true },
-    { label: 'Photo (optional)', done: false },
+    { label: 'Photo (optional)', done: loaded?.photoUrl !== undefined },
   ]
   const status = loaded?.status ?? 'draft'
   const draft = status === 'draft'
@@ -679,8 +719,20 @@ function SwitchEditor({ id }: { id: string }) {
               </h2>
               <p className="se-p">Upload one press and one release per variant. Stock is required to publish; lubed and foam can follow.</p>
               <div className="se-two se-two-wide">
-                <DropZone label="Stock · press sound" />
-                <DropZone label="Stock · release sound" />
+                <StockDropZone
+                  label="Stock · press sound"
+                  stroke="press"
+                  current={loaded?.pressTake}
+                  ensureSaved={ensureSaved}
+                  onReady={(sound) => soundReady('press', sound)}
+                />
+                <StockDropZone
+                  label="Stock · release sound"
+                  stroke="release"
+                  current={loaded?.releaseTake}
+                  ensureSaved={ensureSaved}
+                  onReady={(sound) => soundReady('release', sound)}
+                />
               </div>
             </section>
 
@@ -688,16 +740,12 @@ function SwitchEditor({ id }: { id: string }) {
               <h2 id="ph-h" className="h2">
                 <span className="n">4</span>Photo
               </h2>
-              <label className="se-photo">
-                <span aria-hidden="true" className="se-photo-img">
-                  IMG
-                </span>
-                <span className="se-photo-text">
-                  <span className="se-photo-title">Drop a photo or choose a file</span>
-                  <span className="mono se-photo-sub">PNG OR JPG · SQUARE · AT LEAST 800 PX</span>
-                </span>
-                <input type="file" accept="image/png,image/jpeg" aria-label="Choose a switch photo" className="se-photo-input" disabled />
-              </label>
+              <PhotoPicker
+                photoUrl={loaded?.photoUrl}
+                ensureSaved={ensureSaved}
+                etag={() => loaded?.etag ?? ''}
+                onSaved={(sw, etag) => setLoaded((current) => (current === null ? current : { ...current, etag, photoUrl: sw.photoUrl }))}
+              />
             </section>
           </form>
 
@@ -802,26 +850,120 @@ function UnitField(props: {
   )
 }
 
-/** UploadDropZone.dc.html, idle. Recording uploads arrive with their own story. */
-function DropZone({ label }: { label: string }) {
+/** UploadDropZone.dc.html for one stock stroke (US-38). */
+function StockDropZone(props: {
+  label: string
+  stroke: 'press' | 'release'
+  current?: AdminSound
+  ensureSaved: () => Promise<string | null>
+  onReady: (sound: AdminSound) => void
+}) {
+  // The latest ensureSaved, without restarting the hook each render.
+  const ensureSaved = useRef(props.ensureSaved)
+  useEffect(() => {
+    ensureSaved.current = props.ensureSaved
+  })
+  const switchId = useCallback(() => ensureSaved.current(), [])
+  const { state, upload, reset } = useSoundUpload({
+    switchId,
+    variant: 'stock',
+    stroke: props.stroke,
+    current: props.current,
+    onDone: props.onReady,
+  })
+  return <UploadDropZone label={props.label} state={state} onFile={(file) => void upload(file)} onReset={reset} />
+}
+
+/** Section 4: a square PNG or JPG of at least 800 px, uploaded (ADM-04), then set on the switch (ADM-02). */
+function PhotoPicker(props: {
+  photoUrl?: string
+  ensureSaved: () => Promise<string | null>
+  etag: () => string
+  onSaved: (sw: AdminSwitch, etag: string) => void
+}) {
+  const [busy, setBusy] = useState(false)
+  const [over, setOver] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function send(file: File) {
+    const refused = refuseFile(file, 'photo')
+    if (refused) {
+      setError(refused)
+      return
+    }
+    setError(null)
+    setBusy(true)
+    try {
+      const id = await props.ensureSaved()
+      if (id === null) {
+        return
+      }
+      const type = file.type === 'image/png' || file.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg'
+      const ticket = await requestUpload('switch_photo', file, type)
+      await putFile(ticket, file)
+      const { sw, etag } = await updateSwitch(id, { photoUploadId: ticket.uploadId }, props.etag())
+      props.onSaved(sw, etag)
+    } catch (failure) {
+      const problem = toApiProblem(failure)
+      setError(
+        problem.code === 'precondition_failed'
+          ? 'Someone else saved it first. Reload to see their version.'
+          : (problem.errors[0]?.message ?? problem.userMessage),
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const drop = (event: DragEvent) => {
+    event.preventDefault()
+    setOver(false)
+    const file = event.dataTransfer?.files?.[0]
+    if (file) {
+      void send(file)
+    }
+  }
+
   return (
-    <div className="udz">
-      <span className="udz-label">{label}</span>
-      <div className="udz-zone">
-        <span aria-hidden="true" className="udz-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.6" strokeLinecap="square">
-            <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
-          </svg>
+    <>
+      <label
+        className={over ? 'se-photo over' : 'se-photo'}
+        aria-busy={busy}
+        onDragOver={(event) => {
+          event.preventDefault()
+          setOver(true)
+        }}
+        onDragLeave={() => setOver(false)}
+        onDrop={drop}
+      >
+        <span aria-hidden="true" className="se-photo-img">
+          {props.photoUrl ? <img src={props.photoUrl} alt="" /> : 'IMG'}
         </span>
-        <div className="udz-text">
-          <span className="udz-drop">Drag a WAV or FLAC here</span>
-          <span className="mono udz-accept">48 kHz · 24-bit · mono · under 10 MB</span>
-        </div>
-        <label className="udz-btn udz-pick" aria-disabled="true">
-          Choose file
-          <input type="file" accept=".wav,.flac,audio/wav,audio/flac" aria-label={`Choose a ${label.toLowerCase()} file`} disabled />
-        </label>
-      </div>
-    </div>
+        <span className="se-photo-text">
+          <span className="se-photo-title">{busy ? 'Uploading the photo…' : 'Drop a photo or choose a file'}</span>
+          <span className="mono se-photo-sub">PNG OR JPG · SQUARE · AT LEAST 800 PX</span>
+        </span>
+        <input
+          type="file"
+          accept="image/png,image/jpeg"
+          aria-label="Choose a switch photo"
+          aria-describedby={error ? 'ph-err' : undefined}
+          className="se-photo-input"
+          disabled={busy}
+          onChange={(event) => {
+            const file = event.target.files?.[0]
+            event.target.value = ''
+            if (file) {
+              void send(file)
+            }
+          }}
+        />
+      </label>
+      {error && (
+        <span id="ph-err" className="err" role="alert">
+          {error}
+        </span>
+      )}
+    </>
   )
 }

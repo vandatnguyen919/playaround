@@ -2,6 +2,7 @@ package app.keylab.catalog.events;
 
 import app.keylab.catalog.persistence.LibraryRepository;
 import app.keylab.sound.SoundProcessed;
+import app.keylab.sound.SoundRemoved;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,25 @@ class SoundStatusListener {
         }
         library.saveReady(event.switchId(), event.variant().name(), event.stroke().name(), event.recordingId(),
                 event.url(), event.durationMs(), event.loudnessLufs(), event.peaks(), event.processedAt());
+        library.refreshSoundStatus(event.switchId());
+    }
+
+    /**
+     * A ready take was deleted (ADM-05): drop it if it is the one catalog
+     * plays, and move the slot to the replacement the sound module names.
+     */
+    @ApplicationModuleListener
+    void on(SoundRemoved event) {
+        if (!library.lockSwitch(event.switchId())) {
+            return;
+        }
+        library.removeRecording(event.recordingId());
+        SoundProcessed replacement = event.replacement();
+        if (replacement != null && replacement.outcome() == SoundProcessed.Outcome.ready) {
+            library.saveReady(replacement.switchId(), replacement.variant().name(), replacement.stroke().name(),
+                    replacement.recordingId(), replacement.url(), replacement.durationMs(),
+                    replacement.loudnessLufs(), replacement.peaks(), replacement.processedAt());
+        }
         library.refreshSoundStatus(event.switchId());
     }
 }

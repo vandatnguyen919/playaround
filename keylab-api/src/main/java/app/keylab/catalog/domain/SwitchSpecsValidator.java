@@ -73,9 +73,9 @@ public final class SwitchSpecsValidator {
         String housing = text(body, "housing", MAX_SHORT_TEXT, false, null);
         List<ForceCurvePoint> curve = forceCurve(body, travelMm);
         JsonNode photo = body.get("photoUploadId");
-        if (photo != null && !photo.isNull()) {
-            // Photos arrive through ADM-04 uploads, which do not exist yet, so no id can be valid.
-            error("/photoUploadId", "photo_upload_unavailable", "Photo uploads are not available yet.");
+        if (photo != null && !photo.isNull() && !isUuid(photo)) {
+            // The upload itself is checked by the sound module once the specs pass (AdminSwitches).
+            error("/photoUploadId", "upload_not_found", "No upload with this id.");
         }
         if (!errors.isEmpty()) {
             throw ApiProblem.validation(errors);
@@ -246,5 +246,18 @@ public final class SwitchSpecsValidator {
 
     private void error(String pointer, String code, String message) {
         errors.add(new FieldError(pointer, code, message));
+    }
+
+    private static boolean isUuid(JsonNode node) {
+        if (!node.isString()) {
+            return false;
+        }
+        try {
+            java.util.UUID.fromString(node.asString());
+            return true;
+        }
+        catch (IllegalArgumentException ex) {
+            return false;
+        }
     }
 }
