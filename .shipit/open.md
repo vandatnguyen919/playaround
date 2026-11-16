@@ -169,6 +169,37 @@ Done and checked locally: see Current state in PRODUCT.md. Left:
 - **Multi-arch image to GHCR:** CI publishes it on `main` (see Images
   above).
 
+## US-38 Sound uploads (branch feature/us-38-sound-uploads, 2026-11-16)
+
+Verified: `keylab-api` tests (new `SoundApiTest` with 10 cases, `WavAnalysisTest` incl.
+BS.1770 loudness, `AdminSwitchApiTest`, `ModularityTests`), web unit tests (33), `tsc`,
+lint, `vite build`, `check:api`, and all 13 KeyLab e2e incl. the new
+`keylab-sounds.spec.ts` (ticket, signed PUT, 202, ready and failed, no-sound state,
+photo refused then attached) against the local stack, after restarting keylab-api from
+the new jar (Dan approved). PR open for review. Left:
+
+- **Storage is local disk** (`KEYLAB_STORAGE_DIR`, default the temp folder) behind
+  `BlobStore`, and keylab-api serves files at `/v1/assets/…` from the app's own origin, so
+  the gateway CSP needs no media host. Nothing cleans up unused uploads or old files, and
+  takes of a deleted draft stay in `sound.recordings`. Next action: the deployment ticket
+  picks an object store (Azure Blob) and sets `KEYLAB_UPLOAD_SIGNING_KEY` in Vault.
+- **WAV, not Opus:** recordings are served as the checked WAV (about 30 KB per stroke).
+  Next action: transcode if file size starts to matter.
+- **Mono only:** the checklist says mono, so stereo is refused. Dan may want stereo allowed.
+- **Copy not in the design:** the "Failed" badge and its reason in the table, "Levels OK
+  · ready to publish", "Uploading the photo…", the photo errors, the sound library empty
+  states ("No switch matches this name.", "No switches yet. Add one under Switches."), and "It is still
+  processing. Check the sound library in a minute." Next action: Dan reviews.
+- **Design changed:** UploadDropZone said "Drag a WAV or FLAC here"; US-38 and ADM-04
+  say WAV only, so the design file now says "Drag a WAV here".
+- **No delete in the UI:** `DELETE /v1/admin/sounds/{id}` works; the screens draw no
+  button. A new upload to a slot replaces what plays.
+- **`GET /v1/admin/switches`** was added in a minimal form (name search, paging) for the
+  sound library. Next action: US-36 adds its other filters.
+- **Test seeding:** `keylab-publish` and `keylab-switch-page` still seed
+  `catalog.switch_recordings` with psql (`markStockSoundsReady` in `keylab-support.ts`).
+  That still works; they could upload instead now, at the cost of speed.
+
 ## US-04 Switch page (branch feature/kl0-keylab-foundation, 2026-11-15)
 
 Verified: `SwitchDetailApiTest` (CAT-02 specs, curve, `include`, 304; CAT-03 order and
@@ -179,9 +210,6 @@ right recordings from a test-served CDN, card playback, related, "Use in a build
 the other KeyLab e2e against the local stack, after restarting keylab-api from the new
 jar (Dan approved). Left:
 
-- **Audio from a CDN is blocked by the gateway CSP** (`default-src 'self'`, no
-  `media-src`). The e2e runs on the Vite dev server, which sends no CSP. Next action: when
-  US-38 picks the CDN host, add it to `media-src` in the gateway's SecurityConfig.
 - **Copy and data not in the design:** the lede is built from the data ("A soft & muted
   silent switch by E2E Works.") because switches have no description field; the stem row
   shows the hex code, not a colour name; "No sound yet" on the badge and play button;
@@ -223,13 +251,6 @@ New sticker, 304 on the ETag, pull and republish), `AdminSwitchApiTest` (drafts 
 CAT-01), `ModularityTests`, web tests, `tsc`, lint, `vite build`, `check:api`, and
 `keylab-publish.spec.ts` plus the other KeyLab e2e against the local stack. Left:
 
-- **No real sound yet:** US-38 must publish `app.keylab.sound.SoundProcessed` when a
-  recording finishes. Until then the e2e (and anyone trying it locally) seeds
-  `catalog.switch_recordings` with `docker exec … psql` (`e2e/tests/keylab-support.ts`).
-  Next action: US-38.
-- **Module cycle to decide in US-38:** catalog depends on sound (it listens to
-  `SoundProcessed`), so sound cannot use a catalog type such as `SwitchPublished`.
-  Next action: decide where that event type lives before US-38 needs it (modulith-plan).
 - **`KeycloakTokenIntegrationTest` failed once** in a full `keylab-api` run (Keycloak
   container not ready in time) and passed when rerun alone. See "Keycloak in
   Testcontainers is slow here" under Verification.
@@ -254,10 +275,6 @@ Verified 2026-11-15: `keylab-api` tests all green (new `AdminSwitchApiTest`,
 and the KeyLab e2e (6 incl. the new `keylab-switch-edit.spec.ts`) against the local
 stack. keylab-api on :8183 was restarted from the new jar. Left:
 
-- **Photo moved to US-38** (Dan, 2026-11-15): it needs ADM-04 uploads. Until then the
-  API refuses `photoUploadId` (`422 photo_upload_unavailable`) and the picker is drawn
-  disabled. Next action: US-38 lifts the refusal and wires the picker. Notion tickets
-  US-37 and US-38 updated to match.
 - **Audit events:** api-design says every admin write records one (ADM-13); nothing
   records them yet. Next action: part of US-44.
 - **Copy not in the design:** "Edit switch" title and slug crumb when editing, the
@@ -266,7 +283,7 @@ stack. keylab-api on :8183 was restarted from the new jar. Left:
   and editor-role messages, error toast bodies ("Check the fields marked in red.",
   "Someone else saved it first. Reload to see their version."), "Draft deleted".
   Next action: Dan reviews.
-- **Drawn but inactive until their stories:** sound drop zones (US-38), the admin topbar search, range, bell and account, sidebar
+- **Drawn but inactive until their stories:** the admin topbar search, range, bell and account, sidebar
   counts and "Last publish". Release force points can be sent through the API and are
   drawn, but the table edits press points only.
 - **PR:** open for review against main.

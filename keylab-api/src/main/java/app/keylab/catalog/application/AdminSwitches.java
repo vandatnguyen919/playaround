@@ -16,9 +16,13 @@ import app.keylab.catalog.persistence.SwitchRepository;
 import app.keylab.shared.Ids;
 import app.keylab.shared.UserId;
 import app.keylab.shared.concurrency.ETags;
+import app.keylab.shared.paging.Cursor;
+import app.keylab.shared.paging.PageQuery;
+import app.keylab.shared.paging.PageResult;
 import app.keylab.shared.concurrency.IfMatch;
 import app.keylab.shared.problem.ApiProblem;
 import app.keylab.shared.problem.ProblemTypes;
+import app.keylab.sound.SoundApi;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -41,22 +45,49 @@ public class AdminSwitches {
     private static final int SLUG_ATTEMPTS = 3;
 
     private final SwitchRepository switches;
+    private final SoundApi sound;
     private final JsonMapper json;
     private final Clock clock;
 
     @Autowired
-    AdminSwitches(SwitchRepository switches, JsonMapper json) {
-        this(switches, json, Clock.systemUTC());
+    AdminSwitches(SwitchRepository switches, SoundApi sound, JsonMapper json) {
+        this(switches, sound, json, Clock.systemUTC());
     }
 
-    AdminSwitches(SwitchRepository switches, JsonMapper json, Clock clock) {
+    AdminSwitches(SwitchRepository switches, SoundApi sound, JsonMapper json, Clock clock) {
         this.switches = switches;
+        this.sound = sound;
         this.json = json;
         this.clock = clock;
     }
 
     public static String etag(Switch sw) {
         return ETags.of(sw.version());
+    }
+
+    /**
+     * ADM-02 list, drafts included, by name (the sound library's picker,
+     * US-38). The type, status and sound filters and the bulk actions come
+     * with US-36.
+     *
+     * @throws ApiProblem 400 invalid_page_token
+     */
+    public PageResult<Switch> list(String q, PageQuery page) {
+        String afterName = null;
+        UUID afterId = null;
+        if (page.cursor() != null) {
+            try {
+                afterName = page.cursor().value(0);
+                afterId = UUID.fromString(page.cursor().value(1));
+            }
+            catch (IllegalArgumentException ex) {
+                throw ApiProblem.of(ProblemTypes.BAD_REQUEST, "invalid_page_token",
+                        "page_token is not a token from a previous page");
+            }
+        }
+        String query = q == null || q.isBlank() ? null : q.strip();
+        return PageResult.of(switches.listByName(query, afterName, afterId, page.limit()), page,
+                (sw) -> Cursor.of(sw.specs().name().toLowerCase(java.util.Locale.ROOT), sw.id()));
     }
 
     /** @throws ApiProblem 404 switch_not_found */
@@ -67,11 +98,15 @@ public class AdminSwitches {
     /** @throws ApiProblem 422 validation_failed */
     public Switch create(JsonNode body, UserId editor) {
         SwitchSpecs specs = SwitchSpecsValidator.validate(body);
+        Photo photo = photo(body);
         UUID id = Ids.uuidV7();
         Instant now = clock.instant();
         for (int attempt = 1;; attempt++) {
             try {
                 switches.insert(id, uniqueSlug(specs.name(), null), specs, editor.toString(), now);
+                if (photo.changes()) {
+                    switches.setPhoto(id, photo.url());
+                }
                 return get(id);
             }
             catch (DuplicateKeyException ex) {
@@ -96,6 +131,7 @@ public class AdminSwitches {
         IfMatch.check(ifMatch, etag(current));
         JsonNode merged = mergePatch(json.valueToTree(current.specs()), patch);
         SwitchSpecs specs = SwitchSpecsValidator.validate(merged);
+        Photo photo = photo(patch);
         // A draft's slug follows its name; once published, links to it must keep working.
         boolean renamed = !slugBase(specs.name()).equals(slugBase(current.specs().name()));
         String slug = current.isDraft() && renamed ? uniqueSlug(specs.name(), current.slug()) : current.slug();
@@ -107,6 +143,9 @@ public class AdminSwitches {
         catch (DuplicateKeyException ex) {
             // Lost a race for the slug; the editor saves again and gets the next free one.
             throw ApiProblem.of(ProblemTypes.CONFLICT, "slug_taken", "Another switch just took this name. Save again.");
+        }
+        if (photo.changes()) {
+            switches.setPhoto(id, photo.url());
         }
         return get(id);
     }
@@ -125,6 +164,27 @@ public class AdminSwitches {
         if (!switches.deleteDraft(id, current.version())) {
             throw ApiProblem.of(ProblemTypes.PRECONDITION_FAILED);
         }
+    }
+
+    /** What a create or patch says about the photo: nothing, clear it, or this new one. */
+    private record Photo(boolean changes, String url) {
+    }
+
+    /**
+     * {@code photoUploadId}: left out keeps the photo, null clears it, an id
+     * takes that upload (a square PNG or JPG of at least 800 px, US-38).
+     *
+     * @throws ApiProblem 422 validation_failed at /photoUploadId
+     */
+    private Photo photo(JsonNode body) {
+        if (body == null || !body.has("photoUploadId")) {
+            return new Photo(false, null);
+        }
+        JsonNode node = body.get("photoUploadId");
+        if (node.isNull()) {
+            return new Photo(true, null);
+        }
+        return new Photo(true, sound.usePhoto(UUID.fromString(node.asString()), "/photoUploadId"));
     }
 
     /** RFC 7396: objects merge key by key, null removes, anything else (arrays too) replaces. */

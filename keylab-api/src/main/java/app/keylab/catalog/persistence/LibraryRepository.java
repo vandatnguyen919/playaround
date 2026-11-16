@@ -203,6 +203,11 @@ public class LibraryRepository {
             .update();
     }
 
+    /** Forgets a recording the sound module deleted (US-38). */
+    public void removeRecording(UUID recordingId) {
+        jdbc.sql("DELETE FROM catalog.switch_recordings WHERE recording_id = ?").param(recordingId).update();
+    }
+
     /**
      * "recorded" once the stock press and release are both here, else
      * "missing". Not a change an editor makes, so the row version (the admin

@@ -2496,9 +2496,9 @@ paths:
       tags:
       - Admin
       summary: Create a draft switch
-      description: '**ADM-02** · access: Editor · stories: US-37 · module: `catalog`.
-        `photoUploadId` is refused with `422 photo_upload_unavailable` until
-        ADM-04 uploads exist.'
+      description: '**ADM-02** · access: Editor · stories: US-37, US-38 · module: `catalog`.
+        `photoUploadId` names a received `switch_photo` upload (ADM-04): a square PNG or
+        JPG of at least 800 px, else 422 at /photoUploadId.'
       x-endpoint-id: ADM-02
       x-module: catalog
       x-stories:
@@ -2753,8 +2753,6 @@ paths:
           headers:
             KeyLab-API-Revision:
               $ref: '#/components/headers/Revision'
-            Location:
-              $ref: '#/components/headers/Location'
           content:
             application/json:
               schema:
@@ -2836,6 +2834,12 @@ paths:
           - processing
           - ready
           - failed
+      - name: switch_id
+        in: query
+        description: Only this switch's recordings. Newest first either way.
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
           description: OK
@@ -3945,7 +3949,18 @@ components:
           - switch_not_found
           - switch_not_draft
           - slug_taken
-          - photo_upload_unavailable
+          - upload_not_found
+          - upload_not_received
+          - upload_already_used
+          - upload_wrong_purpose
+          - unsupported_content_type
+          - file_too_large
+          - photo_not_square
+          - photo_too_small
+          - invalid_upload_signature
+          - upload_url_expired
+          - sound_not_found
+          - sound_in_use
         detail:
           type: string
         instance:
@@ -4167,8 +4182,9 @@ components:
           - release
         url:
           type: string
-          format: uri
-          description: Content-addressed CDN URL, never changes once published.
+          format: uri-reference
+          description: Content-addressed URL, never changes once published
+            (`/bff/keylab/v1/assets/sounds/<sha256>.wav` while keylab-api serves files itself).
         durationMs:
           type: integer
         loudnessLufs:
@@ -4754,7 +4770,10 @@ components:
           format: uuid
         url:
           type: string
-          format: uri
+          format: uri-reference
+          description: Where to PUT the file, with the headers below, before expiresAt. The
+            signature in the URL is the permission. Relative to the app's origin when keylab-api
+            stores files itself (`/bff/keylab/v1/uploads/{id}?expires=…&signature=…`).
         expiresAt:
           type: string
           format: date-time
@@ -5256,6 +5275,12 @@ components:
           - image/png
         bytes:
           type: integer
+          maximum: 10485760
+          description: Size of the file to come, if known. Files must be under 10 MB.
+        fileName:
+          type: string
+          maxLength: 120
+          description: The file's own name, shown in the sound library.
       required:
       - purpose
       - contentType
@@ -5270,12 +5295,30 @@ components:
             - processing
             - ready
             - failed
+          switchId:
+            type: string
+            format: uuid
           switch:
             $ref: '#/components/schemas/SwitchSummary'
+            description: Not filled in v1; the admin pages take switch names from ADM-02.
+          fileName:
+            type: string
           error:
             type: string
+            description: Why processing failed, in words for the editor. Only when failed.
+          createdAt:
+            type: string
+            format: date-time
+          processedAt:
+            type: string
+            format: date-time
         required:
+        - id
         - status
+        - switchId
+        - createdAt
+      description: A Recording with its processing status. url, durationMs, loudnessLufs and
+        peaks come once ready; while processing or failed there is no url.
     BulkAction:
       type: object
       properties:

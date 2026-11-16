@@ -31,7 +31,7 @@ There is no admin module. Each module exposes its own `/v1/admin/...` controller
 
 The three events shown are examples: `sound` needs to hear about published switches, `catalog` waits for `SoundProcessed` before it allows publishing, and `community` builds its activity timeline from `BuildPublished`.
 
-Listening to an event is a dependency on the module that owns the event type. Since US-39 `catalog` listens to `SoundProcessed`, so `catalog` depends on `sound`, and `sound` must not refer to any `catalog` type (`ModularityTests` would fail on the cycle). If `sound` later needs `SwitchPublished`, decide first where that type lives (for example in `shared`, or the event moves to a third module); this is open for US-38.
+Listening to an event is a dependency on the module that owns the event type. Since US-39 `catalog` listens to `SoundProcessed`, so `catalog` depends on `sound`, and `sound` must not refer to any `catalog` type (`ModularityTests` would fail on the cycle). Decided in US-38: when `sound` needs to know about a switch (does it exist, is it published), it declares a port, `sound.SwitchDirectory`, and `catalog` implements it. The dependency still points from catalog to sound, and after a split the port becomes an HTTP call. Catalog reaches uploads through `sound.SoundApi` (the switch photo) and hears of deleted takes through `SoundRemoved`. If `sound` later needs `SwitchPublished`, the same choice comes back: a port, or the type moves to `shared`.
 
 ## Package structure
 
@@ -69,10 +69,15 @@ keylab-api/
       events/SoundStatusListener.java  @ApplicationModuleListener on SoundProcessed (US-39), keeps
                                        catalog.switch_recordings and switches.sound_status
     sound/
-      SoundApi.java, SoundProcessed.java   SoundProcessed exists since US-39; US-38 publishes it
+      SoundApi.java                    public: usePhoto (catalog's photoUploadId, US-38)
+      SoundProcessed.java, SoundRemoved.java   public events, published by US-38
+      SwitchDirectory.java             port: what sound asks about a switch; catalog implements it
       web/SoundRecipeController.java   BLD-10
       web/admin/                       ADM-04, ADM-05
-      processing/                      upload, decode, peaks, loudness
+      web/FileController.java          signed PUT /v1/uploads/{id}, public GET /v1/assets/…
+      uploads/, recordings/            ADM-04, ADM-05: presigned uploads, takes, async processing
+      processing/WavAnalysis.java      WAV check, length, peaks, BS.1770 loudness
+      storage/BlobStore.java           local disk now; object store later
       catalogview/                     local copy of switch data, fed by SwitchPublished
     builds/
       BuildPublished.java

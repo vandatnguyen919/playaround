@@ -6,6 +6,7 @@ import { BuildPage, Placeholder } from './pages/Pages.tsx'
 import SwitchesPage from './pages/SwitchesPage.tsx'
 import AdminShell, { AdminPlaceholder } from './admin/AdminShell.tsx'
 import SwitchEditPage from './admin/switches/SwitchEditPage.tsx'
+import SoundLibraryPage from './admin/sounds/SoundLibraryPage.tsx'
 import SiteFrame, { SitePlaceholder } from './site/SiteFrame.tsx'
 import LibraryPage from './site/LibraryPage.tsx'
 import SwitchPage from './site/SwitchPage.tsx'
@@ -23,7 +24,7 @@ const router = createBrowserRouter([
       { path: 'switches', element: <AdminPlaceholder title="Switches" /> },
       // "new" and an id share one route, so saving a new switch keeps the page.
       { path: 'switches/:id', element: <SwitchEditPage /> },
-      { path: 'sounds', element: <AdminPlaceholder title="Sound library" /> },
+      { path: 'sounds', element: <SoundLibraryPage /> },
       { path: 'keycap-sets', element: <AdminPlaceholder title="Keycap sets" /> },
       { path: 'mods', element: <AdminPlaceholder title="Mods" /> },
       { path: 'users', element: <AdminPlaceholder title="Users" /> },
