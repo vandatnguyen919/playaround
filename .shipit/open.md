@@ -202,7 +202,7 @@ BS.1770 loudness, `AdminSwitchApiTest`, `ModularityTests`), web unit tests (33),
 lint, `vite build`, `check:api`, and all 13 KeyLab e2e incl. the new
 `keylab-sounds.spec.ts` (ticket, signed PUT, 202, ready and failed, no-sound state,
 photo refused then attached) against the local stack, after restarting keylab-api from
-the new jar (Dan approved). PR open for review. Left:
+the new jar (Dan approved). Left:
 
 - **Storage is local disk** (`KEYLAB_STORAGE_DIR`, default the temp folder) behind
   `BlobStore`, and keylab-api serves files at `/v1/assets/…` from the app's own origin, so

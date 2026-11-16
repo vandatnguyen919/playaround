@@ -41,7 +41,7 @@ per variant and a switch photo through signed upload URLs (ADM-04), and see
 processing move to ready or failed with peaks, length and loudness (ADM-05) in
 the sound library `/keylab/admin/sounds` and on the switch page. Files sit on
 local disk behind a port and are served by keylab-api from the app's own
-origin; an object store comes with deployment. In review.
+origin; an object store comes with deployment.
 US-03 (2026-11-16): visitors compare up to three recorded switches. Compare
 mode on `/keylab/switches` shows their waveforms (stored peaks), force curves
 and "Play in turn"; switches with no recording say "Sound coming soon" and
