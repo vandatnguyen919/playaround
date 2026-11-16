@@ -59,6 +59,26 @@
   color: #000;
 }
 
+.scard-chk {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  width: 26px;
+  height: 26px;
+  box-sizing: border-box;
+  border: 2.5px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  box-shadow: 2px 2px 0 #000;
+  color: #000;
+}
+
+.scard-chk.on {
+  background: var(--acc);
+}
+
 .scard-nosound {
   position: absolute;
   left: 0;

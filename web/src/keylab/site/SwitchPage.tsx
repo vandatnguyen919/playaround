@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router'
 import { getSwitch, type SwitchDetail } from '../api/switches.ts'
 import { toApiProblem, type ApiProblem } from '../api/problem.ts'
 import ForceCurveChart from '../admin/switches/ForceCurveChart.tsx'
-import type { FormState } from '../admin/switches/switchForm.ts'
+import { curveForm } from '../catalog/curveForm.ts'
 import SwitchCard from '../catalog/SwitchCard.tsx'
 import Waveform from '../catalog/Waveform.tsx'
 import { profileLabel, typeLabel, validStem } from '../catalog/switchLook.ts'
@@ -40,25 +40,6 @@ function useSwitch(slug: string): Loaded {
     }
   }, [slug])
   return held.slug === slug ? held.loaded : { state: 'loading' }
-}
-
-/** The force curve chart draws an editor's form; the page hands it the published curve. */
-function curveForm(sw: SwitchDetail): FormState {
-  const curve = sw.forceCurve ?? []
-  return {
-    name: sw.name,
-    brand: sw.brand ?? '',
-    type: sw.type,
-    stem: sw.stemColor ?? '',
-    force: sw.forceG?.toString() ?? '',
-    act: sw.actuationMm?.toString() ?? '',
-    total: sw.travelMm?.toString() ?? '',
-    spring: sw.spring ?? '',
-    points: curve
-      .filter((p) => p.stroke !== 'release')
-      .map((p, i) => ({ key: i, t: String(p.travelMm), f: String(p.forceG) })),
-    release: curve.filter((p) => p.stroke === 'release'),
-  }
 }
 
 const mm = (value: number | undefined) => (value === undefined ? '–' : `${value.toFixed(1)} mm`)

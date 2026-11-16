@@ -8,8 +8,19 @@ const INK = '#2C2A5A'
 const CORAL = '#F16B53'
 const BARS = 34
 
-export default function Waveform({ press, release, height = 64 }: { press?: Recording; release?: Recording; height?: number }) {
-  const mid = height / 2 - 6
+export default function Waveform({
+  press,
+  release,
+  height = 64,
+  labels = true,
+}: {
+  press?: Recording
+  release?: Recording
+  height?: number
+  /** False for the small compare rows: no "press", "release" or length. */
+  labels?: boolean
+}) {
+  const mid = labels ? height / 2 - 6 : height / 2
   const amp = mid - 4
   const total = (press?.durationMs ?? 0) + (release?.durationMs ?? 0)
   const side = (peaks: number[] | undefined, x0: number, x1: number, color: string) =>
@@ -21,17 +32,30 @@ export default function Waveform({ press, release, height = 64 }: { press?: Reco
     })
   const label = press || release ? `Waveform, press then release${total ? `, ${total} milliseconds` : ''}` : 'No recording yet'
   return (
-    <svg width="100%" viewBox={`0 0 480 ${height}`} role="img" aria-label={label} className="wave">
+    <svg
+      width="100%"
+      viewBox={`0 0 480 ${height}`}
+      // Without labels the strip stretches to its box, so a narrow tile keeps its height.
+      preserveAspectRatio={labels ? undefined : 'none'}
+      height={labels ? undefined : height}
+      role="img"
+      aria-label={label}
+      className="wave"
+    >
       <line x1="8" y1={mid} x2="472" y2={mid} stroke="#000" strokeWidth="1.5" strokeDasharray="3 3" />
       {side(press?.peaks, 60, 250, INK)}
       {side(release?.peaks, 280, 440, CORAL)}
-      <text x="70" y={height - 2} fontSize="10" fill="#000">
-        press
-      </text>
-      <text x="290" y={height - 2} fontSize="10" fill="#000">
-        release
-      </text>
-      {total > 0 && (
+      {labels && (
+        <text x="70" y={height - 2} fontSize="10" fill="#000">
+          press
+        </text>
+      )}
+      {labels && (
+        <text x="290" y={height - 2} fontSize="10" fill="#000">
+          release
+        </text>
+      )}
+      {labels && total > 0 && (
         <text x="472" y={height - 2} fontSize="10" fill="#000" textAnchor="end">
           {total} ms
         </text>

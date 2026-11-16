@@ -27,9 +27,12 @@ export async function listSwitches(query: LibraryQuery): Promise<LibraryPage> {
   return { data: page.data, nextPageToken: page.page.nextPageToken ?? null }
 }
 
-/** CAT-02 with its recordings and the "Sounds similar" four. */
-export async function getSwitch(slug: string): Promise<SwitchDetail> {
-  return get('/switches/{slug}', { path: { slug }, query: { include: 'sounds,related' } })
+/**
+ * CAT-02, by default with its recordings and the "Sounds similar" four.
+ * Compare mode asks for the recordings only: peaks plus the force curve.
+ */
+export async function getSwitch(slug: string, include: 'sounds,related' | 'sounds' = 'sounds,related'): Promise<SwitchDetail> {
+  return get('/switches/{slug}', { path: { slug }, query: { include } })
 }
 
 /** CAT-03: what a card plays. */

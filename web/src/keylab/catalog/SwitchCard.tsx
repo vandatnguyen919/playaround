@@ -4,8 +4,10 @@ import { crossOf, housingOf, specLine, typeLabel, validStem } from './switchLook
 
 // SwitchCard.dc.html. A playable card is a button: press plays the
 // downstroke, letting go plays the upstroke; a keyboard click plays both.
-// Without sound it is a picture with "No sound yet". Colours that depend on
-// the switch are SVG attributes, which the style-src CSP allows.
+// Without sound it is a picture with "No sound yet". In compare mode (US-03)
+// a press also picks the card, which shows a check box; a card without sound
+// says "Sound coming soon" and cannot be picked. Colours that depend on the
+// switch are SVG attributes, which the style-src CSP allows.
 
 export type CardSwitch = {
   name: string
@@ -23,17 +25,37 @@ export default function SwitchCard(props: {
   noSound: boolean
   playing?: boolean
   onPress?: (stroke: 'press' | 'release') => void
+  /** Compare mode: the card shows a check box and a press picks it. */
+  compare?: boolean
+  checked?: boolean
+  onPick?: () => void
 }) {
-  const { sw, noSound } = props
+  const { sw, noSound, compare = false, checked = false } = props
   const [down, setDown] = useState(false)
   const stem = validStem(sw.stemColor)
   const label = typeLabel(sw.type)
-  const aria = `${sw.name}, ${label}${sw.forceG !== undefined ? `, ${sw.forceG} grams` : ''}${noSound ? ', no sound available' : ''}`
-  const hint = noSound ? 'Specs only' : down ? 'Let go: upstroke' : 'Tap or hold to hear'
+  const aria = `${sw.name}, ${label}${sw.forceG !== undefined ? `, ${sw.forceG} grams` : ''}${
+    noSound ? (compare ? ', sound coming soon, cannot be compared' : ', no sound available') : ''
+  }`
+  const hint = noSound ? (compare ? 'Sound coming soon' : 'Specs only') : down ? 'Let go: upstroke' : 'Tap or hold to hear'
+  const pick = () => {
+    if (compare && props.onPick) {
+      props.onPick()
+    }
+  }
   const top = (
     <span className="scard-top">
       <SwitchArt stem={stem} housing={sw.housing} />
       <span className={`scard-tag ${sw.type}`}>{label}</span>
+      {compare && !noSound && (
+        <span aria-hidden="true" className={checked ? 'scard-chk on' : 'scard-chk'}>
+          {checked && (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="square">
+              <path d="M5 12.5l4.5 4.5L19 7.5" />
+            </svg>
+          )}
+        </span>
+      )}
       {props.playing && !noSound && (
         <span aria-hidden="true" className="scard-playing">
           <span />
@@ -68,7 +90,7 @@ export default function SwitchCard(props: {
 
   if (noSound || !props.onPress) {
     return (
-      <div className="scard" role="img" aria-label={aria}>
+      <div className="scard" role="img" aria-label={aria} aria-disabled={compare && noSound ? true : undefined}>
         {top}
         {body}
       </div>
@@ -80,12 +102,14 @@ export default function SwitchCard(props: {
       type="button"
       className={down ? 'scard down' : 'scard'}
       aria-label={aria}
+      aria-pressed={compare ? checked : undefined}
       onPointerDown={(event) => {
         if (event.button > 0) {
           return
         }
         setDown(true)
         onPress('press')
+        pick()
       }}
       onPointerUp={() => {
         if (down) {
@@ -99,6 +123,7 @@ export default function SwitchCard(props: {
         if (event.detail === 0) {
           onPress('press')
           window.setTimeout(() => onPress('release'), 150)
+          pick()
         }
       }}
     >

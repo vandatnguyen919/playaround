@@ -58,18 +58,30 @@ export function bars(peaks: number[] | undefined, count: number): number[] {
 }
 
 let sounding: HTMLAudioElement[] = []
+// Bumped by every new play: a "play in turn" that sees another number stops.
+let turn = 0
 
-export function stopSounds(): void {
+function halt(): void {
   sounding.forEach((audio) => audio.pause())
   sounding = []
+}
+
+export function stopSounds(): void {
+  turn += 1
+  halt()
 }
 
 /**
  * Plays the recordings one after another. Resolves when the last one ends;
  * rejects when the browser cannot play one (blocked, missing, unsupported).
  */
-export async function play(recordings: Recording[]): Promise<void> {
-  stopSounds()
+export function play(recordings: Recording[]): Promise<void> {
+  turn += 1
+  return playQueue(recordings)
+}
+
+async function playQueue(recordings: Recording[]): Promise<void> {
+  halt()
   const queue = recordings.map((r) => new Audio(r.url))
   sounding = queue
   for (const audio of queue) {
@@ -82,5 +94,34 @@ export async function play(recordings: Recording[]): Promise<void> {
       audio.addEventListener('error', () => reject(new Error('This sound could not be played.')), { once: true })
       audio.play().catch(reject)
     })
+  }
+}
+
+/** The pause between two switches in "Play in turn". */
+const TURN_GAP_MS = 350
+
+/**
+ * Compare mode's "Play in turn": each list (a switch's press then release)
+ * after the other, telling {@code onTurn} whose turn it is and null at the
+ * end. Any other play or stop ends it.
+ */
+export async function playInTurn(lists: Recording[][], onTurn: (index: number | null) => void): Promise<void> {
+  turn += 1
+  const mine = turn
+  try {
+    for (let i = 0; i < lists.length; i++) {
+      if (turn !== mine) {
+        return
+      }
+      onTurn(i)
+      await playQueue(lists[i])
+      if (i < lists.length - 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, TURN_GAP_MS))
+      }
+    }
+  } finally {
+    if (turn === mine) {
+      onTurn(null)
+    }
   }
 }

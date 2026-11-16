@@ -41,7 +41,7 @@
         <rect x="{{crA}}" y="56" width="{{crL}}" height="8" rx="1" fill="{{cross}}"></rect>
       </svg>
       <span style="position: absolute; left: 6px; top: 6px; padding: 2px 6px; border: 2px solid #000; font-size: 10px; line-height: 13px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; background: {{tagBg}}; color: {{tagFg}}">{{type}}</span>
-      <sc-if value="{{compare}}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{compareBox}}" hint-placeholder-val="{{ false }}">
         <span aria-hidden="true" style="position: absolute; right: 6px; top: 6px; width: 26px; height: 26px; box-sizing: border-box; border: 2.5px solid #000; display: flex; align-items: center; justify-content: center; background: {{chkBg}}; box-shadow: 2px 2px 0 #000; color: #000">
           <sc-if value="{{checked}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="square"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
         </span>
@@ -154,13 +154,13 @@ class Component extends DCLogic {
       cross: lightStem ? scShade(sw.stem, -.25) : scShade(sw.stem, box ? .5 : .32),
       tagBg: T.bg, tagFg: T.fg,
       spec: sw.force + 'g · ' + Number(sw.act).toFixed(1) + 'mm · ' + sw.prof,
-      hint: nos ? 'Specs only' : down ? 'Let go: upstroke' : 'Tap or hold to hear',
+      hint: nos ? (p.compare ? 'Sound coming soon' : 'Specs only') : down ? 'Let go: upstroke' : 'Tap or hold to hear',
       aria: sw.name + ', ' + sw.type + ', ' + sw.force + ' grams' + (nos ? ', no sound available' : ''),
       pressedAttr: String(sel || !!p.checked),
       bodyBg: sel ? '#FFD24D' : '#FFFFFF',
       shadow: down ? '0 0 0 #000' : sel ? '7px 7px 0 #000' : '4px 4px 0 #000',
       tf: down ? 'translate(4px, 4px)' : sel ? 'translate(-2px, -2px)' : 'translate(0, 0)',
-      compare: !!p.compare, checked: !!p.checked,
+      compare: !!p.compare, compareBox: !!p.compare && !nos, checked: !!p.checked,
       chkBg: p.checked ? '#FFD24D' : '#FFFFFF',
       playing: this.state.playing && !nos, nosound: nos,
       down: (e) => { if (e && e.button > 0) return; this.setState({ down: true }); this.play(false); try { if (navigator.vibrate) navigator.vibrate(8); } catch (x) {} if (p.onPick) p.onPick(sw); },

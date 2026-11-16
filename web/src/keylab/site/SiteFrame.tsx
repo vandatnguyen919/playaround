@@ -77,7 +77,7 @@ export default function SiteFrame() {
       </a>
       <header className="mk-nav">
         <div className="mk-nav-in">
-          <Link to="/keylab" aria-label="KeyLab home" className="mk-logo">
+          <Link to="/keylab/home" aria-label="KeyLab home" className="mk-logo">
             <Logo />
           </Link>
           <nav aria-label="Main" className="mk-links">
