@@ -1,10 +1,9 @@
-package app.keylab.catalog.application;
+package app.keylab.catalog.adapter.out.sound;
 
 import java.util.Optional;
 import java.util.UUID;
 
-import app.keylab.catalog.domain.Switch;
-import app.keylab.catalog.persistence.SwitchRepository;
+import app.keylab.catalog.domain.Switches;
 import app.keylab.sound.SwitchDirectory;
 
 import org.springframework.stereotype.Component;
@@ -17,15 +16,14 @@ import org.springframework.stereotype.Component;
 @Component
 class SoundSwitchDirectory implements SwitchDirectory {
 
-    private final SwitchRepository switches;
+    private final Switches switches;
 
-    SoundSwitchDirectory(SwitchRepository switches) {
+    SoundSwitchDirectory(Switches switches) {
         this.switches = switches;
     }
 
     @Override
     public Optional<SwitchRef> find(UUID switchId) {
-        return switches.find(switchId)
-            .map((sw) -> new SwitchRef(sw.id(), sw.specs().name(), sw.status() == Switch.Status.published));
+        return switches.load(switchId).map((sw) -> new SwitchRef(sw.id(), sw.specs().name(), sw.isPublished()));
     }
 }

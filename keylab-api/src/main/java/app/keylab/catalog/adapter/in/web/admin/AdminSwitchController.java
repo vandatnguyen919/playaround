@@ -7,8 +7,11 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import app.keylab.catalog.application.AdminSwitches;
-import app.keylab.catalog.application.SwitchPublication;
+import app.keylab.catalog.application.AddSwitch;
+import app.keylab.catalog.application.DeleteSwitch;
+import app.keylab.catalog.application.EditSwitch;
+import app.keylab.catalog.application.EditSwitch.VersionCheck;
+import app.keylab.catalog.application.PublishSwitch;
 import app.keylab.catalog.domain.SwitchNotFound;
 import app.keylab.catalog.query.AdminSwitchQueries;
 import app.keylab.catalog.query.Recording;
@@ -16,10 +19,12 @@ import app.keylab.catalog.query.SwitchRow;
 import app.keylab.catalog.query.SwitchRow.CurvePoint;
 import app.keylab.shared.UserId;
 import app.keylab.shared.concurrency.ETags;
+import app.keylab.shared.concurrency.IfMatch;
 import app.keylab.shared.idempotency.IdempotencyKeys;
 import app.keylab.shared.idempotency.IdempotencyKeys.Stored;
 import app.keylab.shared.paging.PageQuery;
 import app.keylab.shared.paging.PageResult;
+import app.keylab.shared.patch.JsonMergePatch;
 import app.keylab.shared.problem.ApiProblem;
 import app.keylab.shared.problem.ProblemTypes;
 import app.keylab.shared.security.Roles;
@@ -61,17 +66,22 @@ class AdminSwitchController {
     static final String MERGE_PATCH = "application/merge-patch+json";
     private static final CacheControl PRIVATE = CacheControl.noStore().cachePrivate();
 
-    private final AdminSwitches switches;
-    private final SwitchPublication publication;
+    private final AddSwitch addSwitch;
+    private final EditSwitch editSwitch;
+    private final DeleteSwitch deleteSwitch;
+    private final PublishSwitch publishSwitch;
     private final AdminSwitchQueries queries;
     private final IdempotencyKeys idempotencyKeys;
     private final JsonMapper json;
     private final Clock clock = Clock.systemUTC();
 
-    AdminSwitchController(AdminSwitches switches, SwitchPublication publication, AdminSwitchQueries queries,
-            IdempotencyKeys idempotencyKeys, JsonMapper json) {
-        this.switches = switches;
-        this.publication = publication;
+    AdminSwitchController(AddSwitch addSwitch, EditSwitch editSwitch, DeleteSwitch deleteSwitch,
+            PublishSwitch publishSwitch, AdminSwitchQueries queries, IdempotencyKeys idempotencyKeys,
+            JsonMapper json) {
+        this.addSwitch = addSwitch;
+        this.editSwitch = editSwitch;
+        this.deleteSwitch = deleteSwitch;
+        this.publishSwitch = publishSwitch;
         this.queries = queries;
         this.idempotencyKeys = idempotencyKeys;
         this.json = json;
@@ -95,7 +105,8 @@ class AdminSwitchController {
         UserId editor = UserId.of(jwt);
         Stored result = idempotencyKeys.execute("catalog-switches:" + editor, idempotencyKey,
                 IdempotencyKeys.hash(json.writeValueAsString(body)), () -> {
-                    UUID created = switches.create(body, editor).id();
+                    UUID created = addSwitch.add(SwitchSpecsReader.read(body), SwitchSpecsReader.photo(body),
+                            editor.toString());
                     return new Stored(201, "/v1/admin/switches/" + created,
                             json.writeValueAsString(view(queries.get(created))));
                 });
@@ -119,14 +130,20 @@ class AdminSwitchController {
             @RequestHeader(value = HttpHeaders.IF_MATCH, required = false) String ifMatch,
             @AuthenticationPrincipal Jwt jwt) {
         UUID switchId = parse(id);
-        switches.update(switchId, ifMatch, patch, UserId.of(jwt));
+        // The patch is applied to the specs as stored and the result read as a whole, so a patch can
+        // never leave a switch that a create would refuse. The photo comes from the patch alone.
+        editSwitch.edit(switchId, ifMatch(ifMatch),
+                (specs) -> new EditSwitch.Change(
+                        SwitchSpecsReader.read(JsonMergePatch.apply(json.valueToTree(specs), patch)),
+                        SwitchSpecsReader.photo(patch)),
+                UserId.of(jwt).toString());
         return current(switchId);
     }
 
     @DeleteMapping("/{id}")
     ResponseEntity<Void> delete(@PathVariable String id,
             @RequestHeader(value = HttpHeaders.IF_MATCH, required = false) String ifMatch) {
-        switches.delete(parse(id), ifMatch);
+        deleteSwitch.delete(parse(id), ifMatch(ifMatch));
         return ResponseEntity.noContent().build();
     }
 
@@ -136,14 +153,14 @@ class AdminSwitchController {
             @AuthenticationPrincipal Jwt jwt) {
         boolean markNew = body != null && Boolean.TRUE.equals(body.markNew());
         UUID switchId = parse(id);
-        publication.publish(switchId, markNew, UserId.of(jwt));
+        publishSwitch.publish(switchId, markNew, UserId.of(jwt).toString());
         return current(switchId);
     }
 
     /** ADM-03: pull from the public library; the switch stays for builds that use it. */
     @DeleteMapping("/{id}/publication")
     ResponseEntity<Void> unpublish(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
-        publication.unpublish(parse(id), UserId.of(jwt));
+        publishSwitch.unpublish(parse(id), UserId.of(jwt).toString());
         return ResponseEntity.noContent().build();
     }
 
@@ -159,6 +176,11 @@ class AdminSwitchController {
 
     static String etag(SwitchRow sw) {
         return ETags.of(sw.version());
+    }
+
+    /** 400 if_match_required without the header, 412 when it names another version. */
+    private static VersionCheck ifMatch(String ifMatch) {
+        return (version) -> IfMatch.check(ifMatch, ETags.of(version));
     }
 
     /** Anything that is not a UUID names no switch: 404, like an id that does not exist. */
