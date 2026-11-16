@@ -22,7 +22,7 @@ built the base: `keylab-api` (Spring Modulith, Postgres), the gateway route
 US-37 (2026-11-15) added the first feature: editors add, edit and delete draft
 switches with specs and force curve (ADM-02 for one switch, `catalog.switches`)
 on the admin screen `/keylab/admin/switches/new` (admin frame under
-`/keylab/admin`). In review.
+`/keylab/admin`).
 US-39 (2026-11-15): editors publish a switch (ADM-03) only once its stock
 press and release are ready, which catalog learns from `sound`'s
 `SoundProcessed` event (`catalog.switch_recordings`). Published switches show
@@ -47,7 +47,7 @@ mode on `/keylab/switches` shows their waveforms (stored peaks), force curves
 and "Play in turn"; switches with no recording say "Sound coming soon" and
 cannot be picked. The public landing page `/keylab/home` (hero copy and the
 "Compare three switches" strip of the three newest recorded switches) is where
-the site logo now points; `/keylab` stays the builder. In review.
+the site logo now points; `/keylab` stays the builder.
 
 ## First useful result
 
