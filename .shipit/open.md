@@ -169,6 +169,25 @@ Done and checked locally: see Current state in PRODUCT.md. Left:
 - **Multi-arch image to GHCR:** CI publishes it on `main` (see Images
   above).
 
+## KL-R1 Catalog to DDD + hexagonal (branch refactor/kl-r1-catalog-hexagonal, 2026-11-16)
+
+Verified: all 123 keylab-api tests (the five named catalog tests unedited, new
+`CatalogContractTest`, `SwitchTest`, `PublishSwitchTest`, `CatalogArchitectureTest`,
+`ModularityTests`), and `node verify.mjs keylab e2e` (23 e2e) against the local stack.
+No migration changed. keylab-api on :8183 was restarted from the new jar. Left:
+
+- **PR:** not opened yet. Next action: Dan reviews the branch and opens it.
+- **Public types the doc names:** the Package structure lists `CatalogApi` and
+  `SwitchPublished` in catalog's root; neither exists yet. `SwitchEvent.Published` is
+  recorded and published inside catalog, but nothing listens. Next action: when
+  `sound` needs it (Module map), make a public `SwitchPublished` from it.
+- **Test shim:** `application/AdminSwitches` stays only so `AdminSwitchesTest` runs
+  unedited; `CatalogArchitectureTest` exempts it by name. Next action: Dan decides whether
+  to move that test to `Slug` and `JsonMergePatch` and delete the shim.
+- **Package structure lost the other modules' trees:** the ticket text replaced the
+  whole section, so sound, builds, community and the rest no longer list their planned
+  packages there. Next action: none unless Dan wants them back under each module.
+
 ## US-03 Compare switch sounds (branch feature/us-03-compare-sounds, 2026-11-16)
 
 Verified: web unit tests (36, incl. `compare.test.ts`), `tsc`, lint, `vite build`,
