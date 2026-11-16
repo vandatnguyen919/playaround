@@ -2,7 +2,10 @@ package app.keylab.catalog.domain;
 
 import java.util.UUID;
 
+import org.jmolecules.architecture.hexagonal.SecondaryPort;
+
 /** Outbound port: the switch photo comes from an upload, which the sound module owns (US-38). */
+@SecondaryPort
 public interface SwitchPhotos {
 
     /**

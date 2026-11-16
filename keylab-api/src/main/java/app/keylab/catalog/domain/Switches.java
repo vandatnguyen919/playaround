@@ -3,7 +3,10 @@ package app.keylab.catalog.domain;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.jmolecules.architecture.hexagonal.SecondaryPort;
+
 /** Outbound port: where {@link Switch} aggregates are kept ({@code catalog.switches}). */
+@SecondaryPort
 public interface Switches {
 
     Optional<Switch> load(UUID id);

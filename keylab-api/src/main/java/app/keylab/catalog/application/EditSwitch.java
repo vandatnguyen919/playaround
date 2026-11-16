@@ -9,6 +9,8 @@ import app.keylab.catalog.domain.SwitchPhotos;
 import app.keylab.catalog.domain.SwitchSpecs;
 import app.keylab.catalog.domain.Switches;
 
+import org.jmolecules.architecture.hexagonal.PrimaryPort;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,22 +20,26 @@ import org.springframework.stereotype.Service;
  * Patch); this use case runs them against the switch it loaded, in the order
  * the API answers: unknown switch, then the precondition, then the specs.
  */
+@PrimaryPort
 @Service
 public class EditSwitch {
 
     /** Checks the request was made against this version, else throws. */
+    @PrimaryPort
     @FunctionalInterface
     public interface VersionCheck {
         void check(long currentVersion);
     }
 
     /** Turns the current specs into the new ones; throws InvalidSwitchSpecs when they break a rule. */
+    @PrimaryPort
     @FunctionalInterface
     public interface SpecsPatch {
         Change apply(SwitchSpecs current);
     }
 
     /** The new specs and what happens to the photo. */
+    @PrimaryPort
     public record Change(SwitchSpecs specs, PhotoChange photo) {
     }
 

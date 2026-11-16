@@ -7,6 +7,8 @@ import app.keylab.catalog.domain.SwitchSounds;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.jmolecules.architecture.hexagonal.PrimaryPort;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  * status, in step with the sound module (US-39). Runs in the transaction of
  * the event listener that calls it.
  */
+@PrimaryPort
 @Service
 public class RecordSwitchSound {
 

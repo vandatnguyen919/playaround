@@ -7,12 +7,15 @@ import app.keylab.catalog.domain.Switch;
 import app.keylab.catalog.domain.SwitchNotFound;
 import app.keylab.catalog.domain.Switches;
 
+import org.jmolecules.architecture.hexagonal.PrimaryPort;
+
 import org.springframework.stereotype.Service;
 
 /**
  * ADM-02 delete (US-37), for drafts only: a published switch may be in
  * someone's build, so it is pulled from the library (ADM-03) instead.
  */
+@PrimaryPort
 @Service
 public class DeleteSwitch {
 

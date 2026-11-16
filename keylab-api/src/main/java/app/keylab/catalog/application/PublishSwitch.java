@@ -7,6 +7,8 @@ import app.keylab.catalog.domain.Switch;
 import app.keylab.catalog.domain.SwitchNotFound;
 import app.keylab.catalog.domain.Switches;
 
+import org.jmolecules.architecture.hexagonal.PrimaryPort;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
  * switch is published only once its stock press and release recordings are
  * ready; the sound module tells catalog through {@code SoundProcessed}.
  */
+@PrimaryPort
 @Service
 public class PublishSwitch {
 

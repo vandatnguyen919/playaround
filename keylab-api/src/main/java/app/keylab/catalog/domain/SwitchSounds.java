@@ -2,10 +2,13 @@ package app.keylab.catalog.domain;
 
 import java.util.UUID;
 
+import org.jmolecules.architecture.hexagonal.SecondaryPort;
+
 /**
  * Outbound port: catalog's copy of each switch's ready recordings, and the
  * sound status that follows from it ({@code catalog.switch_recordings}).
  */
+@SecondaryPort
 public interface SwitchSounds {
 
     /**

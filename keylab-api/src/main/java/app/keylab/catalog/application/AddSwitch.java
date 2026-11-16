@@ -11,6 +11,8 @@ import app.keylab.catalog.domain.SwitchSpecs;
 import app.keylab.catalog.domain.Switches;
 import app.keylab.shared.Ids;
 
+import org.jmolecules.architecture.hexagonal.PrimaryPort;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
  * earlier, the insert fails and a fresh slug is tried, which Postgres would
  * refuse inside a failed transaction.
  */
+@PrimaryPort
 @Service
 public class AddSwitch {
 
