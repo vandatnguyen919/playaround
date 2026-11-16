@@ -194,10 +194,8 @@ against the local stack. No backend change: CAT-01 to CAT-03 already serve it. L
   "The first recorded switches arrive soon." when the landing has no recorded switch, and
   the card's spoken label ", sound coming soon, cannot be compared". "Try the sound" plays
   the first switch of the strip. Next action: Dan reviews.
-- **Branch:** `feature/us-03-compare-sounds`, cut from `feature/us-38-sound-uploads` (US-38 is still in review), so its PR
-  shows both stories until US-38 merges.
 
-## US-38 Sound uploads (branch feature/us-38-sound-uploads, 2026-11-16)
+## US-38 Sound uploads (merged in PR #53)
 
 Verified: `keylab-api` tests (new `SoundApiTest` with 10 cases, `WavAnalysisTest` incl.
 BS.1770 loudness, `AdminSwitchApiTest`, `ModularityTests`), web unit tests (33), `tsc`,
