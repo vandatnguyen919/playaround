@@ -1,4 +1,4 @@
-package app.keylab.catalog.web.admin;
+package app.keylab.catalog.adapter.in.web.admin;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -9,15 +9,15 @@ import java.util.UUID;
 
 import app.keylab.catalog.application.AdminSwitches;
 import app.keylab.catalog.application.SwitchPublication;
-import app.keylab.catalog.domain.ForceCurvePoint;
-import app.keylab.catalog.domain.Recording;
-import app.keylab.catalog.domain.Switch;
 import app.keylab.catalog.domain.SwitchNotFound;
-import app.keylab.catalog.domain.SwitchSpecs;
-import app.keylab.catalog.persistence.LibraryRepository;
+import app.keylab.catalog.query.AdminSwitchQueries;
+import app.keylab.catalog.query.Recording;
+import app.keylab.catalog.query.SwitchRow;
+import app.keylab.catalog.query.SwitchRow.CurvePoint;
 import app.keylab.shared.UserId;
-import app.keylab.shared.idempotency.IdempotencyKeys.Stored;
+import app.keylab.shared.concurrency.ETags;
 import app.keylab.shared.idempotency.IdempotencyKeys;
+import app.keylab.shared.idempotency.IdempotencyKeys.Stored;
 import app.keylab.shared.paging.PageQuery;
 import app.keylab.shared.paging.PageResult;
 import app.keylab.shared.problem.ApiProblem;
@@ -63,16 +63,16 @@ class AdminSwitchController {
 
     private final AdminSwitches switches;
     private final SwitchPublication publication;
-    private final LibraryRepository library;
+    private final AdminSwitchQueries queries;
     private final IdempotencyKeys idempotencyKeys;
     private final JsonMapper json;
     private final Clock clock = Clock.systemUTC();
 
-    AdminSwitchController(AdminSwitches switches, SwitchPublication publication, LibraryRepository library,
+    AdminSwitchController(AdminSwitches switches, SwitchPublication publication, AdminSwitchQueries queries,
             IdempotencyKeys idempotencyKeys, JsonMapper json) {
         this.switches = switches;
         this.publication = publication;
-        this.library = library;
+        this.queries = queries;
         this.idempotencyKeys = idempotencyKeys;
         this.json = json;
     }
@@ -80,13 +80,12 @@ class AdminSwitchController {
     /** ADM-02 list, drafts included, by name. US-36 adds its filters and sorts. */
     @GetMapping
     ResponseEntity<PageResult<AdminSwitch>> list(@RequestParam(required = false) String q, PageQuery page) {
-        return ResponseEntity.ok().cacheControl(PRIVATE).body(switches.list(q, page).map(this::view));
+        return ResponseEntity.ok().cacheControl(PRIVATE).body(queries.list(q, page).map(this::view));
     }
 
     @GetMapping("/{id}")
     ResponseEntity<AdminSwitch> get(@PathVariable String id) {
-        Switch sw = switches.get(parse(id));
-        return ResponseEntity.ok().cacheControl(PRIVATE).eTag(AdminSwitches.etag(sw)).body(view(sw));
+        return current(parse(id));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -96,9 +95,9 @@ class AdminSwitchController {
         UserId editor = UserId.of(jwt);
         Stored result = idempotencyKeys.execute("catalog-switches:" + editor, idempotencyKey,
                 IdempotencyKeys.hash(json.writeValueAsString(body)), () -> {
-                    Switch created = switches.create(body, editor);
-                    return new Stored(201, "/v1/admin/switches/" + created.id(),
-                            json.writeValueAsString(view(created)));
+                    UUID created = switches.create(body, editor).id();
+                    return new Stored(201, "/v1/admin/switches/" + created,
+                            json.writeValueAsString(view(queries.get(created))));
                 });
         ResponseEntity.BodyBuilder response = ResponseEntity.status(result.status())
             .cacheControl(PRIVATE)
@@ -107,7 +106,7 @@ class AdminSwitchController {
         // The ETag of the switch as it is now, so the editor can PATCH right away, replay or not.
         UUID id = UUID.fromString(result.location().substring(result.location().lastIndexOf('/') + 1));
         try {
-            response.eTag(AdminSwitches.etag(switches.get(id)));
+            response.eTag(etag(queries.get(id)));
         }
         catch (SwitchNotFound gone) {
             // Deleted since the first request: the replay still answers as the first one did.
@@ -119,8 +118,9 @@ class AdminSwitchController {
     ResponseEntity<AdminSwitch> update(@PathVariable String id, @RequestBody JsonNode patch,
             @RequestHeader(value = HttpHeaders.IF_MATCH, required = false) String ifMatch,
             @AuthenticationPrincipal Jwt jwt) {
-        Switch sw = switches.update(parse(id), ifMatch, patch, UserId.of(jwt));
-        return ResponseEntity.ok().cacheControl(PRIVATE).eTag(AdminSwitches.etag(sw)).body(view(sw));
+        UUID switchId = parse(id);
+        switches.update(switchId, ifMatch, patch, UserId.of(jwt));
+        return current(switchId);
     }
 
     @DeleteMapping("/{id}")
@@ -135,8 +135,9 @@ class AdminSwitchController {
     ResponseEntity<AdminSwitch> publish(@PathVariable String id, @RequestBody(required = false) PublishInput body,
             @AuthenticationPrincipal Jwt jwt) {
         boolean markNew = body != null && Boolean.TRUE.equals(body.markNew());
-        Switch sw = publication.publish(parse(id), markNew, UserId.of(jwt));
-        return ResponseEntity.ok().cacheControl(PRIVATE).eTag(AdminSwitches.etag(sw)).body(view(sw));
+        UUID switchId = parse(id);
+        publication.publish(switchId, markNew, UserId.of(jwt));
+        return current(switchId);
     }
 
     /** ADM-03: pull from the public library; the switch stays for builds that use it. */
@@ -150,6 +151,16 @@ class AdminSwitchController {
     record PublishInput(Boolean markNew) {
     }
 
+    /** The switch as it is now, with its ETag. */
+    private ResponseEntity<AdminSwitch> current(UUID id) {
+        SwitchRow sw = queries.get(id);
+        return ResponseEntity.ok().cacheControl(PRIVATE).eTag(etag(sw)).body(view(sw));
+    }
+
+    static String etag(SwitchRow sw) {
+        return ETags.of(sw.version());
+    }
+
     /** Anything that is not a UUID names no switch: 404, like an id that does not exist. */
     private static UUID parse(String id) {
         try {
@@ -160,14 +171,12 @@ class AdminSwitchController {
         }
     }
 
-    private AdminSwitch view(Switch sw) {
-        SwitchSpecs s = sw.specs();
+    private AdminSwitch view(SwitchRow sw) {
         Instant now = clock.instant();
-        return new AdminSwitch(sw.id(), sw.slug(), s.name(), s.brand(), s.type().name(),
-                s.profile() == null ? null : s.profile().name(), s.stemColor(), s.forceG(), s.actuationMm(),
-                s.travelMm(), sw.soundStatus(), sw.newUntil() != null && sw.newUntil().isAfter(now),
-                sw.publishedAt(), s.spring(), s.housing(), s.bottomOutG(), s.forceCurve(),
-                library.recordings(sw.id()), sw.status().name(), sw.photoUrl());
+        return new AdminSwitch(sw.id(), sw.slug(), sw.name(), sw.brand(), sw.type(), sw.profile(), sw.stemColor(),
+                sw.forceG(), sw.actuationMm(), sw.travelMm(), sw.soundStatus(), sw.isNew(now), sw.publishedAt(),
+                sw.spring(), sw.housing(), sw.bottomOutG(), sw.forceCurve(), queries.sounds(sw.id()), sw.status(),
+                sw.photoUrl());
     }
 
     /**
@@ -179,6 +188,6 @@ class AdminSwitchController {
     record AdminSwitch(UUID id, String slug, String name, String brand, String type, String profile,
             String stemColor, BigDecimal forceG, BigDecimal actuationMm, BigDecimal travelMm, String soundStatus,
             boolean isNew, Instant publishedAt, String spring, String housing, BigDecimal bottomOutG,
-            List<ForceCurvePoint> forceCurve, List<Recording> sounds, String status, String photoUrl) {
+            List<CurvePoint> forceCurve, List<Recording> sounds, String status, String photoUrl) {
     }
 }

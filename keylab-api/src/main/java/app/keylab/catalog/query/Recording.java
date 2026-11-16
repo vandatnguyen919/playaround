@@ -1,4 +1,4 @@
-package app.keylab.catalog.domain;
+package app.keylab.catalog.query;
 
 import java.math.BigDecimal;
 import java.util.List;

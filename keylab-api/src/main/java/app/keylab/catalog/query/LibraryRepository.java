@@ -1,8 +1,11 @@
-package app.keylab.catalog.persistence;
+package app.keylab.catalog.query;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -10,10 +13,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import app.keylab.catalog.domain.LibraryFilter;
-import app.keylab.catalog.domain.LibraryFilter.Sort;
-import app.keylab.catalog.domain.Recording;
-import app.keylab.catalog.domain.Switch;
+import app.keylab.catalog.query.LibraryFilter.Sort;
+import app.keylab.catalog.query.SwitchRow.CurvePoint;
 import app.keylab.shared.paging.Cursor;
 
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -23,26 +24,26 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * The public library's reads (CAT-01 to CAT-04) and catalog's copy of the
- * ready recordings. Only {@code status = 'published'} rows ever leave here
- * for the public side: drafts and pulled switches stay with the editors.
+ * The catalog's reads, SQL straight to read models (CAT-01 to CAT-04, and the
+ * ADM-02 list and editor). Only {@code status = 'published'} rows ever leave
+ * here for the public side: drafts and pulled switches stay with the editors.
  */
 @Repository
 public class LibraryRepository {
 
     /** Sorts switches with no force after every real one. */
-    private static final BigDecimal NO_FORCE = new BigDecimal("1000");
+    static final BigDecimal NO_FORCE = new BigDecimal("1000");
+    private static final TypeReference<List<CurvePoint>> CURVE = new TypeReference<>() {
+    };
     private static final TypeReference<List<Double>> PEAKS = new TypeReference<>() {
     };
 
     private final JdbcClient jdbc;
     private final JsonMapper json;
-    private final SwitchRepository switches;
 
-    LibraryRepository(JdbcClient jdbc, JsonMapper json, SwitchRepository switches) {
+    LibraryRepository(JdbcClient jdbc, JsonMapper json) {
         this.jdbc = jdbc;
         this.json = json;
-        this.switches = switches;
     }
 
     /**
@@ -50,7 +51,7 @@ public class LibraryRepository {
      * page exists. {@code after} is the last row of the previous page in the
      * same sort.
      */
-    public List<Switch> published(LibraryFilter filter, Cursor after, int limit, Instant now) {
+    public List<SwitchRow> published(LibraryFilter filter, Cursor after, int limit, Instant now) {
         StringBuilder sql = new StringBuilder("SELECT * FROM catalog.switches WHERE status = 'published'");
         Map<String, Object> params = new HashMap<>();
         params.put("now", Timestamp.from(now));
@@ -106,21 +107,12 @@ public class LibraryRepository {
         }
         sql.append(" LIMIT :limit");
         params.put("limit", limit);
-        return jdbc.sql(sql.toString()).params(params).query(switches::row).list();
+        return jdbc.sql(sql.toString()).params(params).query(this::row).list();
     }
 
-    /** The cursor that continues after {@code sw} in {@code sort}; it names the sort it belongs to. */
-    public static Cursor cursorAfter(Switch sw, Sort sort) {
-        if (sort == Sort.force) {
-            BigDecimal force = sw.specs().forceG() == null ? NO_FORCE : sw.specs().forceG();
-            return Cursor.of(sort.wire(), force.toPlainString(), sw.id());
-        }
-        return Cursor.of(sort.wire(), sw.publishedAt(), sw.id());
-    }
-
-    public Optional<Switch> publishedBySlug(String slug) {
+    public Optional<SwitchRow> publishedBySlug(String slug) {
         return jdbc.sql("SELECT * FROM catalog.switches WHERE slug = ? AND status = 'published'")
-            .param(slug).query(switches::row).optional();
+            .param(slug).query(this::row).optional();
     }
 
     /**
@@ -128,8 +120,8 @@ public class LibraryRepository {
      * sound profile first, then the same type, then recorded before missing,
      * then the nearest actuation force. Never {@code sw} itself.
      */
-    public List<Switch> related(Switch sw, int limit) {
-        BigDecimal force = sw.specs().forceG() == null ? NO_FORCE : sw.specs().forceG();
+    public List<SwitchRow> related(SwitchRow sw, int limit) {
+        BigDecimal force = sw.forceG() == null ? NO_FORCE : sw.forceG();
         return jdbc.sql("""
                 SELECT * FROM catalog.switches WHERE status = 'published' AND id <> :id
                 ORDER BY (profile IS NOT DISTINCT FROM :profile) DESC, (type = :type) DESC,
@@ -137,12 +129,12 @@ public class LibraryRepository {
                 LIMIT :limit
                 """)
             .param("id", sw.id())
-            .param("profile", sw.specs().profile() == null ? null : sw.specs().profile().name())
-            .param("type", sw.specs().type().name())
+            .param("profile", sw.profile())
+            .param("type", sw.type())
             .param("noForce", NO_FORCE)
             .param("force", force)
             .param("limit", limit)
-            .query(switches::row)
+            .query(this::row)
             .list();
     }
 
@@ -161,74 +153,61 @@ public class LibraryRepository {
             .list();
     }
 
+    /** Any switch, drafts too, for the editor (ADM-02). */
+    public Optional<SwitchRow> byId(UUID id) {
+        return jdbc.sql("SELECT * FROM catalog.switches WHERE id = ?").param(id).query(this::row).optional();
+    }
+
     /**
-     * Keeps a ready recording, unless a later one for the same slot is
-     * already here (events may arrive late or twice). A switch that is gone
-     * keeps nothing.
-     */
-    /**
-     * Locks the switch row until the transaction ends, so two recordings that
-     * finish at once update its sound status one after the other; otherwise
-     * each would count only its own row and leave "missing".
+     * ADM-02 list (drafts too), by name then id, from the cursor on.
      *
-     * @return false when the switch is gone
+     * @param q part of the name or brand, or null
      */
-    public boolean lockSwitch(UUID switchId) {
-        return jdbc.sql("SELECT id FROM catalog.switches WHERE id = ? FOR UPDATE").param(switchId)
-            .query(UUID.class).optional().isPresent();
+    public List<SwitchRow> listByName(String q, String afterName, UUID afterId, int limit) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM catalog.switches WHERE true");
+        List<Object> params = new ArrayList<>();
+        if (q != null) {
+            String like = "%" + likeEscape(q.toLowerCase(Locale.ROOT)) + "%";
+            sql.append(" AND (lower(name) LIKE ? ESCAPE '!' OR lower(coalesce(brand, '')) LIKE ? ESCAPE '!')");
+            params.add(like);
+            params.add(like);
+        }
+        if (afterName != null) {
+            sql.append(" AND (lower(name), id) > (?, ?)");
+            params.add(afterName);
+            params.add(afterId);
+        }
+        sql.append(" ORDER BY lower(name), id LIMIT ?");
+        params.add(limit);
+        return jdbc.sql(sql.toString()).params(params).query(this::row).list();
     }
 
-    public void saveReady(UUID switchId, String variant, String stroke, UUID recordingId, String url,
-            Integer durationMs, BigDecimal loudnessLufs, List<Double> peaks, Instant processedAt) {
-        jdbc.sql("""
-                INSERT INTO catalog.switch_recordings (switch_id, variant, stroke, recording_id, url, duration_ms,
-                  loudness_lufs, peaks, processed_at)
-                SELECT :switchId, :variant, :stroke, :recordingId, :url, :durationMs, :loudness,
-                  CAST(:peaks AS jsonb), :processedAt
-                WHERE EXISTS (SELECT 1 FROM catalog.switches WHERE id = :switchId)
-                ON CONFLICT (switch_id, variant, stroke) DO UPDATE SET recording_id = excluded.recording_id,
-                  url = excluded.url, duration_ms = excluded.duration_ms, loudness_lufs = excluded.loudness_lufs,
-                  peaks = excluded.peaks, processed_at = excluded.processed_at
-                WHERE switch_recordings.processed_at <= excluded.processed_at
-                """)
-            .param("switchId", switchId)
-            .param("variant", variant)
-            .param("stroke", stroke)
-            .param("recordingId", recordingId)
-            .param("url", url)
-            .param("durationMs", durationMs)
-            .param("loudness", loudnessLufs)
-            .param("peaks", json.writeValueAsString(peaks))
-            .param("processedAt", Timestamp.from(processedAt))
-            .update();
-    }
-
-    /** Forgets a recording the sound module deleted (US-38). */
-    public void removeRecording(UUID recordingId) {
-        jdbc.sql("DELETE FROM catalog.switch_recordings WHERE recording_id = ?").param(recordingId).update();
-    }
-
-    /**
-     * "recorded" once the stock press and release are both here, else
-     * "missing". Not a change an editor makes, so the row version (the admin
-     * ETag) stays: an editor uploading sounds can still save the specs.
-     */
-    public void refreshSoundStatus(UUID switchId) {
-        jdbc.sql("""
-                UPDATE catalog.switches SET sound_status = CASE WHEN (
-                  SELECT count(*) FROM catalog.switch_recordings
-                  WHERE switch_id = :id AND variant = 'stock') = 2 THEN 'recorded' ELSE 'missing' END
-                WHERE id = :id
-                """)
-            .param("id", switchId)
-            .update();
+    private SwitchRow row(ResultSet rs, int rowNum) throws SQLException {
+        return new SwitchRow(rs.getObject("id", UUID.class), rs.getString("slug"), rs.getString("name"),
+                rs.getString("brand"), rs.getString("type"), rs.getString("profile"), rs.getString("stem_color"),
+                plain(rs.getBigDecimal("force_g")), plain(rs.getBigDecimal("actuation_mm")),
+                plain(rs.getBigDecimal("travel_mm")), plain(rs.getBigDecimal("bottom_out_g")),
+                rs.getString("spring"), rs.getString("housing"),
+                List.copyOf(json.readValue(rs.getString("force_curve"), CURVE)), rs.getString("status"),
+                rs.getString("sound_status"), instant(rs.getTimestamp("new_until")),
+                instant(rs.getTimestamp("published_at")), rs.getLong("version"),
+                instant(rs.getTimestamp("updated_at")), rs.getString("photo_url"));
     }
 
     private static String likeEscape(String text) {
         return text.replace("!", "!!").replace("%", "!%").replace("_", "!_");
     }
 
+    /** NUMERIC(5,1) reads back as 62.0; the API sends 62. */
     private static BigDecimal plain(BigDecimal value) {
-        return SwitchRepository.plain(value);
+        if (value == null) {
+            return null;
+        }
+        BigDecimal stripped = value.stripTrailingZeros();
+        return stripped.scale() < 0 ? stripped.setScale(0) : stripped;
+    }
+
+    private static Instant instant(Timestamp timestamp) {
+        return timestamp == null ? null : timestamp.toInstant();
     }
 }

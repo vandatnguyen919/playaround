@@ -1,4 +1,4 @@
-package app.keylab.catalog.web;
+package app.keylab.catalog.adapter.in.web;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -6,11 +6,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import app.keylab.catalog.application.SwitchLibrary;
-import app.keylab.catalog.domain.ForceCurvePoint;
-import app.keylab.catalog.domain.Recording;
-import app.keylab.catalog.domain.Switch;
-import app.keylab.catalog.domain.SwitchSpecs;
+import app.keylab.catalog.query.Recording;
+import app.keylab.catalog.query.SwitchLibrary;
+import app.keylab.catalog.query.SwitchRow;
+import app.keylab.catalog.query.SwitchRow.CurvePoint;
 import app.keylab.shared.paging.PageQuery;
 import app.keylab.shared.paging.PageResult;
 import app.keylab.shared.web.PublicCache;
@@ -34,6 +33,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/switches")
 class SwitchController {
 
+    /** "Sounds similar" shows four. */
+    static final int RELATED_DEFAULT = 4;
+
     private final SwitchLibrary library;
     private final PublicCache cache;
 
@@ -54,17 +56,16 @@ class SwitchController {
             @RequestParam(required = false) String sort,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
         Instant now = library.now();
-        var result = library
-            .list(new SwitchLibrary.Params(type, profile, sound, q, isNew, forceMin, forceMax, sort), page)
-            .map((sw) -> summary(sw, now));
+        var filter = new LibraryParams(type, profile, sound, q, isNew, forceMin, forceMax, sort).toFilter();
+        var result = library.list(filter, page).map((sw) -> summary(sw, now));
         return cache.ok(result, ifNoneMatch);
     }
 
     @GetMapping("/{slug}")
     ResponseEntity<String> get(@PathVariable String slug, @RequestParam(required = false) String include,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
-        Set<String> embed = SwitchLibrary.includes(include);
-        Switch sw = library.published(slug);
+        Set<String> embed = LibraryParams.includes(include);
+        SwitchRow sw = library.published(slug);
         Instant now = library.now();
         List<Recording> sounds = embed.contains("sounds") ? library.sounds(sw) : null;
         List<SwitchSummary> related = embed.contains("related")
@@ -76,7 +77,7 @@ class SwitchController {
     @GetMapping("/{slug}/sounds")
     ResponseEntity<String> sounds(@PathVariable String slug,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
-        Switch sw = library.published(slug);
+        SwitchRow sw = library.published(slug);
         return cache.ok(new SwitchSounds(sw.soundStatus(), library.sounds(sw)), ifNoneMatch);
     }
 
@@ -86,41 +87,34 @@ class SwitchController {
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
         // One page only: the most similar few. page_size is checked like every other page.
         int size = pageSize == null ? RELATED_DEFAULT : PageQuery.parse(pageSize, null).pageSize();
-        Switch sw = library.published(slug);
+        SwitchRow sw = library.published(slug);
         Instant now = library.now();
         List<SwitchSummary> data = library.related(sw, size).stream().map((r) -> summary(r, now)).toList();
         return cache.ok(new PageResult<>(data, new PageResult.PageInfo(null, size)), ifNoneMatch);
     }
 
-    /** "Sounds similar" shows four. */
-    static final int RELATED_DEFAULT = 4;
-
-    static SwitchDetail detail(Switch sw, Instant now, List<Recording> sounds, List<SwitchSummary> related) {
-        SwitchSpecs s = sw.specs();
+    static SwitchDetail detail(SwitchRow sw, Instant now, List<Recording> sounds, List<SwitchSummary> related) {
         SwitchSummary b = summary(sw, now);
-        SoundSummary soundSummary = s.profile() == null ? null
-                : new SoundSummary(s.profile().name(), word(s.profile()));
+        SoundSummary soundSummary = sw.profile() == null ? null : new SoundSummary(sw.profile(), word(sw.profile()));
         return new SwitchDetail(b.id(), b.slug(), b.name(), b.brand(), b.type(), b.profile(), b.stemColor(),
-                b.forceG(), b.actuationMm(), b.travelMm(), b.soundStatus(), b.isNew(), b.publishedAt(), s.spring(),
-                s.housing(), s.bottomOutG(), s.forceCurve(), soundSummary, sounds, related);
+                b.forceG(), b.actuationMm(), b.travelMm(), b.soundStatus(), b.isNew(), b.publishedAt(), sw.spring(),
+                sw.housing(), sw.bottomOutG(), sw.forceCurve(), soundSummary, sounds, related);
     }
 
     /** soundSummary.word: the profile in a few words. */
-    static String word(SwitchSpecs.SoundProfile profile) {
+    static String word(String profile) {
         return switch (profile) {
-            case deep -> "Deep & rounded";
-            case poppy -> "Bright & poppy";
-            case clacky -> "Sharp & clacky";
-            case muted -> "Soft & muted";
+            case "deep" -> "Deep & rounded";
+            case "poppy" -> "Bright & poppy";
+            case "clacky" -> "Sharp & clacky";
+            case "muted" -> "Soft & muted";
+            default -> throw new IllegalStateException("Unknown sound profile " + profile);
         };
     }
 
-    static SwitchSummary summary(Switch sw, Instant now) {
-        SwitchSpecs s = sw.specs();
-        return new SwitchSummary(sw.id(), sw.slug(), s.name(), s.brand(), s.type().name(),
-                s.profile() == null ? null : s.profile().name(), s.stemColor(), s.forceG(), s.actuationMm(),
-                s.travelMm(), sw.soundStatus(), sw.newUntil() != null && sw.newUntil().isAfter(now),
-                sw.publishedAt());
+    static SwitchSummary summary(SwitchRow sw, Instant now) {
+        return new SwitchSummary(sw.id(), sw.slug(), sw.name(), sw.brand(), sw.type(), sw.profile(), sw.stemColor(),
+                sw.forceG(), sw.actuationMm(), sw.travelMm(), sw.soundStatus(), sw.isNew(now), sw.publishedAt());
     }
 
     /** Switch in openapi-v1.yaml: a summary plus specs, curve, and what {@code include} asked for. */
@@ -128,7 +122,7 @@ class SwitchController {
     record SwitchDetail(UUID id, String slug, String name, String brand, String type, String profile,
             String stemColor, BigDecimal forceG, BigDecimal actuationMm, BigDecimal travelMm, String soundStatus,
             boolean isNew, Instant publishedAt, String spring, String housing, BigDecimal bottomOutG,
-            List<ForceCurvePoint> forceCurve, SoundSummary soundSummary, List<Recording> sounds,
+            List<CurvePoint> forceCurve, SoundSummary soundSummary, List<Recording> sounds,
             List<SwitchSummary> related) {
     }
 
