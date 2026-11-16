@@ -139,6 +139,11 @@ Choices made, with reasons. Versions were checked against official docs on
   allows fonts from this origin only). API types come from
   `openapi-typescript` 7.13, run pinned through `npx` (`npm run gen:api`)
   because it wants TypeScript 5 and `web` is on 6.
+- **KeyLab modules are DDD bounded contexts with ports and adapters inside (KL-R1,
+  2026-11-16).** Layout and rules in modulith-plan.md, Package structure; catalog
+  is the first. jMolecules 2.0.1 annotations and its ArchUnit rules (jMolecules BOM
+  2025.0.2, which matches the jMolecules Modulith already brings) check it in
+  `CatalogArchitectureTest`.
 - **These versions are pinned.** Do not re-check them against docs unless a
   build fails or a major upgrade is planned.
 

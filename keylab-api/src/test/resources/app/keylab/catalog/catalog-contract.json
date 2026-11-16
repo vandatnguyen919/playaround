@@ -1,0 +1,1201 @@
+{
+  "create invalid fields" : {
+    "status" : 422,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/validation",
+      "title" : "Some fields need a fix",
+      "status" : 422,
+      "code" : "validation_failed",
+      "instance" : "/v1/admin/switches",
+      "errors" : [ {
+        "pointer" : "/name",
+        "code" : "required",
+        "message" : "Give the switch a name."
+      }, {
+        "pointer" : "/brand",
+        "code" : "invalid_type",
+        "message" : "Enter text."
+      }, {
+        "pointer" : "/type",
+        "code" : "invalid_choice",
+        "message" : "Pick linear, tactile, clicky or silent."
+      }, {
+        "pointer" : "/profile",
+        "code" : "invalid_choice",
+        "message" : "Pick deep, poppy, clacky or muted."
+      }, {
+        "pointer" : "/stemColor",
+        "code" : "invalid_color",
+        "message" : "Use a hex colour like #F16B53."
+      }, {
+        "pointer" : "/forceG",
+        "code" : "invalid_type",
+        "message" : "Enter a number."
+      }, {
+        "pointer" : "/actuationMm",
+        "code" : "actuation_after_travel",
+        "message" : "Must be less than the total travel."
+      }, {
+        "pointer" : "/bottomOutG",
+        "code" : "out_of_range",
+        "message" : "Between 10 and 250 g."
+      }, {
+        "pointer" : "/spring",
+        "code" : "too_long",
+        "message" : "Keep it to 40 characters."
+      }, {
+        "pointer" : "/housing",
+        "code" : "invalid_type",
+        "message" : "Enter text."
+      }, {
+        "pointer" : "/forceCurve/1/travelMm",
+        "code" : "duplicate_travel",
+        "message" : "Another point already sits at 0 mm."
+      }, {
+        "pointer" : "/forceCurve/2/forceG",
+        "code" : "invalid_type",
+        "message" : "Enter a number."
+      }, {
+        "pointer" : "/forceCurve/2/travelMm",
+        "code" : "out_of_range",
+        "message" : "Between 0 and the total travel, 3.8 mm."
+      }, {
+        "pointer" : "/forceCurve/3/travelMm",
+        "code" : "required",
+        "message" : "Enter a number."
+      }, {
+        "pointer" : "/forceCurve/4",
+        "code" : "invalid_type",
+        "message" : "Each point needs a travel and a force."
+      }, {
+        "pointer" : "/forceCurve/5/forceG",
+        "code" : "out_of_range",
+        "message" : "Between 0 and 250 g."
+      }, {
+        "pointer" : "/forceCurve/5/stroke",
+        "code" : "invalid_choice",
+        "message" : "Pick press or release."
+      }, {
+        "pointer" : "/forceCurve/6/travelMm",
+        "code" : "invalid_type",
+        "message" : "Enter a number."
+      }, {
+        "pointer" : "/forceCurve/6/forceG",
+        "code" : "required",
+        "message" : "Enter a number."
+      }, {
+        "pointer" : "/forceCurve/7/travelMm",
+        "code" : "duplicate_travel",
+        "message" : "Another point already sits at 0 mm."
+      }, {
+        "pointer" : "/photoUploadId",
+        "code" : "upload_not_found",
+        "message" : "No upload with this id."
+      } ]
+    }
+  },
+  "create not an object" : {
+    "status" : 422,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/validation",
+      "title" : "Some fields need a fix",
+      "status" : 422,
+      "code" : "validation_failed",
+      "instance" : "/v1/admin/switches",
+      "errors" : [ {
+        "pointer" : "",
+        "code" : "invalid_body",
+        "message" : "Send the switch as a JSON object."
+      } ]
+    }
+  },
+  "create empty" : {
+    "status" : 422,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/validation",
+      "title" : "Some fields need a fix",
+      "status" : 422,
+      "code" : "validation_failed",
+      "instance" : "/v1/admin/switches",
+      "errors" : [ {
+        "pointer" : "/name",
+        "code" : "required",
+        "message" : "Give the switch a name."
+      }, {
+        "pointer" : "/type",
+        "code" : "required",
+        "message" : "Pick linear, tactile, clicky or silent."
+      } ]
+    }
+  },
+  "create long name, too many points" : {
+    "status" : 422,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/validation",
+      "title" : "Some fields need a fix",
+      "status" : 422,
+      "code" : "validation_failed",
+      "instance" : "/v1/admin/switches",
+      "errors" : [ {
+        "pointer" : "/name",
+        "code" : "too_long",
+        "message" : "Keep it to 60 characters."
+      }, {
+        "pointer" : "/forceG",
+        "code" : "out_of_range",
+        "message" : "Between 10 and 150 g."
+      }, {
+        "pointer" : "/forceCurve",
+        "code" : "too_many_points",
+        "message" : "Keep it to 50 points."
+      } ]
+    }
+  },
+  "create curve not a list" : {
+    "status" : 422,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/validation",
+      "title" : "Some fields need a fix",
+      "status" : 422,
+      "code" : "validation_failed",
+      "instance" : "/v1/admin/switches",
+      "errors" : [ {
+        "pointer" : "/stemColor",
+        "code" : "invalid_color",
+        "message" : "Use a hex colour like #F16B53."
+      }, {
+        "pointer" : "/forceCurve",
+        "code" : "invalid_type",
+        "message" : "Send the points as a list."
+      } ]
+    }
+  },
+  "create unknown photo upload" : {
+    "status" : 422,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/validation",
+      "title" : "Some fields need a fix",
+      "status" : 422,
+      "code" : "validation_failed",
+      "instance" : "/v1/admin/switches",
+      "errors" : [ {
+        "pointer" : "/photoUploadId",
+        "code" : "upload_not_found",
+        "message" : "No upload with this id."
+      } ]
+    }
+  },
+  "create" : {
+    "status" : 201,
+    "Content-Type" : "application/json",
+    "ETag" : "\"1\"",
+    "Location" : "/v1/admin/switches/<uuid>",
+    "Cache-Control" : "no-store, private",
+    "body" : {
+      "id" : "<uuid>",
+      "slug" : "coral-<run>",
+      "name" : "Coral <run>",
+      "brand" : "Clack Works",
+      "type" : "tactile",
+      "profile" : "poppy",
+      "stemColor" : "#F16B53",
+      "forceG" : 62,
+      "actuationMm" : 2,
+      "travelMm" : 3.8,
+      "soundStatus" : "missing",
+      "isNew" : false,
+      "spring" : "18",
+      "housing" : "PC",
+      "bottomOutG" : 92.3,
+      "forceCurve" : [ {
+        "travelMm" : 0,
+        "forceG" : 0,
+        "stroke" : "press"
+      }, {
+        "travelMm" : 2,
+        "forceG" : 62,
+        "stroke" : "press"
+      }, {
+        "travelMm" : 3.8,
+        "forceG" : 92,
+        "stroke" : "press"
+      }, {
+        "travelMm" : 2,
+        "forceG" : 55,
+        "stroke" : "release"
+      } ],
+      "sounds" : [ ],
+      "status" : "draft"
+    }
+  },
+  "create again, slug taken" : {
+    "status" : 201,
+    "Content-Type" : "application/json",
+    "ETag" : "\"1\"",
+    "Location" : "/v1/admin/switches/<uuid>",
+    "Cache-Control" : "no-store, private",
+    "body" : {
+      "id" : "<uuid>",
+      "slug" : "coral-<run>-2",
+      "name" : "Coral <run>",
+      "type" : "linear",
+      "soundStatus" : "missing",
+      "isNew" : false,
+      "forceCurve" : [ ],
+      "sounds" : [ ],
+      "status" : "draft"
+    }
+  },
+  "get" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "ETag" : "\"1\"",
+    "Cache-Control" : "no-store, private",
+    "body" : {
+      "id" : "<uuid>",
+      "slug" : "coral-<run>",
+      "name" : "Coral <run>",
+      "brand" : "Clack Works",
+      "type" : "tactile",
+      "profile" : "poppy",
+      "stemColor" : "#F16B53",
+      "forceG" : 62,
+      "actuationMm" : 2,
+      "travelMm" : 3.8,
+      "soundStatus" : "missing",
+      "isNew" : false,
+      "spring" : "18",
+      "housing" : "PC",
+      "bottomOutG" : 92.3,
+      "forceCurve" : [ {
+        "travelMm" : 0,
+        "forceG" : 0,
+        "stroke" : "press"
+      }, {
+        "travelMm" : 2,
+        "forceG" : 62,
+        "stroke" : "press"
+      }, {
+        "travelMm" : 3.8,
+        "forceG" : 92,
+        "stroke" : "press"
+      }, {
+        "travelMm" : 2,
+        "forceG" : 55,
+        "stroke" : "release"
+      } ],
+      "sounds" : [ ],
+      "status" : "draft"
+    }
+  },
+  "get unknown" : {
+    "status" : 404,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/not-found",
+      "title" : "No switch with this id",
+      "status" : 404,
+      "code" : "switch_not_found",
+      "instance" : "/v1/admin/switches/<uuid>"
+    }
+  },
+  "get malformed id" : {
+    "status" : 404,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/not-found",
+      "title" : "No switch with this id",
+      "status" : 404,
+      "code" : "switch_not_found",
+      "instance" : "/v1/admin/switches/not-a-uuid"
+    }
+  },
+  "patch without If-Match" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "Send If-Match with the ETag from your last GET",
+      "status" : 400,
+      "code" : "if_match_required",
+      "instance" : "/v1/admin/switches/<uuid>"
+    }
+  },
+  "patch stale" : {
+    "status" : 412,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/precondition-failed",
+      "title" : "This changed since you loaded it",
+      "status" : 412,
+      "code" : "precondition_failed",
+      "instance" : "/v1/admin/switches/<uuid>"
+    }
+  },
+  "patch weak tag" : {
+    "status" : 412,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/precondition-failed",
+      "title" : "This changed since you loaded it",
+      "status" : 412,
+      "code" : "precondition_failed",
+      "instance" : "/v1/admin/switches/<uuid>"
+    }
+  },
+  "patch unknown, stale" : {
+    "status" : 404,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/not-found",
+      "title" : "No switch with this id",
+      "status" : 404,
+      "code" : "switch_not_found",
+      "instance" : "/v1/admin/switches/<uuid>"
+    }
+  },
+  "patch stale and invalid" : {
+    "status" : 412,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/precondition-failed",
+      "title" : "This changed since you loaded it",
+      "status" : 412,
+      "code" : "precondition_failed",
+      "instance" : "/v1/admin/switches/<uuid>"
+    }
+  },
+  "patch invalid merge" : {
+    "status" : 422,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/validation",
+      "title" : "Some fields need a fix",
+      "status" : 422,
+      "code" : "validation_failed",
+      "instance" : "/v1/admin/switches/<uuid>",
+      "errors" : [ {
+        "pointer" : "/type",
+        "code" : "required",
+        "message" : "Pick linear, tactile, clicky or silent."
+      }, {
+        "pointer" : "/actuationMm",
+        "code" : "actuation_after_travel",
+        "message" : "Must be less than the total travel."
+      }, {
+        "pointer" : "/forceCurve/1/travelMm",
+        "code" : "out_of_range",
+        "message" : "Between 0 and the total travel, 1.5 mm."
+      }, {
+        "pointer" : "/forceCurve/2/travelMm",
+        "code" : "out_of_range",
+        "message" : "Between 0 and the total travel, 1.5 mm."
+      }, {
+        "pointer" : "/forceCurve/3/travelMm",
+        "code" : "out_of_range",
+        "message" : "Between 0 and the total travel, 1.5 mm."
+      } ]
+    }
+  },
+  "patch not an object" : {
+    "status" : 422,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/validation",
+      "title" : "Some fields need a fix",
+      "status" : 422,
+      "code" : "validation_failed",
+      "instance" : "/v1/admin/switches/<uuid>",
+      "errors" : [ {
+        "pointer" : "",
+        "code" : "invalid_body",
+        "message" : "Send the switch as a JSON object."
+      } ]
+    }
+  },
+  "patch rename" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "ETag" : "\"2\"",
+    "Cache-Control" : "no-store, private",
+    "body" : {
+      "id" : "<uuid>",
+      "slug" : "coral-<run>-pro",
+      "name" : "Coral <run> Pro",
+      "type" : "tactile",
+      "profile" : "poppy",
+      "stemColor" : "#F16B53",
+      "forceG" : 62,
+      "actuationMm" : 2,
+      "travelMm" : 3.8,
+      "soundStatus" : "missing",
+      "isNew" : false,
+      "spring" : "18",
+      "housing" : "PC",
+      "bottomOutG" : 92.3,
+      "forceCurve" : [ ],
+      "sounds" : [ ],
+      "status" : "draft"
+    }
+  },
+  "patch no change" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "ETag" : "\"3\"",
+    "Cache-Control" : "no-store, private",
+    "body" : {
+      "id" : "<uuid>",
+      "slug" : "coral-<run>-pro",
+      "name" : "Coral <run> Pro",
+      "type" : "tactile",
+      "profile" : "poppy",
+      "stemColor" : "#F16B53",
+      "forceG" : 62,
+      "actuationMm" : 2,
+      "travelMm" : 3.8,
+      "soundStatus" : "missing",
+      "isNew" : false,
+      "spring" : "18",
+      "housing" : "PC",
+      "bottomOutG" : 92.3,
+      "forceCurve" : [ ],
+      "sounds" : [ ],
+      "status" : "draft"
+    }
+  },
+  "admin list" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "Cache-Control" : "no-store, private",
+    "body" : {
+      "data" : [ {
+        "id" : "<uuid>",
+        "slug" : "coral-<run>-2",
+        "name" : "Coral <run>",
+        "type" : "linear",
+        "soundStatus" : "missing",
+        "isNew" : false,
+        "forceCurve" : [ ],
+        "sounds" : [ ],
+        "status" : "draft"
+      } ],
+      "page" : {
+        "nextPageToken" : "<token>",
+        "pageSize" : 1
+      }
+    }
+  },
+  "admin list bad token" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "page_token is not a token from a previous page",
+      "status" : 400,
+      "code" : "invalid_page_token",
+      "instance" : "/v1/admin/switches"
+    }
+  },
+  "delete without If-Match" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "Send If-Match with the ETag from your last GET",
+      "status" : 400,
+      "code" : "if_match_required",
+      "instance" : "/v1/admin/switches/<uuid>"
+    }
+  },
+  "delete stale" : {
+    "status" : 412,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/precondition-failed",
+      "title" : "This changed since you loaded it",
+      "status" : 412,
+      "code" : "precondition_failed",
+      "instance" : "/v1/admin/switches/<uuid>"
+    }
+  },
+  "publish without sounds" : {
+    "status" : 409,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/conflict",
+      "title" : "Upload the stock press and release sounds to publish.",
+      "status" : 409,
+      "code" : "missing_required_sounds",
+      "instance" : "/v1/admin/switches/<uuid>/publication"
+    }
+  },
+  "publish unknown" : {
+    "status" : 404,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/not-found",
+      "title" : "No switch with this id",
+      "status" : 404,
+      "code" : "switch_not_found",
+      "instance" : "/v1/admin/switches/<uuid>/publication"
+    }
+  },
+  "unpublish a draft" : {
+    "status" : 204,
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate"
+  },
+  "get after draft unpublish" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "ETag" : "\"3\"",
+    "Cache-Control" : "no-store, private",
+    "body" : {
+      "id" : "<uuid>",
+      "slug" : "coral-<run>-pro",
+      "name" : "Coral <run> Pro",
+      "type" : "tactile",
+      "profile" : "poppy",
+      "stemColor" : "#F16B53",
+      "forceG" : 62,
+      "actuationMm" : 2,
+      "travelMm" : 3.8,
+      "soundStatus" : "missing",
+      "isNew" : false,
+      "spring" : "18",
+      "housing" : "PC",
+      "bottomOutG" : 92.3,
+      "forceCurve" : [ ],
+      "sounds" : [ ],
+      "status" : "draft"
+    }
+  },
+  "publish, new" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "ETag" : "\"4\"",
+    "Cache-Control" : "no-store, private",
+    "body" : {
+      "id" : "<uuid>",
+      "slug" : "coral-<run>-pro",
+      "name" : "Coral <run> Pro",
+      "type" : "tactile",
+      "profile" : "poppy",
+      "stemColor" : "#F16B53",
+      "forceG" : 62,
+      "actuationMm" : 2,
+      "travelMm" : 3.8,
+      "soundStatus" : "recorded",
+      "isNew" : true,
+      "publishedAt" : "<instant>",
+      "spring" : "18",
+      "housing" : "PC",
+      "bottomOutG" : 92.3,
+      "forceCurve" : [ ],
+      "sounds" : [ {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "release",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "lubed",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : false
+      } ],
+      "status" : "published"
+    }
+  },
+  "delete published" : {
+    "status" : 409,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/conflict",
+      "title" : "Only drafts can be deleted. Pull it from the library instead.",
+      "status" : 409,
+      "code" : "switch_not_draft",
+      "instance" : "/v1/admin/switches/<uuid>"
+    }
+  },
+  "patch published rename" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "ETag" : "\"5\"",
+    "Cache-Control" : "no-store, private",
+    "body" : {
+      "id" : "<uuid>",
+      "slug" : "coral-<run>-pro",
+      "name" : "Coral <run> Max",
+      "type" : "tactile",
+      "profile" : "poppy",
+      "stemColor" : "#F16B53",
+      "forceG" : 62,
+      "actuationMm" : 2,
+      "travelMm" : 3.8,
+      "soundStatus" : "recorded",
+      "isNew" : true,
+      "publishedAt" : "<instant>",
+      "spring" : "18",
+      "housing" : "PC",
+      "bottomOutG" : 92.3,
+      "forceCurve" : [ ],
+      "sounds" : [ {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "release",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "lubed",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : false
+      } ],
+      "status" : "published"
+    }
+  },
+  "library" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "Cache-Control" : "max-age=300, public",
+    "body" : {
+      "data" : [ {
+        "id" : "<uuid>",
+        "slug" : "coral-<run>-pro",
+        "name" : "Coral <run> Max",
+        "type" : "tactile",
+        "profile" : "poppy",
+        "stemColor" : "#F16B53",
+        "forceG" : 62,
+        "actuationMm" : 2,
+        "travelMm" : 3.8,
+        "soundStatus" : "recorded",
+        "isNew" : true,
+        "publishedAt" : "<instant>"
+      } ],
+      "page" : {
+        "nextPageToken" : null,
+        "pageSize" : 24
+      }
+    }
+  },
+  "library by force" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "Cache-Control" : "max-age=300, public",
+    "body" : {
+      "data" : [ {
+        "id" : "<uuid>",
+        "slug" : "coral-<run>-pro",
+        "name" : "Coral <run> Max",
+        "type" : "tactile",
+        "profile" : "poppy",
+        "stemColor" : "#F16B53",
+        "forceG" : 62,
+        "actuationMm" : 2,
+        "travelMm" : 3.8,
+        "soundStatus" : "recorded",
+        "isNew" : true,
+        "publishedAt" : "<instant>"
+      } ],
+      "page" : {
+        "nextPageToken" : null,
+        "pageSize" : 24
+      }
+    }
+  },
+  "library bad type" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "A query parameter is not valid",
+      "status" : 400,
+      "code" : "invalid_parameter",
+      "detail" : "type is one of clicky, linear, silent, tactile",
+      "instance" : "/v1/switches"
+    }
+  },
+  "library bad profile" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "A query parameter is not valid",
+      "status" : 400,
+      "code" : "invalid_parameter",
+      "detail" : "profile is one of clacky, deep, muted, poppy",
+      "instance" : "/v1/switches"
+    }
+  },
+  "library bad sound" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "A query parameter is not valid",
+      "status" : 400,
+      "code" : "invalid_parameter",
+      "detail" : "sound is one of missing, recorded",
+      "instance" : "/v1/switches"
+    }
+  },
+  "library bad sort" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "A query parameter is not valid",
+      "status" : 400,
+      "code" : "invalid_parameter",
+      "detail" : "sort is popular, -publishedAt or force",
+      "instance" : "/v1/switches"
+    }
+  },
+  "library bad is_new" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "A query parameter is not valid",
+      "status" : 400,
+      "code" : "invalid_parameter",
+      "detail" : "is_new is true or false",
+      "instance" : "/v1/switches"
+    }
+  },
+  "library bad force" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "A query parameter is not valid",
+      "status" : 400,
+      "code" : "invalid_parameter",
+      "detail" : "force_min is grams, 0 to 1000",
+      "instance" : "/v1/switches"
+    }
+  },
+  "library force out of range" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "A query parameter is not valid",
+      "status" : 400,
+      "code" : "invalid_parameter",
+      "detail" : "force_max is grams, 0 to 1000",
+      "instance" : "/v1/switches"
+    }
+  },
+  "library long q" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "A query parameter is not valid",
+      "status" : 400,
+      "code" : "invalid_parameter",
+      "detail" : "q is at most 60 characters",
+      "instance" : "/v1/switches"
+    }
+  },
+  "library bad token" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "page_token is not a token from a previous page",
+      "status" : 400,
+      "code" : "invalid_page_token",
+      "instance" : "/v1/switches"
+    }
+  },
+  "library bad page size" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "page_size must be between 1 and 100",
+      "status" : 400,
+      "code" : "invalid_page_size",
+      "instance" : "/v1/switches"
+    }
+  },
+  "detail" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "Cache-Control" : "max-age=300, public",
+    "body" : {
+      "id" : "<uuid>",
+      "slug" : "coral-<run>-pro",
+      "name" : "Coral <run> Max",
+      "type" : "tactile",
+      "profile" : "poppy",
+      "stemColor" : "#F16B53",
+      "forceG" : 62,
+      "actuationMm" : 2,
+      "travelMm" : 3.8,
+      "soundStatus" : "recorded",
+      "isNew" : true,
+      "publishedAt" : "<instant>",
+      "spring" : "18",
+      "housing" : "PC",
+      "bottomOutG" : 92.3,
+      "forceCurve" : [ ],
+      "soundSummary" : {
+        "profile" : "poppy",
+        "word" : "Bright & poppy"
+      },
+      "sounds" : [ {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "release",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "lubed",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : false
+      } ]
+    }
+  },
+  "detail bad include" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "A query parameter is not valid",
+      "status" : 400,
+      "code" : "invalid_parameter",
+      "detail" : "include is sounds, related or both",
+      "instance" : "/v1/switches/coral-<run>-pro"
+    }
+  },
+  "detail unknown" : {
+    "status" : 404,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/not-found",
+      "title" : "No switch with this name",
+      "status" : 404,
+      "code" : "switch_not_found",
+      "instance" : "/v1/switches/no-such-<run>"
+    }
+  },
+  "sounds" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "Cache-Control" : "max-age=300, public",
+    "body" : {
+      "soundStatus" : "recorded",
+      "data" : [ {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "release",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "lubed",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : false
+      } ]
+    }
+  },
+  "related bad page size" : {
+    "status" : 400,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/bad-request",
+      "title" : "page_size must be between 1 and 100",
+      "status" : 400,
+      "code" : "invalid_page_size",
+      "instance" : "/v1/switches/coral-<run>-pro/related"
+    }
+  },
+  "unpublish" : {
+    "status" : 204,
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate"
+  },
+  "detail after unpublish" : {
+    "status" : 404,
+    "Content-Type" : "application/problem+json",
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+    "body" : {
+      "type" : "https://keylab.app/problems/not-found",
+      "title" : "No switch with this name",
+      "status" : 404,
+      "code" : "switch_not_found",
+      "instance" : "/v1/switches/coral-<run>-pro"
+    }
+  },
+  "get hidden" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "ETag" : "\"6\"",
+    "Cache-Control" : "no-store, private",
+    "body" : {
+      "id" : "<uuid>",
+      "slug" : "coral-<run>-pro",
+      "name" : "Coral <run> Max",
+      "type" : "tactile",
+      "profile" : "poppy",
+      "stemColor" : "#F16B53",
+      "forceG" : 62,
+      "actuationMm" : 2,
+      "travelMm" : 3.8,
+      "soundStatus" : "recorded",
+      "isNew" : false,
+      "publishedAt" : "<instant>",
+      "spring" : "18",
+      "housing" : "PC",
+      "bottomOutG" : 92.3,
+      "forceCurve" : [ ],
+      "sounds" : [ {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "release",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "lubed",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : false
+      } ],
+      "status" : "hidden"
+    }
+  },
+  "unpublish hidden" : {
+    "status" : 204,
+    "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate"
+  },
+  "publish again, not new" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "ETag" : "\"7\"",
+    "Cache-Control" : "no-store, private",
+    "body" : {
+      "id" : "<uuid>",
+      "slug" : "coral-<run>-pro",
+      "name" : "Coral <run> Max",
+      "type" : "tactile",
+      "profile" : "poppy",
+      "stemColor" : "#F16B53",
+      "forceG" : 62,
+      "actuationMm" : 2,
+      "travelMm" : 3.8,
+      "soundStatus" : "recorded",
+      "isNew" : false,
+      "publishedAt" : "<instant>",
+      "spring" : "18",
+      "housing" : "PC",
+      "bottomOutG" : 92.3,
+      "forceCurve" : [ ],
+      "sounds" : [ {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "release",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "lubed",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : false
+      } ],
+      "status" : "published"
+    }
+  },
+  "publish no body" : {
+    "status" : 200,
+    "Content-Type" : "application/json",
+    "ETag" : "\"8\"",
+    "Cache-Control" : "no-store, private",
+    "body" : {
+      "id" : "<uuid>",
+      "slug" : "coral-<run>-pro",
+      "name" : "Coral <run> Max",
+      "type" : "tactile",
+      "profile" : "poppy",
+      "stemColor" : "#F16B53",
+      "forceG" : 62,
+      "actuationMm" : 2,
+      "travelMm" : 3.8,
+      "soundStatus" : "recorded",
+      "isNew" : false,
+      "publishedAt" : "<instant>",
+      "spring" : "18",
+      "housing" : "PC",
+      "bottomOutG" : 92.3,
+      "forceCurve" : [ ],
+      "sounds" : [ {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "stock",
+        "stroke" : "release",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : true
+      }, {
+        "id" : "<uuid>",
+        "variant" : "lubed",
+        "stroke" : "press",
+        "url" : "https://cdn.keylab.test/assets/sounds/<uuid>.opus",
+        "durationMs" : 180,
+        "loudnessLufs" : -14.5,
+        "peaks" : [ 0.1, 0.8, 0.3 ],
+        "stock" : false
+      } ],
+      "status" : "published"
+    }
+  }
+}

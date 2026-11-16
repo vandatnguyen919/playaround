@@ -21,10 +21,19 @@ dependencies {
     implementation 'org.springframework.modulith:spring-modulith-starter-core'
     implementation 'org.springframework.modulith:spring-modulith-starter-jdbc'
 
+    // Hexagonal annotations on catalog's packages (KL-R1). The jMolecules BOM release that
+    // manages jmolecules 2.0.1, the version Modulith 2.1.0 already brings (jmolecules-events)
+    // and Spring Data 4.1.1 builds against.
+    implementation platform('org.jmolecules:jmolecules-bom:2025.0.2')
+    testImplementation platform('org.jmolecules:jmolecules-bom:2025.0.2')
+    implementation 'org.jmolecules:jmolecules-hexagonal-architecture'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
     testImplementation 'org.springframework.modulith:spring-modulith-docs'
+    // jMolecules' ArchUnit rules (CatalogArchitectureTest).
+    testImplementation 'org.jmolecules.integrations:jmolecules-archunit'
     // Postgres for every Spring test, Keycloak for the real token test (testing/java).
     testImplementation 'org.testcontainers:testcontainers'
 }

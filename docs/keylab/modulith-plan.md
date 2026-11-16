@@ -35,93 +35,45 @@ Listening to an event is a dependency on the module that owns the event type. Si
 
 ## Package structure
 
-One Spring Boot app, root package `app.keylab`. Every direct sub-package is an application module; anything below it is internal unless it sits in the module's root package or a `@NamedInterface` package. Controllers are named after the endpoint IDs in [api-design-v1.md](api-design-v1.md).
+One Spring Boot app, root package `app.keylab`. Every direct sub-package is a
+Spring Modulith application module, which is one DDD bounded context with its
+own Postgres schema. Inside a module, code follows ports and adapters
+(hexagonal): the domain knows nothing about HTTP, JSON, SQL or Spring.
 
-```text
-keylab-api/
-  src/main/java/app/keylab/
-    KeylabApplication.java
-    shared/                      @ApplicationModule(type = Type.OPEN), built in KL0
-      UserId.java, Money.java
-      problem/                   RFC 9457: ProblemTypes, ApiProblem, FieldError, ProblemAdvice
-      security/                  resource server (audience keylab-api), realm roles to ROLE_*
-      web/                       KeyLab-API-Revision header, GET /v1/health (SYS-01), PublicCache
-                                 (public, max-age=300, ETag from the body, 304)
-      paging/                    PageQuery (page_size, page_token), Cursor, PageResult
-      concurrency/               ETags, IfMatch (412 on a stale tag)
-      idempotency/               IdempotencyKeys, stored in schema "platform"
-      persistence/               ModuleMigrations: one Flyway per schema
+### Inside a module with real business rules (catalog, sound, builds, billing)
+
     catalog/
-      package-info.java          @ApplicationModule(allowedDependencies = { "shared", "sound" })
-      CatalogApi.java            public: the only type other modules may call
-      SwitchSummary.java         public read model
-      SwitchPublished.java       public event
-      web/
-        SwitchController.java          CAT-01…04
-        KeycapSetController.java, ModController.java, CaseOptionController.java
-        admin/AdminSwitchController.java   ADM-02, ADM-03, ADM-06
-        admin/AdminCatalogController.java  ADM-07
-      application/AdminSwitches.java   ADM-02 (US-37)
-      application/SwitchPublication.java  ADM-03 (US-39)
-      application/SwitchLibrary.java   CAT-01 filters and paging (US-39, US-02)
-      domain/Switch.java, SwitchSpecs.java, SwitchSpecsValidator.java, ForceCurvePoint.java, …
-      persistence/SwitchRepository.java, LibraryRepository.java  JdbcClient, schema "catalog"
-      events/SoundStatusListener.java  @ApplicationModuleListener on SoundProcessed (US-39), keeps
-                                       catalog.switch_recordings and switches.sound_status
-    sound/
-      SoundApi.java                    public: usePhoto (catalog's photoUploadId, US-38)
-      SoundProcessed.java, SoundRemoved.java   public events, published by US-38
-      SwitchDirectory.java             port: what sound asks about a switch; catalog implements it
-      web/SoundRecipeController.java   BLD-10
-      web/admin/                       ADM-04, ADM-05
-      web/FileController.java          signed PUT /v1/uploads/{id}, public GET /v1/assets/…
-      uploads/, recordings/            ADM-04, ADM-05: presigned uploads, takes, async processing
-      processing/WavAnalysis.java      WAV check, length, peaks, BS.1770 loudness
-      storage/BlobStore.java           local disk now; object store later
-      catalogview/                     local copy of switch data, fed by SwitchPublished
-    builds/
-      BuildPublished.java
-      web/                             BLD-01…09
-      sharecard/, partslist/
-    community/
-      UserFollowed.java
-      web/                             ME-*, SOC-*
-      activity/                        timeline built from BuildPublished etc.
-    moderation/
-      web/admin/                       ADM-09, ADM-10
-    account/
-      web/                             ACC-01, ACC-02, ACC-09, ACC-10
-      web/admin/                       ADM-08
-      export/, deletion/
-    billing/
-      web/                             ACC-03…07
-      webhook/                         ACC-08
-      provider/                        payment provider adapter
-    backoffice/
-      web/admin/                       ADM-01, ADM-11…13
-      audit/
-  src/main/resources/db/migration/<module>/V1__<module>_schema.sql
-  src/main/resources/db/migration/platform/V1__platform_schema.sql   idempotency_keys, event_publication
-  src/test/java/app/keylab/
-    ModularityTests.java               ApplicationModules.of(KeylabApplication.class).verify() + Documenter
-    <module>/<Module>ModuleTests.java  @ApplicationModuleTest per module
-```
+      CatalogApi.java, SwitchPublished.java   public: the only types other modules may use
+      domain/          aggregates, value objects, domain events, domain errors,
+                       outbound ports (interfaces such as Switches)
+                       no Spring, Jackson, jakarta or problem+json imports
+      application/     use cases (AddSwitch, EditSwitch, PublishSwitch, ...):
+                       load an aggregate through a port, call it, save it;
+                       transactions live here
+      query/           read side: SQL straight to read models for lists and
+                       detail pages; never loads aggregates
+      adapter/in/web/      controllers; JSON <-> domain; domain errors -> RFC 9457
+      adapter/in/events/   @ApplicationModuleListener handlers that call use cases
+      adapter/out/persistence/  JDBC implementations of the domain ports
+      adapter/out/<module>/     implementations of ports another module declares
+                                (catalog's adapter/out/sound implements sound.SwitchDirectory)
 
-```java
-class ModularityTests {
-  ApplicationModules modules = ApplicationModules.of(KeylabApplication.class);
+Dependencies point inwards: adapter -> application -> domain, and query is
+used only by adapter/in/web. A module that needs something from another
+module declares a port in its own domain (or public API) and the other module
+implements it, or it listens to the other module's events.
 
-  @Test
-  void verifiesModularStructure() {
-    modules.verify();
-  }
+### Inside a thin module (backoffice, moderation, account)
 
-  @Test
-  void writesDocumentation() {
-    new Documenter(modules).writeModulesAsPlantUml().writeIndividualModulesAsPlantUml();
-  }
-}
-```
+Forms over data with few rules: controller -> application service -> JDBC is
+fine. Add a domain package only when a real rule appears.
+
+### Enforcement
+
+- `ModularityTests`: `ApplicationModules.verify()` (no cycles, only public
+  API used across modules) and the Documenter.
+- jMolecules hexagonal annotations and its ArchUnit rules fail the build when
+  the domain imports an adapter, Spring, Jackson or problem+json types.
 
 ## Rules that keep a later split cheap
 
