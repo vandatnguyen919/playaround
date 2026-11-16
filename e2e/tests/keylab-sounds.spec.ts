@@ -17,17 +17,18 @@ test.afterAll(async () => {
   await deleteUser(editor.email)
 })
 
-/** A mono PCM WAV: 100 ms of silence, then a decaying 1 kHz click. */
-function wav(rate = 48_000, bits = 24, channels = 1, seconds = 0.2): Buffer {
+/** A mono PCM WAV: 100 ms of silence, then a decaying 1 kHz click; a peak over 1 clips. */
+function wav(rate = 48_000, bits = 24, channels = 1, seconds = 0.2, peak = 0.5): Buffer {
   const frames = Math.round(rate * seconds)
   const bytes = bits / 8
   const data = Buffer.alloc(frames * bytes * channels)
   const full = 2 ** (bits - 1) - 1
   for (let i = 0; i < frames; i++) {
     const t = (i - rate / 10) / rate
-    const v = t < 0 ? 0 : 0.5 * Math.exp(-t * 40) * Math.sin(2 * Math.PI * 1000 * t)
+    const v = t < 0 ? 0 : peak * Math.exp(-t * 40) * Math.sin(2 * Math.PI * 1000 * t)
+    const value = Math.max(-full, Math.min(full, Math.round(v * full)))
     for (let c = 0; c < channels; c++) {
-      data.writeIntLE(Math.round(v * full), (i * channels + c) * bytes, bytes)
+      data.writeIntLE(value, (i * channels + c) * bytes, bytes)
     }
   }
   const head = Buffer.alloc(44)
@@ -107,19 +108,37 @@ test('an editor uploads recordings and a photo and sees them processed', async (
   await expect(pick).toContainText('1 FILE')
   await expect(page.getByText('coral-pop_stock_press.wav · 48 kHz · 24-bit')).toBeVisible()
 
-  // --- A CD-quality release take is refused by processing, with the reason ---------
+  // --- A CD-quality release take is refused by the browser, before any upload -------
+  const uploads: string[] = []
+  page.on('request', (req) => {
+    if (/\/admin\/uploads$/.test(req.url()) && req.method() === 'POST') {
+      uploads.push(req.url())
+    }
+  })
   await page.getByLabel('Stroke').selectOption('release')
   await page.getByLabel(/drop a \.wav file$/).setInputFiles({ name: 'cd.wav', mimeType: 'audio/wav', buffer: wav(44_100, 16, 2) })
   await expect(page.getByRole('alert').filter({ hasText: 'That file can’t be used' })).toContainText(
     'It is 44.1 kHz, 16-bit stereo. Upload a 48 kHz, 24-bit mono WAV.',
   )
+  expect(uploads).toEqual([])
   const releaseRow = page.getByRole('tabpanel', { name: 'Stock recordings' }).locator('.snd-vt').nth(2)
-  await expect(releaseRow).toContainText('Failed')
+  await expect(releaseRow).toContainText('Missing')
+
+  // --- A clipped press take fails processing; the good press keeps playing ---------
+  await page.getByRole('button', { name: 'Try again' }).click()
+  await page.getByLabel('Stroke').selectOption('press')
+  await page.getByLabel(/drop a \.wav file$/).setInputFiles({ name: 'loud.wav', mimeType: 'audio/wav', buffer: wav(48_000, 24, 1, 0.2, 2) })
+  await expect(page.getByRole('alert').filter({ hasText: 'That file can’t be used' })).toContainText('It clips at 0 dBFS.')
+  await expect(pressRow).toContainText('Recorded')
+  await expect(pressRow).toContainText('0.20 s')
+  await expect(pressRow.getByRole('img', { name: 'Waveform of the stock press' })).toBeVisible()
+  await expect(pressRow).toContainText('Last upload failed, this take still plays. It clips at 0 dBFS.')
+  await expect(page.getByText('coral-pop_stock_press.wav · 48 kHz · 24-bit')).toBeVisible()
   // A FLAC never leaves the browser.
   await page.getByRole('button', { name: 'Try again' }).click()
   await page.getByLabel(/drop a \.wav file$/).setInputFiles({ name: 'take.flac', mimeType: 'audio/flac', buffer: Buffer.from('fLaC') })
   await expect(page.getByRole('alert').filter({ hasText: 'Only WAV files work here.' })).toBeVisible()
-  await testInfo.attach('sound library, press ready, release failed', { path: await shot(page, testInfo.outputPath('sounds-library.png')), contentType: 'image/png' })
+  await testInfo.attach('sound library, press ready with a failed take over it', { path: await shot(page, testInfo.outputPath('sounds-library.png')), contentType: 'image/png' })
 
   // --- The switch page: press shows as uploaded; the release goes in from here -----
   await page.goto(`/keylab/admin/switches/${sw.id}`)

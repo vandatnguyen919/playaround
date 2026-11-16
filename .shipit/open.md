@@ -239,6 +239,12 @@ the new jar (Dan approved). Left:
   say WAV only, so the design file now says "Drag a WAV here".
 - **No delete in the UI:** `DELETE /v1/admin/sounds/{id}` works; the screens draw no
   button. A new upload to a slot replaces what plays.
+- **Bad files (branch fix/us-38-wav-check, 2026-11-16, Dan's report):** a 44.1 kHz stereo
+  WAV uploaded and left a Failed row over the good take. Now the browser reads the WAV
+  header and refuses a wrong format with processing's words before any upload, and the
+  table row shows the take that plays, with "Last upload failed, this take still plays."
+  and the reason under it when a newer take failed. Clipping still needs processing.
+  Copy not in the design: that note. Next action: Dan reviews the note.
 - **`GET /v1/admin/switches`** was added in a minimal form (name search, paging) for the
   sound library. Next action: US-36 adds its other filters.
 - **Test seeding:** `keylab-publish` and `keylab-switch-page` still seed
