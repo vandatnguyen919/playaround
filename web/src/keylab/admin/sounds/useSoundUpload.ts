@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { attachSound, getSound, putFile, requestUpload, type AdminSound } from '../../api/adminSounds.ts'
 import { toApiProblem } from '../../api/problem.ts'
-import { refuseFile, type Stroke, type Variant } from './soundLibrary.ts'
+import { checkWav, refuseFile, type Stroke, type Variant } from './soundLibrary.ts'
 
 // One drop zone's upload (US-38): refuse what the browser can tell is wrong,
 // get a ticket, PUT the file, attach it to the slot (202), then poll until
@@ -45,9 +45,11 @@ export function useSoundUpload(options: {
 
   const upload = useCallback(
     async (file: File) => {
-      const refused = refuseFile(file, 'sound')
+      const refused = refuseFile(file, 'sound') ?? (await checkWav(file))
       if (refused) {
-        setState({ step: 'error', file: file.name, message: refused })
+        if (alive.current) {
+          setState({ step: 'error', file: file.name, message: refused })
+        }
         return
       }
       setState({ step: 'uploading', file: file.name, percent: 4 })

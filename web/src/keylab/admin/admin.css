@@ -1513,3 +1513,9 @@
     transition: none;
   }
 }
+
+/* A failed upload under the take that still plays (US-38). */
+.snd-fail-over {
+  display: block;
+  margin-top: 4px;
+}

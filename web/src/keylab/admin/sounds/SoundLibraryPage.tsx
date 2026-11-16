@@ -17,12 +17,13 @@ import {
   VARIANTS,
   badgeFor,
   bySwitch,
+  failedOver,
   fileNote,
   formatLength,
   formatLufs,
   hasVariant,
-  latest,
   readyFiles,
+  shown,
   type Stroke,
   type Variant,
 } from './soundLibrary.ts'
@@ -247,8 +248,9 @@ function SoundLibrary() {
 function VariantTable({ sw, sounds, variant }: { sw: AdminSwitch; sounds: AdminSound[]; variant: Variant }) {
   const [playError, setPlayError] = useState<string | null>(null)
   const variantLabel = VARIANTS.find((v) => v.value === variant)?.label ?? 'Stock'
-  const press = latest(sounds, variant, 'press')
-  const release = latest(sounds, variant, 'release')
+  // A failed upload never replaces the take that plays, so the row keeps showing that take.
+  const press = shown(sounds, variant, 'press')
+  const release = shown(sounds, variant, 'release')
   return (
     <>
       <div role="tabpanel" aria-label={`${variantLabel} recordings`} className="snd-table">
@@ -262,6 +264,7 @@ function VariantTable({ sw, sounds, variant }: { sw: AdminSwitch; sounds: AdminS
         {STROKES.map((stroke) => {
           const take = stroke.value === 'press' ? press : release
           const ready = take?.status === 'ready'
+          const failed = failedOver(sounds, variant, stroke.value)
           return (
             <div key={stroke.value} className="snd-vt">
               <div className="snd-stroke">
@@ -290,6 +293,7 @@ function VariantTable({ sw, sounds, variant }: { sw: AdminSwitch; sounds: AdminS
                 ) : take?.status === 'failed' ? (
                   <span className="snd-fail">{take.error}</span>
                 ) : null}
+                {failed && <span className="snd-fail snd-fail-over">Last upload failed, this take still plays. {failed.error}</span>}
               </div>
               <span className="mono snd-num">{ready ? formatLength(take.durationMs) : '—'}</span>
               <span className="mono snd-num">{ready ? formatLufs(take.loudnessLufs) : '—'}</span>

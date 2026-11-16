@@ -46,6 +46,21 @@ export function playing(sounds: AdminSound[], variant: Variant, stroke: Stroke):
   )
 }
 
+/** What a slot's row shows: a take still processing, else the one that plays, else the newest (failed) one. */
+export function shown(sounds: AdminSound[], variant: Variant, stroke: Stroke): AdminSound | undefined {
+  const newest = latest(sounds, variant, stroke)
+  if (newest?.status === 'processing') {
+    return newest
+  }
+  return playing(sounds, variant, stroke) ?? newest
+}
+
+/** The newest take failed while an older one still plays: the upload did not replace it. */
+export function failedOver(sounds: AdminSound[], variant: Variant, stroke: Stroke): AdminSound | undefined {
+  const newest = latest(sounds, variant, stroke)
+  return newest?.status === 'failed' && playing(sounds, variant, stroke) ? newest : undefined
+}
+
 /** Slots with a ready take: the "N FILES" under a switch. */
 export function readyFiles(sounds: AdminSound[]): number {
   let count = 0
@@ -123,4 +138,67 @@ export function refuseFile(file: { name: string; size: number }, kind: 'sound' |
     return 'The file is empty.'
   }
   return null
+}
+
+/** How much of a WAV the browser reads to find its format; the fmt chunk sits near the start. */
+export const WAV_HEAD_BYTES = 64 * 1024
+
+/**
+ * Refuses a WAV whose header processing (WavAnalysis in keylab-api) would
+ * refuse, with the same words, so a wrong format never uploads. Clipping
+ * needs every sample, so processing still decides that.
+ *
+ * @param complete whether `head` is the whole file; if not, a header that
+ *     runs past it is left to processing
+ */
+export function refuseWavHeader(head: Uint8Array, complete: boolean): string | null {
+  const ascii = (at: number, text: string) => [...text].every((c, i) => head[at + i] === c.charCodeAt(0))
+  const u16 = (at: number) => head[at] | (head[at + 1] << 8)
+  const u32 = (at: number) => (head[at] | (head[at + 1] << 8) | (head[at + 2] << 16)) + head[at + 3] * 2 ** 24
+  if (head.length < 12 || !ascii(0, 'RIFF') || !ascii(8, 'WAVE')) {
+    return 'This is not a WAV file. Export the take as a 48 kHz, 24-bit mono WAV.'
+  }
+  let format = -1
+  let channels = 0
+  let rate = 0
+  let bits = 0
+  let at = 12
+  while (at + 8 <= head.length) {
+    const size = u32(at + 4)
+    const body = at + 8
+    if (ascii(at, 'fmt ') && size >= 16 && body + 16 <= head.length) {
+      format = u16(body)
+      channels = u16(body + 2)
+      rate = u32(body + 4)
+      bits = u16(body + 14)
+      if (format === 0xfffe && size >= 40 && body + 26 <= head.length) {
+        // The sub-format GUID starts with the real format code.
+        format = u16(body + 24)
+      }
+    } else if (ascii(at, 'data')) {
+      if (format === -1) {
+        return 'This WAV file is incomplete. Export it again.'
+      }
+      if (format !== 1 || channels !== 1 || rate !== 48_000 || bits !== 24) {
+        return `It is ${describeWav(format, rate, bits, channels)}. Upload a 48 kHz, 24-bit mono WAV.`
+      }
+      const length = complete ? Math.min(size, head.length - body) : size
+      return Math.floor(length / 3) === 0 ? 'This WAV file has no sound in it.' : null
+    }
+    at = body + size + (size % 2)
+  }
+  return complete ? 'This WAV file is incomplete. Export it again.' : null
+}
+
+/** "44.1 kHz, 16-bit stereo", as WavAnalysis.describe writes it. */
+function describeWav(format: number, rate: number, bits: number, channels: number): string {
+  const kind = format === 1 ? '' : format === 3 ? ' float' : ' compressed'
+  const layout = channels === 1 ? 'mono' : channels === 2 ? 'stereo' : `${channels}-channel`
+  return `${rate / 1000} kHz, ${bits}-bit${kind} ${layout}`
+}
+
+/** Reads the start of a sound file and refuses a wrong format; null when it may upload. */
+export async function checkWav(file: Blob): Promise<string | null> {
+  const head = new Uint8Array(await file.slice(0, WAV_HEAD_BYTES).arrayBuffer())
+  return refuseWavHeader(head, file.size <= WAV_HEAD_BYTES)
 }
