@@ -169,7 +169,7 @@ Done and checked locally: see Current state in PRODUCT.md. Left:
 - **Multi-arch image to GHCR:** CI publishes it on `main` (see Images
   above).
 
-## US-03 Compare switch sounds (branch feature/us-38-sound-uploads, 2026-11-16)
+## US-03 Compare switch sounds (branch feature/us-03-compare-sounds, 2026-11-16)
 
 Verified: web unit tests (36, incl. `compare.test.ts`), `tsc`, lint, `vite build`,
 `check:api`, and all 15 KeyLab e2e incl. the new `keylab-compare.spec.ts` (landing strip
@@ -194,7 +194,7 @@ against the local stack. No backend change: CAT-01 to CAT-03 already serve it. L
   "The first recorded switches arrive soon." when the landing has no recorded switch, and
   the card's spoken label ", sound coming soon, cannot be compared". "Try the sound" plays
   the first switch of the strip. Next action: Dan reviews.
-- **Branch:** built on `feature/us-38-sound-uploads` (US-38 is still in review), so its PR
+- **Branch:** `feature/us-03-compare-sounds`, cut from `feature/us-38-sound-uploads` (US-38 is still in review), so its PR
   shows both stories until US-38 merges.
 
 ## US-38 Sound uploads (branch feature/us-38-sound-uploads, 2026-11-16)
