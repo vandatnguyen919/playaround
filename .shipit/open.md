@@ -24,16 +24,20 @@ Left, in order:
   four images. V3: Dan approved it; it went healthy at 08:44 UTC, smoke failed in setup
   (admin API 401), and the automatic rollback to `c1edefd` failed, so the app was down from
   08:45 to about 08:51 UTC. Rolled forward by hand to `3e07f7e` (healthy, app and KeyLab answer
-  200), not marked good yet.
+  200). At 10:57 UTC the full default smoke passed on it (49/49, KeyLab included) with the
+  fixed `smoke-access.sh` from a temporary copy on the VM, and it was marked good by hand.
 - **Smoke's admin client and Keycloak 26.8.2:** 26.8.2 (in `main` since 2026-11-09, first
   deployed today) accepts on the Admin REST API only tokens with the built-in `kc-admin-api`
   scope. `smoke-access.sh open` now gives the throwaway `smoke-runner` client that scope
-  (proven on a local 26.8.2: 401 without, 200 with). Next action: merge the fix, let Jenkins
-  deploy it, and only then count a release after `c1edefd` as good.
+  (proven on a local 26.8.2: 401 without, 200 with; on production, smoke passed with it).
+  Next action: merge the fix and let Jenkins deploy it, so the release's own copy has it.
 - **A rollback cannot cross a Keycloak upgrade:** 26.8.2 migrated the database, and 26.8.1 then
   fails (`No such provider 'default-roles'`), so its `keycloak-config` exits 1 and the gateway
-  never starts. Until a newer release is marked good, `rollback-playground` targets `c1edefd`
-  and would take the site down: do not click it. Next action: before a deploy that bumps
+  never starts. `rollback-playground` goes to the newest good release that is not running:
+  while `3e07f7e` runs that is `c1edefd`, which takes the site down, so do not click it. Once
+  #59's merge is deployed and good, a click goes to `3e07f7e` (safe); a second one would not
+  be. An automatic rollback after a failed deploy goes to `3e07f7e` now. Next action: before a
+  deploy that bumps
   Keycloak, take a fresh dump, and decide whether `vm-deploy.sh` should refuse a rollback to an
   older Keycloak and say to use RESTORE.md instead.
 - **After merge, the drill:** run `drill.mjs` with `DRILL_REAL_SHA=<merge sha>` (it builds its
