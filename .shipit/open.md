@@ -13,9 +13,29 @@ local Vault, which renders `infra/.env`; the manifest and policies were checked 
 instead), `check-headers.mjs` (gateway code unchanged), the drill (needs the merged image).
 Left, in order:
 
-- **After merge, GHCR:** the first push makes package `playground-keylab-api`. Next action:
-  check an anonymous `imagetools inspect` shows both platforms; if the package is private, Dan
-  makes it public and links it to the repo (cd-gate and the VM pull anonymously).
+- **Done 2026-11-17 (merged as PR #58, `3e07f7e`):** CI published `playground-keylab-api`,
+  public, linux/amd64 and linux/arm64 (anonymous `imagetools inspect`). SSH was closed because
+  Dan's IP changed: `operator_ip` moved to the new IP by the README's runbook (plan shown,
+  applied; `ufw` moved; a hand-set `1.55.45.92` rule removed from NSG, storage and `ufw`).
+  Jenkins was down since 2026-11-12 (see Jenkins CD below) and was restarted. V0: 1,795 MiB
+  available without Jenkins, 1,281 with it, swap 47 MiB. V1: `vm-deploy.sh` and `vm-env.sh`
+  match `main`, old copies kept as `*.pre-kld1`. V2: both KeyLab secrets made on the VM, and
+  `main`'s `compose.prod.yml` accepts the `.env`. Deploy build #10 passed the gate for all
+  four images. V3: Dan approved it; it went healthy at 08:44 UTC, smoke failed in setup
+  (admin API 401), and the automatic rollback to `c1edefd` failed, so the app was down from
+  08:45 to about 08:51 UTC. Rolled forward by hand to `3e07f7e` (healthy, app and KeyLab answer
+  200), not marked good yet.
+- **Smoke's admin client and Keycloak 26.8.2:** 26.8.2 (in `main` since 2026-11-09, first
+  deployed today) accepts on the Admin REST API only tokens with the built-in `kc-admin-api`
+  scope. `smoke-access.sh open` now gives the throwaway `smoke-runner` client that scope
+  (proven on a local 26.8.2: 401 without, 200 with). Next action: merge the fix, let Jenkins
+  deploy it, and only then count a release after `c1edefd` as good.
+- **A rollback cannot cross a Keycloak upgrade:** 26.8.2 migrated the database, and 26.8.1 then
+  fails (`No such provider 'default-roles'`), so its `keycloak-config` exits 1 and the gateway
+  never starts. Until a newer release is marked good, `rollback-playground` targets `c1edefd`
+  and would take the site down: do not click it. Next action: before a deploy that bumps
+  Keycloak, take a fresh dump, and decide whether `vm-deploy.sh` should refuse a rollback to an
+  older Keycloak and say to use RESTORE.md instead.
 - **After merge, the drill:** run `drill.mjs` with `DRILL_REAL_SHA=<merge sha>` (it builds its
   stand-ins from the real images) and set that as its default.
 - **VM steps, each after Dan's go:** V0 read-only baseline; V1 copy `vm-deploy.sh` and
@@ -121,9 +141,13 @@ See Jenkins and Current state in PRODUCT.md, runbook in `deploy/k8s/jenkins/READ
   `169.254.169.254`.
 - **A smoke failure on the public site was not run.** It would break the site for real, for
   about 2 minutes per deploy plus the rollback. Next action: Dan decides whether to run it.
-- **Tight memory:** controller 627 of 640 Mi in the worst full run, about 530 in others.
-  An OOM kill during a deploy was not tested. Next action: move 64 Mi from the agent (peak
-  253 of 384), which keeps the 1.0 GB budget, and rerun the drill.
+- **Tight memory, and it bit (found 2026-11-17):** the controller was OOM-killed at its 640 Mi
+  limit on 2026-11-12, after 3 days up. Every restart since failed in the chart's `init`
+  container: the pod's plugin volume survived, `cp` asked to overwrite each plugin and got no
+  answer. So Jenkins polled and mailed nothing for 5 days, and nothing alerted. Fixed by
+  deleting the pod (README). Right after the restart the controller used 553 MB of 640 Mi.
+  Next action: move 64 Mi from the agent (peak 253 of 384) to the controller, which keeps the
+  1.0 GB budget, rerun the drill; and add an alert or mail when `jenkins-0` is not ready.
 - **Disk:** every release leaves its images on the VM's 64 GiB data disk, and nothing prunes
   them. Next action: add pruning that keeps the good releases' images, before the disk fills.
 - **Downtime:** a deploy restarts all three images, about 2 minutes unavailable on the
