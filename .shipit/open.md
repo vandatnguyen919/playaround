@@ -1,69 +1,51 @@
 # Open
 
-## KL-D1 Deploy KeyLab to production (branch feature/kl-d1-deploy-keylab, 2026-11-17)
+## KL-D1 Deploy KeyLab to production (live since 2026-11-17)
 
-Prepared in the repo, not deployed. See Current state in PRODUCT.md and the Notion ticket.
-Verified locally: image built for both platforms; a stack from empty volumes with the new
-image healthy, `keylab-db-init` rerun with no change, `keylab` role not a superuser and owning
-all 9 schemas; `smoke.mjs` 49 of 49 by default plus `keylab-write`; `compose config` refuses
-without either KeyLab secret; `backup.test.sh` 65 of 65; `vm-ssh-gate.test.sh` and
-`cd-gate.test.mjs` 53 of 53; `deploy/k8s/jenkins/check.sh` 72 of 72; a backup and restore of
-the keylab dump and files into a scratch Postgres. Not run: `infra/vault/check.mjs` (needs the
-local Vault, which renders `infra/.env`; the manifest and policies were checked offline
-instead), `check-headers.mjs` (gateway code unchanged), the drill (needs the merged image).
-Left, in order:
+KeyLab is live on https://app.tickin.me (PRODUCT.md, Current state). Shipped by PR #58
+(`3e07f7e`) and PR #59 (`cff6ddc`, Jenkins `deploy-playground/11`: healthy, smoke passed,
+marked good). On the VM: V0 baseline, V1 `vm-deploy.sh` and `vm-env.sh`, V2 both KeyLab secrets,
+V4 `backup.sh` with one run (Keycloak dump, KeyLab dump, files tarball) and the KeyLab dump
+restored into a throwaway Postgres (15 tables in 9 schemas, as live, owned by `keylab`), V5
+`keylab-write` 15 of 15 from outside. Old copies of the three scripts are kept on the VM as
+`*.pre-kld1`. Left:
 
-- **Done 2026-11-17 (merged as PR #58, `3e07f7e`):** CI published `playground-keylab-api`,
-  public, linux/amd64 and linux/arm64 (anonymous `imagetools inspect`). SSH was closed because
-  Dan's IP changed: `operator_ip` moved to the new IP by the README's runbook (plan shown,
-  applied; `ufw` moved; a hand-set `1.55.45.92` rule removed from NSG, storage and `ufw`).
-  Jenkins was down since 2026-11-12 (see Jenkins CD below) and was restarted. V0: 1,795 MiB
-  available without Jenkins, 1,281 with it, swap 47 MiB. V1: `vm-deploy.sh` and `vm-env.sh`
-  match `main`, old copies kept as `*.pre-kld1`. V2: both KeyLab secrets made on the VM, and
-  `main`'s `compose.prod.yml` accepts the `.env`. Deploy build #10 passed the gate for all
-  four images. V3: Dan approved it; it went healthy at 08:44 UTC, smoke failed in setup
-  (admin API 401), and the automatic rollback to `c1edefd` failed, so the app was down from
-  08:45 to about 08:51 UTC. Rolled forward by hand to `3e07f7e` (healthy, app and KeyLab answer
-  200). At 10:57 UTC the full default smoke passed on it (49/49, KeyLab included) with the
-  fixed `smoke-access.sh` from a temporary copy on the VM, and it was marked good by hand.
-- **Smoke's admin client and Keycloak 26.8.2:** 26.8.2 (in `main` since 2026-11-09, first
-  deployed today) accepts on the Admin REST API only tokens with the built-in `kc-admin-api`
-  scope. `smoke-access.sh open` now gives the throwaway `smoke-runner` client that scope
-  (proven on a local 26.8.2: 401 without, 200 with; on production, smoke passed with it).
-  Next action: merge the fix and let Jenkins deploy it, so the release's own copy has it.
-- **A rollback cannot cross a Keycloak upgrade:** 26.8.2 migrated the database, and 26.8.1 then
-  fails (`No such provider 'default-roles'`), so its `keycloak-config` exits 1 and the gateway
-  never starts. `rollback-playground` goes to the newest good release that is not running:
-  while `3e07f7e` runs that is `c1edefd`, which takes the site down, so do not click it. Once
-  #59's merge is deployed and good, a click goes to `3e07f7e` (safe); a second one would not
-  be. An automatic rollback after a failed deploy goes to `3e07f7e` now. Next action: before a
-  deploy that bumps
-  Keycloak, take a fresh dump, and decide whether `vm-deploy.sh` should refuse a rollback to an
-  older Keycloak and say to use RESTORE.md instead.
-- **After merge, the drill:** run `drill.mjs` with `DRILL_REAL_SHA=<merge sha>` (it builds its
-  stand-ins from the real images) and set that as its default.
-- **VM steps, each after Dan's go:** V0 read-only baseline; V1 copy `vm-deploy.sh` and
-  `vm-env.sh`; V2 `vm-env.sh add-keylab-secrets`, then Dan refreshes the `.env` copy in the
-  password manager; V3 Dan approves the Jenkins deploy of the merge commit; V4 measure memory
-  into PRODUCT.md, copy `backup.sh`, run one backup, restore the keylab dump into a
-  `docker run --rm` Postgres; V5 `smoke-public.mjs playground@<vm> smoke keylab-write`, and
-  Dan opens the library and a switch page; V6 Dan grants himself `keylab-admin` in the admin
-  console over the tunnel (not in the realm file). Then PRODUCT.md says KeyLab is live.
-- **Order matters on the VM:** with the new `compose.prod.yml`, anything that runs compose
-  (`vm-install.sh` too) refuses to start until V2 has put both KeyLab secrets in `.env`, and
-  `backup.sh` waits for V4 so the 19:00 UTC run does not look for a database that is not there.
-- **Local stacks:** `deploy/compose/.env` (the local prod stack) needs `KEYLAB_DB_PASSWORD`
-  and `KEYLAB_UPLOAD_SIGNING_KEY` before it starts with the new `compose.prod.yml`. Not
-  changed here, since it is Dan's file. Next action: `sh deploy/compose/vm-env.sh
-  add-keylab-secrets`, which writes the `.env` next to the script and needs `openssl`.
-- **Backups count KeyLab as running once `.env` has `KEYLAB_DB_PASSWORD`.** A failed KeyLab
-  part still uploads the Keycloak dump, fails the run and lets the alert fire. So copy
-  `backup.sh` only after a good KeyLab deploy (V4), or nights fail until KeyLab is up.
+- **The drill:** `drill.mjs` defaults to `cff6ddc` now (four images); run it once against the
+  local prod stack to see a rollback restore the previous keylab-api digest. It needs port 8090,
+  so close the tunnel to production Jenkins first, and about 8 GB for Docker. Next action: run
+  it, then tick the Jenkins item on the ticket.
+- **Lowest memory during a deploy:** not measured; `sar` samples every 10 minutes and missed
+  deploy #11. Idle and backup numbers are in PRODUCT.md. Next action: sample `free -m` every
+  second during the next deploy (this PR's merge) and put the low in PRODUCT.md (go/no-go: above
+  400 MiB).
+- **Dan:** open https://app.tickin.me/keylab/switches and a switch page; grant yourself
+  `keylab-admin` in the admin console over the tunnel (not in the realm file); refresh the
+  `.env` copy in the password manager (it gained both KeyLab secrets).
+- **`/tmp/kld1-keylab.dump` on the VM:** the fetched KeyLab dump from the restore proof, root
+  only, 35 KB. Next action: delete it with Dan's OK (`sudo rm /tmp/kld1-keylab.dump`).
+- **A rollback cannot cross a Keycloak upgrade:** 26.8.2 (in `main` since 2026-11-09, first
+  deployed 2026-11-17) migrated the database, and 26.8.1 then fails (`No such provider
+  'default-roles'`), so its `keycloak-config` exits 1 and the gateway never starts. Deploy #10's
+  smoke failed (see below), its automatic rollback went to `c1edefd` and failed, and the app was
+  down from 08:45 to about 08:51 UTC until a roll forward by hand. `rollback-playground` goes to
+  the newest good release that is not running: now `3e07f7e` (safe); a second click would go to
+  `c1edefd` and take the site down. Next action: before a deploy that bumps Keycloak, take a
+  fresh dump, and decide whether `vm-deploy.sh` should refuse a rollback to an older Keycloak
+  and say to use RESTORE.md instead.
+- **Keycloak 26.8.2 and our admin clients:** the Admin REST API takes only tokens with the
+  built-in `kc-admin-api` scope. `smoke-access.sh open` gives the throwaway `smoke-runner` that
+  scope (PR #59). Any new service client that calls the admin API needs it too.
 - **Each `keylab-write` run leaves one pulled "smoke" switch** in production, since published
-  switches cannot be deleted. That is why it is opt-in and not in the deploy smoke.
+  switches cannot be deleted. That is why it is opt-in and not in the deploy smoke. One is
+  there from 2026-11-17.
 - **Rollback to the release before KeyLab** leaves keylab-api running as an orphan with its
-  data; the old gateway does not call it. Not run anywhere yet; the drill after merge covers
-  rollbacks between KeyLab releases, not this first one.
+  data; the old gateway does not call it. Not run anywhere; after the Keycloak upgrade no such
+  rollback can start anyway.
+- **Local stacks:** `deploy/compose/.env` needs `KEYLAB_DB_PASSWORD` and
+  `KEYLAB_UPLOAD_SIGNING_KEY` before it starts with the new `compose.prod.yml`. Not changed,
+  since it is Dan's file. Next action: `sh deploy/compose/vm-env.sh add-keylab-secrets`.
+- **Not run:** `infra/vault/check.mjs` against a running Vault (the manifest and policies were
+  checked offline).
 
 ## Docs site (live since 2026-11-10)
 

@@ -48,9 +48,9 @@ const REGISTRY = "jk-registry"
 const MAILPIT = "jk-mailpit"
 const BUILDER = "jk-builder"
 const REGISTRY_HOST = "registry.drill.test:5000"
-// A main commit whose four images CI published; the stand-in images build FROM them.
-// DRILL_REAL_SHA picks another, such as the first commit with keylab-api.
-const REAL_SHA = process.env.DRILL_REAL_SHA ?? "13163e5ec4210f7b6c00d85be05307ea556c116b"
+// A main commit whose four images CI published (gateway, api, keycloak, keylab-api); the
+// stand-in images build FROM them. DRILL_REAL_SHA picks another.
+const REAL_SHA = process.env.DRILL_REAL_SHA ?? "cff6ddc716fe21084ceaf95232dbae5b3f9e5792"
 const REAL_REPO = "vandatnguyen919/playaround"
 const COMPOSE = "/srv/playground/deploy/compose"
 const WORK = path.join(process.env.DRILL_DIR ?? os.tmpdir(), "jenkins-drill")

@@ -818,9 +818,13 @@ on the cheaper 4 GiB size. Revisit: skip straight to phase 2 if Dan prefers.
 0.1, gateway 0.5, api 0.4, keylab-api 0.384 (KL-D1): about 3.9 GB.
 Use is what counts, not limits. Measured on the dev machine with the production images
 (2026-11-17, after smoke): keylab-api 240 to 273 MiB, Postgres with both databases
-104 MiB, gateway 281 MiB, api 182 MiB, Keycloak 785 MiB, Redis 8 MiB. VM numbers with
-Jenkins running are filled in after the KL-D1 deploy. Go/no-go there: no OOM kill,
-idle available above 600 MiB, swap below 768 MiB, lowest during a deploy above 400 MiB.
+104 MiB, gateway 281 MiB, api 182 MiB, Keycloak 785 MiB, Redis 8 MiB. On the VM with
+Jenkins idle (2026-11-17, after the KL-D1 deploy): keylab-api 248 of 384 MiB, Keycloak 544,
+gateway 273, api 177, Postgres 84, Traefik 38, Redis 17. Available 1,000 to 1,110 MiB
+(1,281 before KeyLab), swap 130 to 174 MiB, no OOM kill; during a backup it stayed above
+1,000 MiB. Go/no-go: no OOM kill, idle available above 600 MiB, swap below 768 MiB (all
+met), lowest during a deploy above 400 MiB (not measured yet: `sar` samples every 10
+minutes and missed the deploy; `.shipit/open.md`).
 Tight but under 4 GiB with JVM heaps capped (`-XX:MaxRAMPercentage`) and a 1
 GiB swap file on the data disk as a cushion, not as working memory. If
 Keycloak is OOM killed, resize to B2ps v2 early.
@@ -1153,7 +1157,8 @@ dependency.** Service `lgtm` in `infra/docker-compose.yml`, never in
 5.10.0, in namespace `ci` on k3s on the VM, configured as code (JCasC).** Dan chose the
 VM on 2026-11-06, at the 4 GiB size, ahead of phase 2's move from compose: k3s runs beside
 compose with no Traefik or ServiceLB, so compose keeps 80 and 443. Measured with the
-controller idle: 2.6 GB in use and 1.3 GB available, before a deploy's agent and JVM restarts. Revisit: resize, a
+controller idle: 2.6 GB in use and 1.3 GB available, before a deploy's agent and JVM restarts;
+with keylab-api (2026-11-17): 2.9 GB in use and 1.0 GB available. Revisit: resize, a
 Stop, if memory runs out. Pods reach SSH and the API through two `ufw` rules for
 `10.42.0.0/16`, and Keycloak by its public name. Jenkins does CD only (J1, J3): it
 deploys images that GitHub Actions built and published (see CI and CD below). It
@@ -1287,7 +1292,7 @@ backups, upgrades and restore drills. Revisit at the AWS step (RDS).
 - **Phase 1:** a `postgres:18.6-alpine` container with its volume on the data
   disk. A nightly `pg_dump -Fc` is uploaded with `azcopy` using the VM's managed
   identity (`deploy/compose/backup.sh`, runbook in `deploy/compose/RESTORE.md`).
-  Once KeyLab runs (KL-D1), the same run also dumps the `keylab` database and archives
+  Since KL-D1 (first run 2026-11-17) the same run also dumps the `keylab` database and archives
   the `keylab-files` volume (uploaded sounds and photos, `keylab-files/` in the same
   container), because the database points at those files. All parts are made and
   checked before any upload, and the alert watches the oldest of the three.
@@ -1486,8 +1491,8 @@ Facts worth knowing:
   locking works. Auto-shutdown exists and is off (phase 1). No application runs
   of its own beyond the compose stack below. Backup storage and its alert were
   applied 2026-11-05. Not applied: `envs/dns` (Dan set the A records by hand).
-- **v1 is public at https://app.tickin.me (compose, phase 1).** Images
-  `sha-13163e5...`, in `/srv/playground` on the data disk, with a root-owned 0600
+- **v1 is public at https://app.tickin.me (compose, phase 1).** Images by digest,
+  deployed by Jenkins (now `cff6ddc`), in `/srv/playground` on the data disk, with a root-owned 0600
   `.env` whose secrets were made on the VM. Let's Encrypt production certs for
   `app` and `auth`, issued after staging. From outside: `smoke.mjs` 45 of 45
   through `deploy/compose/smoke-public.mjs` (admin API over an SSH tunnel with a
@@ -1567,20 +1572,24 @@ Facts worth knowing:
   `c1edefd` by digest, a one-click rollback to `13163e5` with smoke, and `c1edefd` again with
   smoke 45 of 45. Each deploy took about a minute to healthy. Memory on 4 GiB: k3s 477 MiB, the
   lowest available seen during a deploy 1,160 MiB, swap up to 352 MiB, no OOM kills. Resend
-  accepted the mail. 6443 does not answer from outside. Not run on the VM: a smoke failure,
-  so automatic rollback is proven on the stand-in only; a real Blob upload of Jenkins history;
-  the instance metadata block.
-- **KeyLab production deployment prepared, not live yet (KL-D1, branch
-  `feature/kl-d1-deploy-keylab`).** `keylab-api/Dockerfile` (uid 10001, health on
-  `/actuator/health`) builds for amd64 and arm64; CI publishes it as the fourth image;
-  `compose.prod.yml` runs it on the backend network only, 384 MiB, with `keylab-db-init`,
-  a `keylab-files` volume and the gateway waiting for it. From empty volumes the stack is
-  healthy in about 4.5 minutes locally. `smoke.mjs` passes 49 of 49 by default, which now
-  includes the anonymous, read-only `keylab` check, and the opt-in `keylab-write` passes
-  too (an editor adds a switch, uploads both WAVs, publishes it, sees it in the public
-  library, then pulls it). A local backup and restore of the keylab dump and
-  files worked into a scratch Postgres. Production waits for the merge, the VM steps and
-  the deploy (`.shipit/open.md`, KL-D1).
+  accepted the mail. 6443 does not answer from outside. On the VM a smoke failure (deploy #10,
+  2026-11-17) started the automatic rollback, which then could not start the older Keycloak on
+  the upgraded database (`.shipit/open.md`); a rollback that succeeds is proven on the stand-in
+  only. Not run on the VM: a real Blob upload of Jenkins history; the instance metadata block.
+- **KeyLab is live at https://app.tickin.me/keylab (KL-D1, 2026-11-17).** keylab-api
+  runs in compose on the VM as the fourth image (`cff6ddc`, shipped by Jenkins
+  `deploy-playground/11`: healthy, deploy smoke passed, marked good), on the backend network
+  only, 384 MiB, with its own `keylab` database and role in the shared Postgres, made by
+  `keylab-db-init`, and the `keylab-files` volume. From outside, the deploy smoke passes 49 of
+  49 (with the read-only `keylab` check) and `keylab-write` 15 of 15: an editor adds a switch,
+  uploads both WAVs, publishes it, sees it and its page in the signed-out library, hears the
+  recording from `/bff/keylab/v1/assets/...`, then pulls it. The nightly backup uploads the
+  Keycloak dump, the KeyLab dump and a files tarball, and `report` watches all three; the KeyLab
+  dump restored into a throwaway Postgres on the VM with all 15 tables in 9 schemas, owned by
+  `keylab`. Not yet proven: a rollback that restores the previous keylab-api digest (the drill),
+  and the lowest memory during a deploy (`.shipit/open.md`). The first deploy's smoke failed on
+  Keycloak 26.8.2's `kc-admin-api` scope, and its rollback could not start the older Keycloak on
+  the migrated database: fixed in smoke, and the rollback limit is in `.shipit/open.md`.
 - **Local observability, dev only.** With `lgtm` up and both `bootRun`s,
   `node infra/otel/check.mjs` passes: a `/bff/me` call is one trace with the
   API span a child of the gateway's (seen in Grafana: 2 services, 18 spans), JVM
