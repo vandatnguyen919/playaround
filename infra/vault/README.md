@@ -52,6 +52,8 @@ than it says.
 | `playground/idp-github` | `client_id`, `client_secret` | `GITHUB_CLIENT_*` | keycloak-config | yes | placeholder |
 | `playground/keycloak-config-client` | `client_id`, `client_secret` | `KC_CONFIG_CLIENT_*` | keycloak, keycloak-config | no | generated, unused in dev |
 | `playground/keycloak-db` | `password` | `KC_DB_PASSWORD` | keycloak, postgres | no | generated, unused in dev (H2) |
+| `playground/keylab-db` | `password` | `KEYLAB_DB_PASSWORD` | keylab-api, postgres | yes | dev default |
+| `playground/keylab-upload-signing` | `key` | `KEYLAB_UPLOAD_SIGNING_KEY` | keylab-api | no | generated, unused in dev (blank: a random key per start) |
 | `playground/smtp` | `user`, `password` | `SMTP_USER`, `SMTP_PASSWORD` | keycloak-config | no | placeholder (Mailpit needs none) |
 
 The api has no secrets, so it has no policy. Two more policies are for tools:

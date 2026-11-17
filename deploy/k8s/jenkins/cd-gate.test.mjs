@@ -38,7 +38,8 @@ fs.writeFileSync(
   `import fs from "node:fs"
 const format = process.argv[process.argv.indexOf("--format") + 1]
 const file = process.env.FAKE_DIR + (format.includes("Provenance") ? "/provenance.json" : "/manifest.json")
-if (!fs.existsSync(file)) { console.error("not found"); process.exit(1) }
+const missing = process.env.FAKE_MISSING && process.argv.some((a) => a.includes("playground-" + process.env.FAKE_MISSING + ":"))
+if (missing || !fs.existsSync(file)) { console.error("not found"); process.exit(1) }
 process.stdout.write(fs.readFileSync(file))
 `,
 )
@@ -51,7 +52,7 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, "127.0.0.1", r))
 const api = `http://127.0.0.1:${server.address().port}`
 
-async function gate({ ciRuns = [success], man = manifest(), prov = both(entry()) } = {}) {
+async function gate({ ciRuns = [success], man = manifest(), prov = both(entry()), missing = "" } = {}) {
   runs = ciRuns
   for (const [name, value] of [["manifest.json", man], ["provenance.json", prov]]) {
     const file = path.join(dir, name)
@@ -62,7 +63,7 @@ async function gate({ ciRuns = [success], man = manifest(), prov = both(entry())
   fs.rmSync(output, { force: true })
   try {
     const { stdout } = await run(process.execPath, [path.join(HERE, "cd-gate.mjs"), SHA, output], {
-      env: { ...process.env, FAKE_DIR: dir, BUILDX: `${process.execPath} ${fake}`, GITHUB_API: api, POLL_SECONDS: "0", CI_WAIT_MINUTES: "0", IMAGE_WAIT_MINUTES: "0" },
+      env: { ...process.env, FAKE_DIR: dir, FAKE_MISSING: missing, BUILDX: `${process.execPath} ${fake}`, GITHUB_API: api, POLL_SECONDS: "0", CI_WAIT_MINUTES: "0", IMAGE_WAIT_MINUTES: "0" },
     })
     return { ok: true, stdout, digests: fs.readFileSync(output, "utf8").trim() }
   } catch (e) {
@@ -81,7 +82,7 @@ async function refuses(name, setup, why) {
 }
 
 const good = await gate()
-expect("passes with CI green and matching provenance", good.ok && good.digests === `${DIGEST} ${DIGEST} ${DIGEST}`, JSON.stringify(good))
+expect("passes with CI green and matching provenance, four digests", good.ok && good.digests === `${DIGEST} ${DIGEST} ${DIGEST} ${DIGEST}`, JSON.stringify(good))
 
 await refuses("a failed CI run", { ciRuns: [{ ...success, conclusion: "failure" }] }, /concluded failure/)
 await refuses("a cancelled CI run", { ciRuns: [{ ...success, conclusion: "cancelled" }] }, /concluded cancelled/)
@@ -90,6 +91,7 @@ await refuses("a CI run still going", { ciRuns: [{ ...success, status: "in_progr
 await refuses("a CI run of another branch", { ciRuns: [{ ...success, head_branch: "feature" }] }, /no CI result/)
 await refuses("a CI run of a fork", { ciRuns: [{ ...success, repository: { full_name: "someone/playaround" } }] }, /no CI result/)
 await refuses("images not published", { man: null }, /not published/)
+await refuses("keylab-api not published", { missing: "keylab-api" }, /playground-keylab-api:sha-[0-9a-f]{40} is not published/)
 await refuses("an image missing arm64", { man: manifest(["amd64"]) }, /no linux\/arm64 image/)
 await refuses("no provenance at all", { prov: {} }, /no provenance/)
 await refuses("provenance for one platform only", { prov: { "linux/amd64": entry() } }, /linux\/arm64: no provenance/)

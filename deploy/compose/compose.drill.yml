@@ -57,6 +57,12 @@ services:
     environment:
       KEYCLOAK_ISSUER_URI: http://localhost:28080/realms/playground
 
+  keylab-api:
+    environment:
+      KEYCLOAK_ISSUER_URI: http://localhost:28080/realms/playground
+    volumes: !override
+      - drill-keylab-files:/data/keylab-storage
+
 networks:
   # The fixed subnet exists for Traefik's fixed address, and would collide with
   # the live stack's.
@@ -66,3 +72,4 @@ networks:
 volumes:
   drill-db:
   drill-redis:
+  drill-keylab-files:

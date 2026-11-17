@@ -1,6 +1,7 @@
 # Phase 1 production stack: Traefik, Keycloak (production mode, custom
 # image), Postgres, keycloak-config-cli for the realm, Redis, the gateway
-# (BFF, serves the SPA) and the API.
+# (BFF, serves the SPA), the API and keylab-api (KeyLab, its own database in
+# the same Postgres).
 #
 #   cp .env.example .env    # fill in every value
 #   docker compose -f compose.prod.yml pull && docker compose -f compose.prod.yml up -d
@@ -10,8 +11,9 @@
 # logout). https://${AUTH_HOST} serves only /realms/playground/ and
 # /resources/. Not public: the admin console and admin API (Traefik has no
 # route for them), the master realm, health and metrics (Keycloak 9000,
-# gateway 9181, never published), the API (backend network only, reached
-# through the gateway), and Redis (backend network only, password and ACL).
+# gateway 9181, never published), the API and keylab-api (backend network
+# only, reached through the gateway), and Redis (backend network only,
+# password and ACL).
 # Admin console over an SSH tunnel:
 #   ssh -L 8080:127.0.0.1:8080 <vm>   then   http://localhost:8080/admin/
 name: playground-prod
@@ -63,6 +65,36 @@ services:
       timeout: 3s
       retries: 20
     restart: unless-stopped
+
+  # KeyLab's database and role in the same Postgres, made on every `up` if missing.
+  # Not docker-entrypoint-initdb.d, which runs only on an empty volume. Signs in as
+  # keycloak, the cluster's superuser, and sets the keylab password each time, so a
+  # rotated KEYLAB_DB_PASSWORD needs only an `up`. Touches nothing in database keycloak.
+  # The password reaches SQL as a psql variable, quoted by psql, never as SQL text.
+  keylab-db-init:
+    image: postgres:18.6-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: keycloak
+      PGDATABASE: keycloak
+      PGPASSWORD: ${KC_DB_PASSWORD:?set KC_DB_PASSWORD}
+      KEYLAB_DB_PASSWORD: ${KEYLAB_DB_PASSWORD:?set KEYLAB_DB_PASSWORD}
+    entrypoint: ["/bin/sh", "-c"]
+    # On an empty volume the healthcheck passes on the image's temporary init server, which
+    # listens on its socket only, so wait (up to 60 s) until Postgres answers over TCP.
+    command:
+      - >-
+        n=0; until pg_isready -q; do n=$$((n + 1)); [ $$n -lt 60 ] || exit 1; sleep 1; done;
+        printf '%s\n'
+        "SELECT 'CREATE ROLE keylab LOGIN' WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'keylab') \gexec"
+        "ALTER ROLE keylab PASSWORD :'pw';"
+        "SELECT 'CREATE DATABASE keylab OWNER keylab' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'keylab') \gexec"
+        | psql -X -q -v ON_ERROR_STOP=1 -v pw="$$KEYLAB_DB_PASSWORD"
+    networks: [backend]
+    restart: "no"
 
   keycloak:
     image: ${KEYCLOAK_IMAGE:-ghcr.io/vandatnguyen919/playground-keycloak:latest}
@@ -257,6 +289,7 @@ services:
       KEYCLOAK_DISCOVERY_URI: http://keycloak:8080/realms/playground/.well-known/openid-configuration
       GATEWAY_CLIENT_SECRET: ${GATEWAY_CLIENT_SECRET:?set GATEWAY_CLIENT_SECRET}
       API_URL: http://api:8182
+      KEYLAB_API_URL: http://keylab-api:8183
       REDIS_HOST: redis
       REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD}
       # TLS ends at Traefik: take scheme and client address from
@@ -271,6 +304,8 @@ services:
       redis:
         condition: service_healthy
       api:
+        condition: service_healthy
+      keylab-api:
         condition: service_healthy
       # Discovery needs the playground realm, which keycloak-config creates.
       keycloak-config:
@@ -298,6 +333,35 @@ services:
     mem_limit: 400m
     restart: unless-stopped
 
+  # KeyLab (docs/keylab). Backend network only: the gateway's /bff/keylab/v1/** route is
+  # its one caller. Same issuer and keys as the API; accepts only tokens whose aud has
+  # keylab-api. Flyway migrates each module's schema at start (ModuleMigrations).
+  # Uploads, recordings and photos sit on the keylab-files volume (backup.sh archives it
+  # nightly); Azure Blob is a later ticket. Files are served at KEYLAB_PUBLIC_API_BASE,
+  # relative, so they load from the app's own origin and the CSP needs no media host.
+  keylab-api:
+    image: ${KEYLAB_API_IMAGE:-ghcr.io/vandatnguyen919/playground-keylab-api:latest}
+    build:
+      context: ../..
+      dockerfile: keylab-api/Dockerfile
+    environment:
+      KEYLAB_DB_URL: jdbc:postgresql://postgres:5432/keylab
+      KEYLAB_DB_USERNAME: keylab
+      KEYLAB_DB_PASSWORD: ${KEYLAB_DB_PASSWORD:?set KEYLAB_DB_PASSWORD}
+      KEYLAB_UPLOAD_SIGNING_KEY: ${KEYLAB_UPLOAD_SIGNING_KEY:?set KEYLAB_UPLOAD_SIGNING_KEY}
+      KEYLAB_STORAGE_DIR: /data/keylab-storage
+      KEYLAB_PUBLIC_API_BASE: /bff/keylab/v1
+      KEYCLOAK_ISSUER_URI: https://${AUTH_HOST:?set AUTH_HOST}/realms/playground
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/playground/protocol/openid-connect/certs
+    volumes:
+      - keylab-files:/data/keylab-storage
+    networks: [backend]
+    mem_limit: 384m
+    depends_on:
+      keylab-db-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
 networks:
   edge:
     ipam:
@@ -309,4 +373,5 @@ networks:
 volumes:
   keycloak-db:
   redis-data:
+  keylab-files:
   letsencrypt:

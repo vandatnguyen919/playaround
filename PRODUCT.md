@@ -815,7 +815,12 @@ on the cheaper 4 GiB size. Revisit: skip straight to phase 2 if Dan prefers.
 
 **Phase 1 memory (4 GiB, limits):** OS and Docker 0.6, Traefik 0.16 (it reached
 86 MiB of a 100 MiB limit while issuing certs), Keycloak 1.4, Postgres 0.3, Redis
-0.1, gateway 0.5, api 0.4: about 3.5 GB.
+0.1, gateway 0.5, api 0.4, keylab-api 0.384 (KL-D1): about 3.9 GB.
+Use is what counts, not limits. Measured on the dev machine with the production images
+(2026-11-17, after smoke): keylab-api 240 to 273 MiB, Postgres with both databases
+104 MiB, gateway 281 MiB, api 182 MiB, Keycloak 785 MiB, Redis 8 MiB. VM numbers with
+Jenkins running are filled in after the KL-D1 deploy. Go/no-go there: no OOM kill,
+idle available above 600 MiB, swap below 768 MiB, lowest during a deploy above 400 MiB.
 Tight but under 4 GiB with JVM heaps capped (`-XX:MaxRAMPercentage`) and a 1
 GiB swap file on the data disk as a cushion, not as working memory. If
 Keycloak is OOM killed, resize to B2ps v2 early.
@@ -1173,7 +1178,9 @@ next restart.
   and compose files per release, a list of good ones, and a log. `rollback-playground`
   is one click with no approval, and the release it leaves stops counting as good.
   Rollback restores images and compose files, not data: a release that changed the
-  Keycloak schema needs `RESTORE.md`.
+  Keycloak schema needs `RESTORE.md`. The same holds for keylab-api, whose Flyway
+  migrates forward only. Each release records the keylab-api digest with the other
+  three (KL-D1), so a rollback brings it back too.
 - **Deploy-only agent (changed 2026-11-05, Dan; tools 2026-11-06):** the controller has
   0 executors. Each stage runs on one short-lived pod, which has no cluster rights, and
   none is held while waiting for approval. The stock inbound agent has ssh and curl;
@@ -1232,7 +1239,7 @@ Jenkins). A commit reaches the VM only after someone approves it there.
   suites against the dev stack started by `verify-stack.mjs`), Gitleaks over the whole history, Trivy (High and Critical in
   npm lockfiles and in the built jars), and dependency review (fails on a
   new High or Critical advisory). A push to `main` runs the same checks
-  except dependency review, then builds gateway, api and keycloak natively
+  except dependency review, then builds gateway, api, keylab-api and keycloak natively
   on `ubuntu-24.04` and `ubuntu-24.04-arm`, pushes by digest, merges into
   one tag `sha-<full git sha>` with `docker buildx imagetools create`, and
   checks both platforms and their provenance with `imagetools inspect`.
@@ -1252,7 +1259,7 @@ Jenkins). A commit reaches the VM only after someone approves it there.
   PR #13, one fingerprint) and `.trivyignore.yaml` (empty since Spring Boot
   4.1.2 fixed the BOM findings; any new entry is pinned to its package version
   and expires).
-- **Tags:** only `sha-<git sha>`, no `latest`. Deploys pin all three
+- **Tags:** only `sha-<git sha>`, no `latest`. Deploys pin all four
   images to the same commit.
 - **Why:** native arm64 runners are free for public repos, so no QEMU, no
   build load on the 8 GiB node, no dependency on Dan's machine being on,
@@ -1280,6 +1287,15 @@ backups, upgrades and restore drills. Revisit at the AWS step (RDS).
 - **Phase 1:** a `postgres:18.6-alpine` container with its volume on the data
   disk. A nightly `pg_dump -Fc` is uploaded with `azcopy` using the VM's managed
   identity (`deploy/compose/backup.sh`, runbook in `deploy/compose/RESTORE.md`).
+  Once KeyLab runs (KL-D1), the same run also dumps the `keylab` database and archives
+  the `keylab-files` volume (uploaded sounds and photos, `keylab-files/` in the same
+  container), because the database points at those files. All parts are made and
+  checked before any upload, and the alert watches the oldest of the three.
+- **KeyLab shares the Postgres container (KL-D1, 2026-11-17).** Its own `keylab`
+  database and `keylab` role (not a superuser), made idempotently on every `up` by the
+  one-shot `keylab-db-init`, which also sets the role's password from `.env`, so a
+  rotation needs only a restart. Reason: a second container costs about 100 MiB on a VM
+  that is already tight, and one dump per database keeps the backups apart.
   Blob soft delete keeps a deleted blob 7 more days, since the identity can delete.
 - **No client-side encryption (2026-11-05).** Everyone who can read the blobs can
   already read the live database, and the data disk holds the same data under the
@@ -1554,6 +1570,17 @@ Facts worth knowing:
   accepted the mail. 6443 does not answer from outside. Not run on the VM: a smoke failure,
   so automatic rollback is proven on the stand-in only; a real Blob upload of Jenkins history;
   the instance metadata block.
+- **KeyLab production deployment prepared, not live yet (KL-D1, branch
+  `feature/kl-d1-deploy-keylab`).** `keylab-api/Dockerfile` (uid 10001, health on
+  `/actuator/health`) builds for amd64 and arm64; CI publishes it as the fourth image;
+  `compose.prod.yml` runs it on the backend network only, 384 MiB, with `keylab-db-init`,
+  a `keylab-files` volume and the gateway waiting for it. From empty volumes the stack is
+  healthy in about 4.5 minutes locally. `smoke.mjs` passes 49 of 49 by default, which now
+  includes the anonymous, read-only `keylab` check, and the opt-in `keylab-write` passes
+  too (an editor adds a switch, uploads both WAVs, publishes it, sees it in the public
+  library, then pulls it). A local backup and restore of the keylab dump and
+  files worked into a scratch Postgres. Production waits for the merge, the VM steps and
+  the deploy (`.shipit/open.md`, KL-D1).
 - **Local observability, dev only.** With `lgtm` up and both `bootRun`s,
   `node infra/otel/check.mjs` passes: a `/bff/me` call is one trace with the
   API span a child of the gateway's (seen in Grafana: 2 services, 18 spans), JVM

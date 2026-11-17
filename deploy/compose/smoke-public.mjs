@@ -106,6 +106,8 @@ try {
         APP_URL: appUrl,
         KC_PUBLIC_URL: authUrl,
         COOKIE_SECURE: "true",
+        // No KEYLAB line: smoke-access.sh from a release before KeyLab.
+        SMOKE_KEYLAB: hosts.KEYLAB === "yes" ? "on" : "off",
         SMOKE_REDIS_EXEC: JSON.stringify([...remote, "redis-exists"]),
       })
     } else {

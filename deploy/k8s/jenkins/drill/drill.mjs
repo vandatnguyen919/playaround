@@ -48,7 +48,9 @@ const REGISTRY = "jk-registry"
 const MAILPIT = "jk-mailpit"
 const BUILDER = "jk-builder"
 const REGISTRY_HOST = "registry.drill.test:5000"
-const REAL_SHA = "13163e5ec4210f7b6c00d85be05307ea556c116b"
+// A main commit whose four images CI published; the stand-in images build FROM them.
+// DRILL_REAL_SHA picks another, such as the first commit with keylab-api.
+const REAL_SHA = process.env.DRILL_REAL_SHA ?? "13163e5ec4210f7b6c00d85be05307ea556c116b"
 const REAL_REPO = "vandatnguyen919/playaround"
 const COMPOSE = "/srv/playground/deploy/compose"
 const WORK = path.join(process.env.DRILL_DIR ?? os.tmpdir(), "jenkins-drill")
@@ -315,12 +317,13 @@ const reject = async (n) => {
 const vmExec = (...argv) => run("docker", ["exec", VM, ...argv])
 const vmDeploy = (...argv) => vmExec("sh", `${COMPOSE}/vm-deploy.sh`, ...argv).trim()
 const running = (service) => vmExec("docker", "inspect", "-f", "{{.Config.Image}}", `playground-prod-${service}-1`).trim()
-const runningDigests = () => ["gateway", "api", "keycloak"].map((s) => running(s).split("@")[1])
-const vmHealthy = () => ["gateway", "api", "keycloak", "redis", "postgres"].every((s) => vmExec("docker", "inspect", "-f", "{{.State.Health.Status}}", `playground-prod-${s}-1`).trim() === "healthy")
+const IMAGES = ["gateway", "api", "keycloak", "keylab-api"]
+const runningDigests = () => IMAGES.map((s) => running(s).split("@")[1])
+const vmHealthy = () => ["gateway", "api", "keycloak", "keylab-api", "redis", "postgres"].every((s) => vmExec("docker", "inspect", "-f", "{{.State.Health.Status}}", `playground-prod-${s}-1`).trim() === "healthy")
 const history = () => vmDeploy("history")
 const digestsOf = (log) => {
-  const found = [...log.matchAll(/(gateway|api|keycloak): (sha256:[0-9a-f]{64}),/g)]
-  return ["gateway", "api", "keycloak"].map((s) => found.find((m) => m[1] === s)?.[2])
+  const found = [...log.matchAll(/(gateway|api|keycloak|keylab-api): (sha256:[0-9a-f]{64}),/g)]
+  return IMAGES.map((s) => found.find((m) => m[1] === s)?.[2])
 }
 
 // ---- Mail
@@ -383,7 +386,7 @@ let runCounter = Date.now() % 1000000
 function publishImages(sha, runId, { lines = {}, revision = sha, source = `https://github.com/${REAL_REPO}` } = {}) {
   const context = path.join(WORK, "context")
   fs.mkdirSync(context, { recursive: true })
-  for (const image of ["gateway", "api", "keycloak"]) {
+  for (const image of IMAGES) {
     const dockerfile = [`FROM ghcr.io/vandatnguyen919/playground-${image}:sha-${REAL_SHA}`, `ENV DRILL_COMMIT=${sha}`, ...(lines[image] ?? [])].join("\n")
     run("docker", ["buildx", "build", "--builder", BUILDER, "--platform", "linux/amd64,linux/arm64", "--progress", "quiet",
       "--attest", `type=provenance,mode=max,version=v1,builder-id=https://github.com/${REAL_REPO}/actions/runs/${runId}/attempts/1`,
@@ -664,7 +667,7 @@ const stepsImpl = {
     let log = await buildLog(DEPLOY, n)
     check("the poll started it, on its timer", /SCM change/i.test((await buildJson(DEPLOY, n)).actions.flatMap((a) => a.causes ?? []).map((c) => c.shortDescription).join(",")))
     check("it waited for CI", /waiting for CI: run \d+ is in_progress/.test(log))
-    check("it checked provenance for all three images", (log.match(/linux\/amd64 and linux\/arm64, repo and commit match, built by CI run \d+/g) ?? []).length === 3)
+    check("it checked provenance for all four images", (log.match(/linux\/amd64 and linux\/arm64, repo and commit match, built by CI run \d+/g) ?? []).length === 4)
     check("it ran on the deploy agent", /Running on deploy-\S+ in \/home\/jenkins\/agent/.test(log))
     check("nothing is deployed before approval", running("gateway") === v1Digests && vmDeploy("current") === before)
     await until("the agent to go while waiting", () => kubectl("-n", "ci", "get", "pods", "-l", "jenkins/label", "--no-headers").trim() === "", { minutes: 3 })

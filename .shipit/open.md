@@ -1,5 +1,46 @@
 # Open
 
+## KL-D1 Deploy KeyLab to production (branch feature/kl-d1-deploy-keylab, 2026-11-17)
+
+Prepared in the repo, not deployed. See Current state in PRODUCT.md and the Notion ticket.
+Verified locally: image built for both platforms; a stack from empty volumes with the new
+image healthy, `keylab-db-init` rerun with no change, `keylab` role not a superuser and owning
+all 9 schemas; `smoke.mjs` 49 of 49 by default plus `keylab-write`; `compose config` refuses
+without either KeyLab secret; `backup.test.sh` 65 of 65; `vm-ssh-gate.test.sh` and
+`cd-gate.test.mjs` 53 of 53; `deploy/k8s/jenkins/check.sh` 72 of 72; a backup and restore of
+the keylab dump and files into a scratch Postgres. Not run: `infra/vault/check.mjs` (needs the
+local Vault, which renders `infra/.env`; the manifest and policies were checked offline
+instead), `check-headers.mjs` (gateway code unchanged), the drill (needs the merged image).
+Left, in order:
+
+- **After merge, GHCR:** the first push makes package `playground-keylab-api`. Next action:
+  check an anonymous `imagetools inspect` shows both platforms; if the package is private, Dan
+  makes it public and links it to the repo (cd-gate and the VM pull anonymously).
+- **After merge, the drill:** run `drill.mjs` with `DRILL_REAL_SHA=<merge sha>` (it builds its
+  stand-ins from the real images) and set that as its default.
+- **VM steps, each after Dan's go:** V0 read-only baseline; V1 copy `vm-deploy.sh` and
+  `vm-env.sh`; V2 `vm-env.sh add-keylab-secrets`, then Dan refreshes the `.env` copy in the
+  password manager; V3 Dan approves the Jenkins deploy of the merge commit; V4 measure memory
+  into PRODUCT.md, copy `backup.sh`, run one backup, restore the keylab dump into a
+  `docker run --rm` Postgres; V5 `smoke-public.mjs playground@<vm> smoke keylab-write`, and
+  Dan opens the library and a switch page; V6 Dan grants himself `keylab-admin` in the admin
+  console over the tunnel (not in the realm file). Then PRODUCT.md says KeyLab is live.
+- **Order matters on the VM:** with the new `compose.prod.yml`, anything that runs compose
+  (`vm-install.sh` too) refuses to start until V2 has put both KeyLab secrets in `.env`, and
+  `backup.sh` waits for V4 so the 19:00 UTC run does not look for a database that is not there.
+- **Local stacks:** `deploy/compose/.env` (the local prod stack) needs `KEYLAB_DB_PASSWORD`
+  and `KEYLAB_UPLOAD_SIGNING_KEY` before it starts with the new `compose.prod.yml`. Not
+  changed here, since it is Dan's file. Next action: `sh deploy/compose/vm-env.sh
+  add-keylab-secrets`, which writes the `.env` next to the script and needs `openssl`.
+- **Backups count KeyLab as running once `.env` has `KEYLAB_DB_PASSWORD`.** A failed KeyLab
+  part still uploads the Keycloak dump, fails the run and lets the alert fire. So copy
+  `backup.sh` only after a good KeyLab deploy (V4), or nights fail until KeyLab is up.
+- **Each `keylab-write` run leaves one pulled "smoke" switch** in production, since published
+  switches cannot be deleted. That is why it is opt-in and not in the deploy smoke.
+- **Rollback to the release before KeyLab** leaves keylab-api running as an orphan with its
+  data; the old gateway does not call it. Not run anywhere yet; the drill after merge covers
+  rollbacks between KeyLab releases, not this first one.
+
 ## Docs site (live since 2026-11-10)
 
 See Docs site and Current state in PRODUCT.md, and `docs/README.md`. Left:
@@ -225,9 +266,12 @@ the new jar (Dan approved). Left:
 
 - **Storage is local disk** (`KEYLAB_STORAGE_DIR`, default the temp folder) behind
   `BlobStore`, and keylab-api serves files at `/v1/assets/…` from the app's own origin, so
-  the gateway CSP needs no media host. Nothing cleans up unused uploads or old files, and
-  takes of a deleted draft stay in `sound.recordings`. Next action: the deployment ticket
-  picks an object store (Azure Blob) and sets `KEYLAB_UPLOAD_SIGNING_KEY` in Vault.
+  the gateway CSP needs no media host. In production (KL-D1) it is the named volume
+  `keylab-files` on the data disk, archived nightly with the keylab dump, and
+  `KEYLAB_UPLOAD_SIGNING_KEY` is in Vault and the VM's `.env`. Nothing cleans up unused
+  uploads or old files, and takes of a deleted draft stay in `sound.recordings`. Next
+  action: a later ticket moves files to Azure Blob behind the same `BlobStore` port, and
+  adds cleanup.
 - **WAV, not Opus:** recordings are served as the checked WAV (about 30 KB per stroke).
   Next action: transcode if file size starts to matter.
 - **Mono only:** the checklist says mono, so stereo is refused. Dan may want stereo allowed.
@@ -348,10 +392,6 @@ smoke 45, headers, e2e 12 incl. 4 KeyLab, docs), run with
 `COMPOSE_PROJECT_NAME=playground-verify MANAGEMENT_PORT=9191` because the local prod
 gateway holds 9181. Left:
 
-- **Deployment ticket:** keylab-api has no Dockerfile, GHCR image, compose.prod.yml service or
-  Postgres on the VM yet (out of KL0 scope by decision). Next action: open a ticket.
-- **Vault:** `KEYLAB_DB_PASSWORD` uses the compose dev default. Add it to infra/vault with the
-  deployment ticket.
 - **openapi-typescript runs through npx** (it wants TypeScript 5, web is on 6), so
   `check:api` needs npm registry access on first run. Dan may prefer another approach.
 - **Shell copy not in the designs:** Sign in slot ("Sign in / to save builds"), "This page is

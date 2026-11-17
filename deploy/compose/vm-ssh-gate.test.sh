@@ -29,6 +29,7 @@ refused() {
 }
 
 allowed "deploy $sha $digest $digest $digest deploy-playground/12"
+allowed "deploy $sha $digest $digest $digest $digest deploy-playground/13"
 allowed "rollback rollback-playground/3"
 allowed "mark-good $sha deploy-playground/12"
 allowed "note $sha rollback-verified deploy-playground/12"
