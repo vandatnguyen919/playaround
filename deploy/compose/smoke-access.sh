@@ -63,6 +63,11 @@ case "${1:-}" in
     kcadm add-roles -r playground --uusername "service-account-$CLIENT" --cclientid realm-management \
       --rolename manage-users --rolename view-users --rolename query-users \
       --rolename view-realm --rolename manage-realm >/dev/null 2>&1
+    # Since Keycloak 26.8.2 the Admin REST API takes only tokens issued for it: a service
+    # client needs the built-in kc-admin-api scope, or every admin call is 401. Keycloak
+    # before 26.8.2 has no such scope and needs none.
+    scope="$(kcadm get client-scopes -r playground --fields id,name --format csv --noquotes 2>/dev/null | grep ',kc-admin-api$' | cut -d, -f1)"
+    [ -z "$scope" ] || kcadm update "clients/$id/default-client-scopes/$scope" -r playground >/dev/null 2>&1
     kcadm get "clients/$id/client-secret" -r playground --fields value --format csv --noquotes 2>/dev/null
     ;;
   close)
