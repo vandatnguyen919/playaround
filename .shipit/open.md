@@ -7,17 +7,18 @@ KeyLab is live on https://app.tickin.me (PRODUCT.md, Current state). Shipped by 
 marked good). On the VM: V0 baseline, V1 `vm-deploy.sh` and `vm-env.sh`, V2 both KeyLab secrets,
 V4 `backup.sh` with one run (Keycloak dump, KeyLab dump, files tarball) and the KeyLab dump
 restored into a throwaway Postgres (15 tables in 9 schemas, as live, owned by `keylab`), V5
-`keylab-write` 15 of 15 from outside. Old copies of the three scripts are kept on the VM as
+`keylab-write` 15 of 15 from outside. PR #60 (`589e7f9`, `deploy-playground/12`) deployed with
+memory sampled every second: low 844 MiB, in PRODUCT.md. Old copies of the three scripts are kept on the VM as
 `*.pre-kld1`. Left:
 
 - **The drill:** `drill.mjs` defaults to `cff6ddc` now (four images); run it once against the
   local prod stack to see a rollback restore the previous keylab-api digest. It needs port 8090,
-  so close the tunnel to production Jenkins first, and about 8 GB for Docker. Next action: run
-  it, then tick the Jenkins item on the ticket.
-- **Lowest memory during a deploy:** not measured; `sar` samples every 10 minutes and missed
-  deploy #11. Idle and backup numbers are in PRODUCT.md. Next action: sample `free -m` every
-  second during the next deploy (this PR's merge) and put the low in PRODUCT.md (go/no-go: above
-  400 MiB).
+  so close the tunnel to production Jenkins first, and about 8 GB for Docker. The drill needs
+  the local stack under the project name `playground-prod`, and this machine's
+  `playground-prod_keycloak-db` volume (from 2026-10-27) takes neither a fresh password nor the
+  one in the local `deploy/compose/.env`, so `keylab-db-init` exits 2. Next action: with Dan's
+  OK, remove that local volume (or use the env it was made with), start the stack, run the
+  drill, then tick the Jenkins item on the ticket.
 - **Dan:** open https://app.tickin.me/keylab/switches and a switch page; grant yourself
   `keylab-admin` in the admin console over the tunnel (not in the realm file); refresh the
   `.env` copy in the password manager (it gained both KeyLab secrets).
@@ -28,8 +29,8 @@ restored into a throwaway Postgres (15 tables in 9 schemas, as live, owned by `k
   'default-roles'`), so its `keycloak-config` exits 1 and the gateway never starts. Deploy #10's
   smoke failed (see below), its automatic rollback went to `c1edefd` and failed, and the app was
   down from 08:45 to about 08:51 UTC until a roll forward by hand. `rollback-playground` goes to
-  the newest good release that is not running: now `3e07f7e` (safe); a second click would go to
-  `c1edefd` and take the site down. Next action: before a deploy that bumps Keycloak, take a
+  the newest good release that is not running: now `cff6ddc`, then `3e07f7e` (both safe); a
+  third click would go to `c1edefd` and take the site down. Next action: before a deploy that bumps Keycloak, take a
   fresh dump, and decide whether `vm-deploy.sh` should refuse a rollback to an older Keycloak
   and say to use RESTORE.md instead.
 - **Keycloak 26.8.2 and our admin clients:** the Admin REST API takes only tokens with the
