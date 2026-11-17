@@ -7,6 +7,7 @@
 #   vm-env.sh set-acme-production    switches Let's Encrypt from staging to production
 #   vm-env.sh set-backup-url <url>   where backup.sh writes (Terraform: backup_container_url)
 #   vm-env.sh add-jenkins-client-secret   makes the Jenkins client secret if .env has none
+#   vm-env.sh add-keylab-secrets     makes KeyLab's database password and upload key if missing
 #   vm-env.sh drill-env <file>       env for the scratch stack in RESTORE.md: the live
 #                                    images, fresh secrets, placeholder mail
 set -eu
@@ -40,7 +41,10 @@ ACME_EMAIL=$5
 KEYCLOAK_IMAGE=ghcr.io/vandatnguyen919/playground-keycloak:sha-$6
 GATEWAY_IMAGE=ghcr.io/vandatnguyen919/playground-gateway:sha-$6
 API_IMAGE=ghcr.io/vandatnguyen919/playground-api:sha-$6
+KEYLAB_API_IMAGE=ghcr.io/vandatnguyen919/playground-keylab-api:sha-$6
 KC_DB_PASSWORD=$(secret)
+KEYLAB_DB_PASSWORD=$(secret)
+KEYLAB_UPLOAD_SIGNING_KEY=$(secret)
 KC_BOOTSTRAP_ADMIN_USERNAME=admin
 KC_BOOTSTRAP_ADMIN_PASSWORD=$(secret)
 KC_CONFIG_CLIENT_ID=keycloak-config
@@ -89,6 +93,18 @@ EOF
       set_value JENKINS_CLIENT_SECRET "$(secret)"
     fi
     ;;
+  add-keylab-secrets)
+    # A .env from before KeyLab. Never replaces a value: a new upload key voids every
+    # pending upload URL, and keylab-db-init would move the role to a new password.
+    for key in KEYLAB_DB_PASSWORD KEYLAB_UPLOAD_SIGNING_KEY; do
+      if grep -q "^$key=." "$ENV_FILE"; then
+        echo "$key is already set, nothing changed" >&2
+      else
+        set_value "$key" "$(secret)"
+        echo "$key added" >&2
+      fi
+    done
+    ;;
   set-backup-url)
     case "${2:-}" in
       https://*.blob.core.windows.net/*) ;;
@@ -100,7 +116,7 @@ EOF
     [ -n "${2:-}" ] || { echo "usage: vm-env.sh drill-env <file>" >&2; exit 2; }
     [ ! -e "$2" ] || { echo "$2 exists, not overwriting it" >&2; exit 1; }
     {
-      grep -E '^(KEYCLOAK|GATEWAY|API)_IMAGE=' "$ENV_FILE"
+      grep -E '^(KEYCLOAK|GATEWAY|API|KEYLAB_API)_IMAGE=' "$ENV_FILE"
       # Required by compose.prod.yml, unused or overridden in the drill.
       cat <<EOF
 APP_HOST=drill.invalid
@@ -121,13 +137,15 @@ KC_CONFIG_CLIENT_SECRET=$(secret)
 REDIS_PASSWORD=$(secret)
 GATEWAY_CLIENT_SECRET=$(secret)
 JENKINS_CLIENT_SECRET=$(secret)
+KEYLAB_DB_PASSWORD=$(secret)
+KEYLAB_UPLOAD_SIGNING_KEY=$(secret)
 EOF
     } > "$2"
     chmod 600 "$2"
     echo "wrote $2"
     ;;
   *)
-    sed -n '2,11p' "$0" >&2
+    sed -n '2,12p' "$0" >&2
     exit 2
     ;;
 esac

@@ -12,6 +12,8 @@ The nightly timer and the lifecycle rule are still to be seen working. See
 | Data | Backed up | Why |
 | --- | --- | --- |
 | Keycloak database (users, password hashes, realm, signing keys) | Yes, nightly | It cannot be rebuilt from anything else. |
+| KeyLab database `keylab` (switches, recordings, uploads, every module's schema) | Yes, nightly, once KeyLab runs | Same: what editors entered exists nowhere else. |
+| KeyLab files, volume `keylab-files` (WAVs, photos) | Yes, nightly, as one archive | The database points at these files; one without the other leaves switches with dead sounds. |
 | Realm config | In git | keycloak-config applies it on every `up`. |
 | Images | GHCR | Pinned by `sha-<git sha>` in `.env`. |
 | Redis | **No** | See below. |
@@ -35,8 +37,15 @@ before the 20:00 UTC reboot window). A missed night runs when the VM is back.
 1. `pg_dump -Fc` inside the Postgres container, one snapshot of the live database.
 2. `pg_restore --list` must read the dump and find `user_entity` data. If not,
    nothing is uploaded.
-3. `azcopy copy` to `backups/postgres/keycloak-<UTC stamp>.dump`, with an MD5, never
-   overwriting. The local copy is removed when the run ends.
+3. Once KeyLab runs (`.env` has `KEYLAB_DB_PASSWORD`): the same for database `keylab`,
+   which must list `catalog switches` data, and a `tar.gz` of the files volume made inside
+   keylab-api, which `tar` must be able to list. The KeyLab dump and archive go up together
+   or not at all, since a restore needs both from one night. A KeyLab failure still uploads
+   the Keycloak dump, fails the run, and leaves the KeyLab age growing for the alert.
+4. `azcopy copy` to `backups/postgres/keycloak-<UTC stamp>.dump`,
+   `backups/postgres/keylab-<UTC stamp>.dump` and
+   `backups/keylab-files/keylab-files-<UTC stamp>.tar.gz`, each with an MD5, never
+   overwriting. The local copies are removed when the run ends.
 
 **Retention:** a lifecycle rule deletes blobs more than 14 days old, so 14 or 15
 nightly dumps exist. Azure runs the rule about once a day. Deleted blobs stay
@@ -75,7 +84,9 @@ other than Dan gets a role on this subscription, or if real users' data arrives.
 
 `alert-playground-backup-age` mails Dan when the newest dump in Blob is over 26
 hours old. `backup.sh report`, from `backup-report.timer`, publishes the age hourly
-as the custom metric `playground/backups` `BackupAgeHours`.
+as the custom metric `playground/backups` `BackupAgeHours`. Once KeyLab runs it
+publishes the oldest of the three newest (Keycloak dump, KeyLab dump, files archive),
+so the one rule fires when any kind goes missing.
 
 It looks at what is in Blob, not at whether the job ran, so one rule catches a
 failed dump, a failed upload, a dead nightly timer, a lost role, or a firewall
@@ -151,6 +162,64 @@ docker compose -f compose.prod.yml up -d
 
 Use a Keycloak image at least as new as the one that wrote the dump. Keycloak
 upgrades a schema but does not downgrade one.
+
+### KeyLab
+
+The database and the files go back together, from the same night. Stop what writes,
+let `keylab-db-init` make the empty database and role, restore, then start everything:
+
+```bash
+docker compose -f compose.prod.yml stop gateway keylab-api
+```
+
+```bash
+docker compose -f compose.prod.yml up -d keylab-db-init
+```
+
+```bash
+sh backup.sh fetch /srv/playground/keylab.dump keylab
+```
+
+```bash
+sh backup.sh restore /srv/playground/keylab.dump playground-prod-postgres-1 keylab
+```
+
+```bash
+sh backup.sh fetch /srv/playground/keylab-files.tar.gz keylab-files-<same stamp>.tar.gz
+```
+
+```bash
+sh backup.sh restore-files /srv/playground/keylab-files.tar.gz
+```
+
+```bash
+docker compose -f compose.prod.yml up -d
+```
+
+`restore` puts every object under role `keylab`, which keylab-api signs in as, and
+refuses a database with tables in any schema. `restore-files` refuses a volume that holds
+anything. Emptying either first is deleting data: a Stop, Dan decides. Use a keylab-api
+image at least as new as the one that wrote the dump: Flyway migrates forward only.
+
+To prove a KeyLab dump without touching the live stack, restore it into a throwaway
+Postgres that has no volume, so it is gone when it stops. `restore` needs the `keylab`
+role and an empty `keylab` database there first:
+
+```bash
+docker run -d --rm --name keylab-proof --network none -e POSTGRES_USER=keycloak -e POSTGRES_PASSWORD=proof postgres:18.6-alpine
+```
+
+```bash
+docker exec keylab-proof sh -c 'until pg_isready -q -h 127.0.0.1; do sleep 1; done; psql -U keycloak -c "CREATE ROLE keylab" -c "CREATE DATABASE keylab OWNER keylab"'
+```
+
+```bash
+sh backup.sh restore /srv/playground/keylab.dump keylab-proof keylab
+```
+
+```bash
+docker stop keylab-proof
+```
 
 ### If `.env` is gone too
 

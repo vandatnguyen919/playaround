@@ -12,6 +12,10 @@ path "secret/data/playground/redis" {
   capabilities = ["read"]
 }
 
+path "secret/data/playground/keylab-db" {
+  capabilities = ["read"]
+}
+
 path "secret/data/playground/keycloak-admin" {
   capabilities = ["read"]
 }

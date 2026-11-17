@@ -3,7 +3,8 @@
 # what they need without publishing anything or taking a secret off the VM,
 # apart from the throwaway client secret below.
 #
-#   smoke-access.sh hosts              prints APP_HOST and AUTH_HOST
+#   smoke-access.sh hosts              prints APP_HOST, AUTH_HOST, and KEYLAB=yes|no:
+#                                      whether the running gateway calls keylab-api
 #   smoke-access.sh open               creates client smoke-runner, prints its secret
 #   smoke-access.sh close              deletes it
 #   smoke-access.sh redis-exists KEY   EXISTS on one key, the only Redis call allowed
@@ -46,6 +47,13 @@ delete_client() {
 case "${1:-}" in
   hosts)
     grep -E '^(APP_HOST|AUTH_HOST)=' "$ENV_FILE"
+    # A release from before KeyLab has a gateway without KEYLAB_API_URL (and this file
+    # without this line), so smoke skips its KeyLab check after a rollback to one.
+    if docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$PROJECT-gateway-1" 2>/dev/null | grep -q '^KEYLAB_API_URL='; then
+      echo KEYLAB=yes
+    else
+      echo KEYLAB=no
+    fi
     ;;
   open)
     login

@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // Usage: ./smoke [check...]   (Windows: node smoke.mjs [check...])
 // Needs the whole stack: infra/docker-compose.yml (Keycloak, Redis, Mailpit),
-// the API (:8182), the gateway (:8181) and the SPA dev server (:5174).
-// Checks: anonymous, login, roles, csrf, logout, fixation, backchannel, refresh. No arguments runs all.
+// the API (:8182), keylab-api (:8183), the gateway (:8181) and the SPA dev server (:5174).
+// Checks: anonymous, login, roles, csrf, logout, fixation, backchannel, refresh, keylab.
+// No arguments runs all of those. Only when named: restored (the restore drill) and
+// keylab-write (adds, uploads, publishes and pulls a switch; needs keylab-api).
 // Exits nonzero on any failure.
 // Against the deployed stack use deploy/compose/smoke-public.mjs, which sets the
 // SMOKE_* variables below.
@@ -380,6 +382,191 @@ async function checkRestored() {
   assert("a user from after the dump does not exist", found.length === 0, `${found.length} found`)
 }
 
+// ---- KeyLab (keylab-api behind the gateway's /bff/keylab/v1/**)
+
+const KEYLAB = "/bff/keylab/v1"
+
+// Read only and anonymous, so it signs in nowhere and creates nothing: safe in every
+// deploy's smoke. An empty library is fine (a fresh install has no switches yet).
+// SMOKE_KEYLAB=off skips it: smoke-public.mjs sets that when the running release has no
+// keylab-api, as after a rollback to one from before KeyLab.
+async function checkKeylab() {
+  if (process.env.SMOKE_KEYLAB === "off") {
+    console.log("SKIP  KeyLab: the running release has no keylab-api")
+    return
+  }
+  const b = new Browser()
+  const health = await b.xhr(`${KEYLAB}/health`, { csrf: false })
+  assert("KeyLab health answers through the gateway", health.status === 200, `HTTP ${health.status}`)
+  const library = await b.xhr(`${KEYLAB}/switches`, { csrf: false })
+  const text = await library.text()
+  assert("the switch library is 200 JSON from keylab-api, not the fallback", library.status === 200 && library.headers.get("keylab-api-revision"), `HTTP ${library.status} ${text.slice(0, 120)}`)
+  let data
+  try {
+    data = JSON.parse(text).data
+  } catch {
+    data = undefined
+  }
+  assert("the library lists switches as data[]", Array.isArray(data), text.slice(0, 120))
+  if (data.length > 0) {
+    const page = await b.xhr(`${KEYLAB}/switches/${encodeURIComponent(data[0].slug)}`, { csrf: false })
+    assert(`the page of ${data[0].slug} loads`, page.status === 200 && (await page.json()).slug === data[0].slug, `HTTP ${page.status}`)
+  } else {
+    console.log("SKIP  a switch page: the library is empty")
+  }
+  const spa = await b.request(`${APP}/keylab/switches`, { headers: { accept: "text/html" } })
+  assert("the SPA serves /keylab/switches", spa.status === 200 && (spa.headers.get("content-type") ?? "").includes("text/html"), `HTTP ${spa.status}`)
+}
+
+/** A mono 48 kHz 24-bit WAV: 100 ms of silence, then a decaying 1 kHz click (keylab-sounds.spec.ts). */
+function wav(rate = 48_000, bits = 24, seconds = 0.2, peak = 0.5) {
+  const frames = Math.round(rate * seconds)
+  const bytes = bits / 8
+  const data = Buffer.alloc(frames * bytes)
+  const full = 2 ** (bits - 1) - 1
+  for (let i = 0; i < frames; i++) {
+    const t = (i - rate / 10) / rate
+    const v = t < 0 ? 0 : peak * Math.exp(-t * 40) * Math.sin(2 * Math.PI * 1000 * t)
+    data.writeIntLE(Math.max(-full, Math.min(full, Math.round(v * full))), i * bytes, bytes)
+  }
+  const head = Buffer.alloc(44)
+  head.write("RIFF", 0)
+  head.writeUInt32LE(36 + data.length, 4)
+  head.write("WAVEfmt ", 8)
+  head.writeUInt32LE(16, 16)
+  head.writeUInt16LE(1, 20)
+  head.writeUInt16LE(1, 22)
+  head.writeUInt32LE(rate, 24)
+  head.writeUInt32LE(rate * bytes, 28)
+  head.writeUInt16LE(bytes, 32)
+  head.writeUInt16LE(bits, 34)
+  head.write("data", 36)
+  head.writeUInt32LE(data.length, 40)
+  return Buffer.concat([head, data])
+}
+
+// A signed-in SPA call with a JSON body, the XSRF header and an Idempotency-Key.
+async function keylabJson(b, path, { method = "POST", json } = {}) {
+  const res = await b.request(`${APP}${KEYLAB}${path}`, {
+    method,
+    body: json === undefined ? undefined : JSON.stringify(json),
+    headers: {
+      accept: "application/json",
+      ...(json === undefined ? {} : { "content-type": "application/json" }),
+      "x-xsrf-token": b.cookies.get("XSRF-TOKEN") ?? "",
+      ...(method === "POST" ? { "idempotency-key": crypto.randomUUID() } : {}),
+    },
+  })
+  const text = await res.text()
+  let body = null
+  try {
+    body = text ? JSON.parse(text) : null
+  } catch {
+    body = text
+  }
+  return { status: res.status, body, text }
+}
+
+// Opt-in, like restored: it writes. An editor adds a switch, uploads both stock strokes,
+// publishes it, sees it in the public library and hears its file, then pulls it again.
+// Published switches cannot be deleted, so each run leaves one pulled "Smoke" switch.
+async function checkKeylabWrite() {
+  const editor = { username: `smoke-editor-${tag}@example.com`, password: "Smoke-1234", roles: ["user", "keylab-editor"] }
+  const b = new Browser()
+  let switchId = null
+  let published = false
+  try {
+    await createUser(editor)
+    await signIn(b, editor)
+    await b.xhr("/bff/csrf")
+    const name = `Smoke ${tag}`
+    const created = await keylabJson(b, "/admin/switches", {
+      json: {
+        name,
+        brand: "Smoke Test",
+        type: "tactile",
+        profile: "poppy",
+        stemColor: "#F16B53",
+        forceG: 62,
+        actuationMm: 2.0,
+        travelMm: 3.8,
+        housing: "milky",
+        forceCurve: [
+          { travelMm: 0, forceG: 0 },
+          { travelMm: 0.4, forceG: 38 },
+          { travelMm: 2.0, forceG: 62 },
+          { travelMm: 3.8, forceG: 92 },
+        ],
+      },
+    })
+    assert("a keylab-editor adds a switch (ADM-02)", created.status === 201 && created.body?.id, `HTTP ${created.status} ${created.text.slice(0, 200)}`)
+    switchId = created.body.id
+    const slug = created.body.slug
+
+    const file = wav()
+    for (const stroke of ["press", "release"]) {
+      const ticket = await keylabJson(b, "/admin/uploads", {
+        json: { purpose: "sound", contentType: "audio/wav", bytes: file.length, fileName: `smoke-${stroke}.wav` },
+      })
+      assert(`an upload ticket for the ${stroke} WAV (ADM-04)`, ticket.status === 201 && ticket.body?.url, `HTTP ${ticket.status} ${ticket.text.slice(0, 200)}`)
+      const put = await b.request(new URL(ticket.body.url, APP).href, {
+        method: "PUT",
+        body: file,
+        headers: { ...(ticket.body.headers ?? {}), "x-xsrf-token": b.cookies.get("XSRF-TOKEN") ?? "" },
+      })
+      assert(`the ${stroke} WAV goes up to the signed URL`, put.status >= 200 && put.status < 300, `HTTP ${put.status}`)
+      const attached = await keylabJson(b, `/admin/switches/${switchId}/sounds`, { json: { uploadId: ticket.body.uploadId, variant: "stock", stroke } })
+      assert(`the ${stroke} take is attached (202)`, attached.status === 202 && attached.body?.id, `HTTP ${attached.status} ${attached.text.slice(0, 200)}`)
+      let sound = attached.body
+      await until(async () => {
+        sound = (await keylabJson(b, `/admin/sounds/${sound.id}`, { method: "GET" })).body
+        return sound?.status !== "processing"
+      }, 60_000)
+      assert(`the ${stroke} take is processed and ready`, sound?.status === "ready", `${sound?.status} ${sound?.error ?? ""}`)
+    }
+
+    // Catalog hears of ready takes through an event, a moment after sound marks them.
+    let soundStatus
+    await until(async () => {
+      soundStatus = (await keylabJson(b, `/admin/switches/${switchId}`, { method: "GET" })).body?.soundStatus
+      return soundStatus === "recorded"
+    }, 30_000)
+    assert("catalog sees both stock takes (soundStatus recorded)", soundStatus === "recorded", soundStatus)
+
+    const publish = await keylabJson(b, `/admin/switches/${switchId}/publication`, { json: { markNew: false } })
+    published = publish.status === 200
+    assert("it publishes (ADM-03)", published && publish.body?.status === "published", `HTTP ${publish.status} ${publish.text.slice(0, 200)}`)
+
+    const anyone = new Browser()
+    const search = await anyone.xhr(`${KEYLAB}/switches?q=${encodeURIComponent(name)}`, { csrf: false })
+    const found = search.status === 200 ? (await search.json()).data.some((s) => s.slug === slug) : false
+    assert("it shows in the public library, signed out", found, `HTTP ${search.status}`)
+    const page = await anyone.xhr(`${KEYLAB}/switches/${slug}`, { csrf: false })
+    assert("its public page loads", page.status === 200, `HTTP ${page.status}`)
+    const sounds = await anyone.xhr(`${KEYLAB}/switches/${slug}/sounds`, { csrf: false })
+    const recordings = sounds.status === 200 ? (await sounds.json()).data : []
+    const press = recordings.find((r) => r.stroke === "press" && r.variant === "stock")
+    assert("its stock press is listed (CAT-03)", press?.url, `HTTP ${sounds.status}, ${recordings.length} recordings`)
+    const audio = await anyone.request(new URL(press.url, APP).href)
+    const bytes = Buffer.from(await audio.arrayBuffer())
+    assert(
+      "the recording plays from the app's own origin",
+      audio.status === 200 && new URL(press.url, APP).origin === new URL(APP).origin && bytes.subarray(0, 4).toString() === "RIFF",
+      `HTTP ${audio.status} ${audio.headers.get("content-type")} ${press.url}`,
+    )
+  } finally {
+    if (published) {
+      const pulled = await keylabJson(b, `/admin/switches/${switchId}/publication`, { method: "DELETE" })
+      console.log(`${pulled.status < 300 ? "INFO" : "WARN"}  pulled the smoke switch from the library (HTTP ${pulled.status})`)
+    } else if (switchId) {
+      // A draft can still be deleted.
+      const etag = (await b.request(`${APP}${KEYLAB}/admin/switches/${switchId}`, { headers: { accept: "application/json" } })).headers.get("etag")
+      await b.request(`${APP}${KEYLAB}/admin/switches/${switchId}`, { method: "DELETE", headers: { "if-match": etag ?? "*", "x-xsrf-token": b.cookies.get("XSRF-TOKEN") ?? "" } })
+    }
+    if (editor.id) await adminApi(`/users/${editor.id}`, { method: "DELETE" })
+  }
+}
+
 const checks = {
   anonymous: checkAnonymous,
   login: checkLogin,
@@ -390,9 +577,12 @@ const checks = {
   backchannel: checkBackchannel,
   refresh: checkRefresh,
   restored: checkRestored,
+  keylab: checkKeylab,
+  "keylab-write": checkKeylabWrite,
 }
-// Runs only when asked for: it needs the drill's markers.
-const defaults = Object.keys(checks).filter((n) => n !== "restored")
+// Run only when asked for: restored needs the drill's markers, keylab-write leaves a
+// pulled switch behind.
+const defaults = Object.keys(checks).filter((n) => n !== "restored" && n !== "keylab-write")
 const requested = process.argv.slice(2)
 const unknownNames = requested.filter((n) => !(n in checks))
 if (unknownNames.length) {

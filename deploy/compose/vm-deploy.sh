@@ -2,7 +2,7 @@
 # Deploys and rolls back the compose stack on the VM. Run with sudo. Jenkins reaches
 # it only through vm-ssh-gate.sh. Works by hand too, with "manual" as <by>.
 #
-#   vm-deploy.sh deploy <sha> <gateway-digest> <api-digest> <keycloak-digest> <by>
+#   vm-deploy.sh deploy <sha> <gateway-digest> <api-digest> <keycloak-digest> [<keylab-api-digest>] <by>
 #   vm-deploy.sh rollback <by>          back to the newest good release that is not current
 #   vm-deploy.sh mark-good <sha> <by>   the current release passed smoke
 #   vm-deploy.sh note <sha> <word> <by> adds a line to the deploy history
@@ -63,14 +63,17 @@ good_remove() { # release
   mv "$STATE/good.tmp" "$STATE/good"
 }
 
-# Rewrites three lines of the secret .env. Never prints it.
+# Rewrites the image lines of the secret .env, and adds one it lacks (KEYLAB_API_IMAGE
+# on the first deploy with keylab-api). Never prints it. A release from before keylab-api
+# has no such line, so going back to it leaves KEYLAB_API_IMAGE as it is.
 env_with_images() { # images-file output-file
   (
     umask 077
     awk -F= -v images="$1" '
-      BEGIN { while ((getline line < images) > 0) { split(line, part, "="); value[part[1]] = substr(line, length(part[1]) + 2) } }
-      ($1 in value) { print $1 "=" value[$1]; next }
+      BEGIN { while ((getline line < images) > 0) { split(line, part, "="); value[part[1]] = substr(line, length(part[1]) + 2); order[++n] = part[1] } }
+      ($1 in value) { print $1 "=" value[$1]; seen[$1] = 1; next }
       { print }
+      END { for (i = 1; i <= n; i++) if (!(order[i] in seen)) print order[i] "=" value[order[i]] }
     ' "$ENV_FILE" > "$2"
   )
 }
@@ -85,10 +88,17 @@ set_images() { # images-file
 compose() { docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" "$@"; }
 
 wait_healthy() {
+  # Only the services this release's compose file has: a release from before keylab-api
+  # has no keylab-api to wait for.
+  defined=" $(compose config --services | tr '\n' ' ') "
+  services=""
+  for service in postgres keycloak redis api keylab-api gateway; do
+    case "$defined" in *" $service "*) services="$services $service" ;; esac
+  done
   deadline=$(($(date +%s) + HEALTH_TIMEOUT))
   while :; do
     waiting=""
-    for service in postgres keycloak redis api gateway; do
+    for service in $services; do
       id="$(compose ps -q "$service")"
       status="$([ -z "$id" ] || docker inspect -f '{{.State.Health.Status}}' "$id" 2>/dev/null || true)"
       [ "$status" = healthy ] || waiting="$waiting $service"
@@ -100,6 +110,12 @@ wait_healthy() {
     fi
     sleep 5
   done
+  # keylab-api waited for it, so it has exited; a failure here means keylab-api never started.
+  id="$(compose ps -a -q keylab-db-init 2>/dev/null || true)"
+  if [ -n "$id" ] && [ "$(docker inspect -f '{{.State.ExitCode}}' "$id")" != 0 ]; then
+    echo "vm-deploy: keylab-db-init failed" >&2
+    return 1
+  fi
   # Exits once per up. It sets the admin console's URL, and nothing depends on it.
   id="$(compose ps -a -q keycloak-admin-url)"
   deadline=$(($(date +%s) + 120))
@@ -123,7 +139,7 @@ bootstrap() {
   release="$tag"
   valid_sha "$release" || release=initial
   mkdir -p "$STATE/$release"
-  grep -E '^(GATEWAY|API|KEYCLOAK)_IMAGE=' "$ENV_FILE" > "$STATE/$release/images.env"
+  grep -E '^(GATEWAY|API|KEYCLOAK|KEYLAB_API)_IMAGE=' "$ENV_FILE" > "$STATE/$release/images.env"
   # shellcheck disable=SC2086
   tar -C "$ROOT" -cf "$STATE/$release/files.tar" $FILES
   echo "$release" > "$STATE/good"
@@ -133,10 +149,15 @@ bootstrap() {
 }
 
 cmd_deploy() {
-  [ "$#" -eq 5 ] || die "usage: deploy <sha> <gateway-digest> <api-digest> <keycloak-digest> <by>"
-  sha="$1" by="$5"
+  # Four digests from a commit with keylab-api, three from one before it.
+  case "$#" in
+    5) keylab="" by="$5" ;;
+    6) keylab="$5" by="$6" ;;
+    *) die "usage: deploy <sha> <gateway-digest> <api-digest> <keycloak-digest> [<keylab-api-digest>] <by>" ;;
+  esac
+  sha="$1"
   valid_sha "$sha" || die "bad sha"
-  for digest in "$2" "$3" "$4"; do valid_digest "$digest" || die "bad digest"; done
+  for digest in "$2" "$3" "$4" ${keylab:+"$keylab"}; do valid_digest "$digest" || die "bad digest"; done
   valid_word "$by" || die "bad <by>"
   lock
   bootstrap
@@ -151,6 +172,7 @@ cmd_deploy() {
     echo "GATEWAY_IMAGE=${IMAGE_PREFIX}gateway@$2"
     echo "API_IMAGE=${IMAGE_PREFIX}api@$3"
     echo "KEYCLOAK_IMAGE=${IMAGE_PREFIX}keycloak@$4"
+    [ -z "$keylab" ] || echo "KEYLAB_API_IMAGE=${IMAGE_PREFIX}keylab-api@$keylab"
   } > "$tmp/images.env"
 
   # Nothing running has changed yet: a bad compose file, a variable missing from .env

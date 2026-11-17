@@ -23,15 +23,16 @@ Decisions and reasons are in `PRODUCT.md` (Jenkins). It runs in k3s on the VM, b
 1. `deploy-playground` polls `main` every 5 minutes. No webhooks, since nothing here is public.
 2. `cd-gate.mjs` waits up to 60 minutes for the `ci` workflow's push run on that commit. Any
    result but success stops it.
-3. It checks gateway, api and keycloak as `sha-<git sha>`: both platforms, and each platform's
-   BuildKit provenance must name this repo, this commit and that same CI run. It keeps the
-   three index digests. `ci.yml` has no GitHub artifact attestation, so this is what there is.
+3. It checks gateway, api, keycloak and keylab-api as `sha-<git sha>`: both platforms, and each
+   platform's BuildKit provenance must name this repo, this commit and that same CI run. It
+   keeps the four index digests. `ci.yml` has no GitHub artifact attestation, so this is what
+   there is.
 4. It mails you and asks for approval, holding no agent pod while it waits. Unanswered after
    24 hours, the build aborts and nothing changes.
 5. `vm-deploy.sh deploy` on the VM fetches the compose files of that exact commit from
    GitHub, checks them against `.env`, and pulls the images. A failure so far changes nothing.
    Then it sets the digests in `.env`, runs `docker compose up -d` and waits for every health
-   check.
+   check its compose file defines, and for `keylab-db-init` to exit 0.
 6. `smoke-public.mjs` runs `smoke.mjs` against the public URL.
 7. All good: the release counts as good, and you get a mail. Anything failed after the switch:
    it rolls back to the newest good release, runs smoke again and mails you. The build stays
@@ -52,7 +53,15 @@ another click goes one further back. It asks for no approval, and only `jenkins-
 start it. To stop bad commits being deployed again, fix or revert them on `main`.
 
 **It restores images and compose files, not data.** If a release changed the Keycloak database
-schema, an older Keycloak may refuse to start on it: then use `deploy/compose/RESTORE.md`.
+schema, an older Keycloak may refuse to start on it: then use `deploy/compose/RESTORE.md`. The
+same holds for keylab-api: Flyway migrates forward only, so an older keylab-api refuses a
+schema that a newer one migrated.
+
+Each release records all four digests, so a rollback brings back the keylab-api it ran with.
+A release from before KeyLab has no keylab-api: going back to it leaves `KEYLAB_API_IMAGE`
+and the running keylab-api container as they are (compose calls it an orphan), and the old
+gateway does not call it. Its database and files are untouched. Smoke then skips its
+KeyLab check: `smoke-access.sh hosts` from that release prints no `KEYLAB=yes`.
 
 Without Jenkins, the same works by hand on the VM:
 
@@ -94,8 +103,8 @@ Run these from the repo root, on a commit that has this pipeline.
    ssh -t playground@<vm> "sudo ufw allow from 10.42.0.0/16 to any port 6443 proto tcp comment k3s-pods-to-api && sudo ufw allow from 10.42.0.0/16 to 10.20.1.4 port 22 proto tcp comment jenkins-agent-ssh"
    ```
 
-2. Copy the files to the VM. Deploys update the compose files later, but never `vm-deploy.sh`
-   or `vm-ssh-gate.sh`.
+2. Copy the files to the VM. Deploys update the compose files later, but never `vm-deploy.sh`,
+   `vm-ssh-gate.sh`, `vm-env.sh` or `backup.sh`: after a change to one of them, copy it again.
 
    ```bash
    tar -cf - deploy/compose/vm-deploy.sh deploy/compose/vm-ssh-gate.sh deploy/compose/vm-env.sh deploy/compose/compose.prod.yml deploy/compose/smoke-access.sh infra/playground-realm.json deploy/k8s/jenkins deploy/k8s/overlays/azure/jenkins | ssh playground@<vm> sudo tar -xf - --no-same-owner -C /srv/playground

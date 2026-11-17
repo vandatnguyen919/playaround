@@ -3,7 +3,7 @@
 # and tests, the docs site build, then attack, smoke, header and Playwright
 # checks against the dev stack started headless), Gitleaks, Trivy, Terraform
 # checks and dependency review. Nothing is pushed.
-# main: the same checks, then gateway, api and keycloak built natively on
+# main: the same checks, then gateway, api, keylab-api and keycloak built natively on
 # amd64 and arm64 runners, pushed by digest, merged into one tag
 # sha-<git sha>, and checked for both platforms and their provenance.
 # Only the two jobs that write to GHCR get packages: write.
@@ -205,6 +205,7 @@ jobs:
         image:
           - { name: gateway, context: ., file: gateway/Dockerfile }
           - { name: api, context: ., file: api/Dockerfile }
+          - { name: keylab-api, context: ., file: keylab-api/Dockerfile }
           - { name: keycloak, context: keycloak-theme, file: keycloak-theme/Dockerfile }
         arch:
           - { name: amd64, platform: linux/amd64, runner: ubuntu-24.04 }
@@ -260,7 +261,7 @@ jobs:
       packages: write
     strategy:
       matrix:
-        image: [gateway, api, keycloak]
+        image: [gateway, api, keylab-api, keycloak]
     env:
       IMAGE: ghcr.io/vandatnguyen919/playground-${{ matrix.image }}
       TAG: sha-${{ github.sha }}

@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 // What must be true before anyone is asked to approve a deploy. For one commit on main:
 //   1. the ci workflow's push run for that commit succeeded (waits for it);
-//   2. gateway, api and keycloak are on the registry as sha-<git sha>, for both platforms;
+//   2. gateway, api, keycloak and keylab-api are on the registry as sha-<git sha>, for both
+//      platforms;
 //   3. each image's BuildKit provenance, for both platforms, names this repo and commit,
 //      and was built by that same CI run.
-// Writes the three index digests, in that order, so the deploy pins exactly what was
-// checked. Nothing here needs a credential: the repo and images are public.
+// Writes the four index digests, in that order (vm-deploy.sh deploy takes them so), so the
+// deploy pins exactly what was checked. Nothing here needs a credential: the repo and images are public.
 //
 //   node cd-gate.mjs <git sha> <output file>
 //
@@ -23,7 +24,7 @@ const BUILDX = (process.env.BUILDX || "/tools/docker-buildx").split(" ")
 const CI_WAIT_MINUTES = Number(process.env.CI_WAIT_MINUTES || 60)
 const IMAGE_WAIT_MINUTES = Number(process.env.IMAGE_WAIT_MINUTES || 5)
 const POLL_MS = Number(process.env.POLL_SECONDS || 120) * 1000
-const IMAGES = ["gateway", "api", "keycloak"]
+const IMAGES = ["gateway", "api", "keycloak", "keylab-api"]
 const PLATFORMS = ["linux/amd64", "linux/arm64"]
 const SOURCE = `https://github.com/${REPO}`
 

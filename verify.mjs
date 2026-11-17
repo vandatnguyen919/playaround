@@ -182,8 +182,8 @@ const suites = {
     run: (args) => [[process.execPath, ["attacks.mjs", ...args]]],
   },
   smoke: {
-    what: "Login, roles, CSRF, logout, fixation, back-channel, refresh over HTTP (smoke.mjs)",
-    needs: ["keycloak", "redis", "gateway", "app"],
+    what: "Login, roles, CSRF, logout, fixation, back-channel, refresh and the KeyLab library over HTTP (smoke.mjs)",
+    needs: ["keycloak", "redis", "keylabApi", "gateway", "app"],
     run: (args) => [[process.execPath, ["smoke.mjs", ...args]]],
   },
   headers: {
