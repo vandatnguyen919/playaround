@@ -1589,8 +1589,9 @@ Facts worth knowing:
   Keycloak dump, the KeyLab dump and a files tarball, and `report` watches all three; the KeyLab
   dump restored into a throwaway Postgres on the VM with all 15 tables in 9 schemas, owned by
   `keylab`. During the next deploy (`589e7f9`, `deploy-playground/12`) available memory stayed
-  above 844 MiB. Not yet proven: a rollback that restores the previous keylab-api digest (the
-  drill, `.shipit/open.md`). The first deploy's smoke failed on
+  above 844 MiB. The Jenkins drill (2026-11-18, all 138 checks) showed both automatic rollbacks
+  and a `rollback-playground` click bring back the previous keylab-api digest with the other
+  three. The first deploy's smoke failed on
   Keycloak 26.8.2's `kc-admin-api` scope, and its rollback could not start the older Keycloak on
   the migrated database: fixed in smoke, and the rollback limit is in `.shipit/open.md`.
 - **Local observability, dev only.** With `lgtm` up and both `bootRun`s,

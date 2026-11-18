@@ -8,17 +8,12 @@ marked good). On the VM: V0 baseline, V1 `vm-deploy.sh` and `vm-env.sh`, V2 both
 V4 `backup.sh` with one run (Keycloak dump, KeyLab dump, files tarball) and the KeyLab dump
 restored into a throwaway Postgres (15 tables in 9 schemas, as live, owned by `keylab`), V5
 `keylab-write` 15 of 15 from outside. PR #60 (`589e7f9`, `deploy-playground/12`) deployed with
-memory sampled every second: low 844 MiB, in PRODUCT.md. Old copies of the three scripts are kept on the VM as
-`*.pre-kld1`. Left:
+memory sampled every second: low 844 MiB, in PRODUCT.md. The Jenkins drill passed all 138
+checks on 2026-11-18 (images from `cff6ddc`): the automatic rollback after failed smoke, the
+one after a version that never got healthy, and one `rollback-playground` click each brought
+back all four previous digests, keylab-api included. Old copies of the three scripts are kept
+on the VM as `*.pre-kld1`. Left:
 
-- **The drill:** `drill.mjs` defaults to `cff6ddc` now (four images); run it once against the
-  local prod stack to see a rollback restore the previous keylab-api digest. It needs port 8090,
-  so close the tunnel to production Jenkins first, and about 8 GB for Docker. The drill needs
-  the local stack under the project name `playground-prod`, and this machine's
-  `playground-prod_keycloak-db` volume (from 2026-10-27) takes neither a fresh password nor the
-  one in the local `deploy/compose/.env`, so `keylab-db-init` exits 2. Next action: with Dan's
-  OK, remove that local volume (or use the env it was made with), start the stack, run the
-  drill, then tick the Jenkins item on the ticket.
 - **Dan:** open https://app.tickin.me/keylab/switches and a switch page; grant yourself
   `keylab-admin` in the admin console over the tunnel (not in the realm file); refresh the
   `.env` copy in the password manager (it gained both KeyLab secrets).
