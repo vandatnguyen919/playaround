@@ -107,7 +107,7 @@ As a visitor, I want a switch page with specs, force curve and similar switches,
 
 As a builder, I want to toggle mods and hear the before and after, so I know what each mod does.
 
-- **Module:** `sound` · **Endpoints:** CAT-07, BLD-10 · **Depends on:** US-04 · **Points:** 5 · **Priority:** High
+- **Module:** `catalog` (BLD-10 moved there in KL2-0, decision 0001) · **Endpoints:** CAT-07, BLD-10 · **Depends on:** US-04 · **Points:** 5 · **Priority:** High
 - **Screens:** Mods workshop → [ModsDesktop](design/screens/ModsDesktop.png), [ModsMobile](design/screens/ModsMobile.png)
 - **Ticket:** [Notion](https://www.notion.so/4130b3b780c681d9a258da5233c014d8)
 

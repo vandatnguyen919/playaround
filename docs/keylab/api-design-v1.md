@@ -180,6 +180,8 @@ A build stores choices, not sound: switch, variant, mods, keycap set and case. T
 | BLD-09 | `POST /v1/me/builds/imports` | After sign-up, saves the builds a guest made in local storage (up to 3). | Member | US-13 |
 | BLD-10 | `GET /v1/sound-recipe` | Which samples to play and the filter settings for a set of parts: `switch`, `variant`, `mod` (repeatable), `keycap_set`, `case_material`, `plate`, `mount`. Also returns the meter position and word (“Deep & rounded”). Cacheable, so the builder can call it on every toggle. | Public | US-05, US-06, US-07, US-09, US-14, US-19 |
 
+BLD-10 details ([decision 0001](decisions/0001-sound-recipe.md)): computed on the server by the `catalog` module, which holds every input (each part's `sound_fx` and the switch's ready recordings), so the call never leaves the module. `switch` is required; `variant` defaults to `stock`; a part left out adds no effect. Each `mod` value is `slug` for a toggle mod or `slug:level` for a level mod (`?mod=case-foam&mod=lube:light`). The answer does not depend on parameter order, but the cache key is the URL, so the client sorts the `mod` values to make equal mixes share one entry. Every part that was ever published resolves, pulled or retired ones included, so an old shared build still plays; the builder only offers live parts. `samples` are the press and release of the chosen variant, or the stock ones when that variant has no ready take (each sample names its `variant`). Answers carry `Cache-Control: public, max-age=300` and an `ETag` (a hash of the body); a matching `If-None-Match` gets `304`, so a catalog edit shows within one cache window. Errors: a missing `switch`, a parameter given twice (other than `mod`), an unknown `variant`, a malformed or repeated `mod` value is `400 invalid_parameter`; a slug that never named a published part is `422 part_not_found`, a level mod without a level `422 level_required`, a level the mod does not offer `422 level_not_offered`, with one entry in `errors` per bad part whose `pointer` names the parameter (`/switch`, `/mod/1`, `/plate`). A build's save keeps the recipe's filters and meter in `config.sound` (database-design.md), computed by the same code.
+
 The build body that BLD-02 accepts and BLD-03 returns:
 
 ```json
@@ -326,7 +328,7 @@ All 44 stories map to at least one endpoint, and every endpoint except the billi
 
 - [ ] How long must `/v1` keep running after `/v2` ships? This doc assumes 6 months.
 - [ ] Rate limits per endpoint group: catalog reads, username checks, writes, admin.
-- [ ] Is the sound recipe (BLD-10) computed on the server, or shipped as a rule table so the browser computes it offline?
+- [x] Is the sound recipe (BLD-10) computed on the server, or shipped as a rule table so the browser computes it offline? On the server, in `catalog` ([decision 0001](decisions/0001-sound-recipe.md), KL2-0). A browser copy can be added later without a `/v1` change.
 - [ ] Which payment provider runs checkout and invoices (ACC-04 to ACC-08)?
 - [ ] Do moderators need their own role, or is `keylab-editor` enough for the queue?
 - [x] OpenAPI 3.1 file for `/v1`: [openapi-v1.yaml](openapi-v1.yaml) (draft). Next: generate the Spring interfaces and the web client from it.

@@ -1,5 +1,22 @@
 # Open
 
+## KL2-0 Prep: builds package plan and sound recipe decision (2026-11-20)
+
+Done: planned trees for `builds` and `sound` and one line per other module in
+`docs/keylab/modulith-plan.md` (Planned trees); decision record
+`docs/keylab/decisions/0001-sound-recipe.md`, accepted by Dan: option B, BLD-10 is
+server-computed in `catalog`. BLD-10 details in `api-design-v1.md` and `openapi-v1.yaml`
+(module `catalog`, cache, 304, error codes), Modules table and catalog tree, both
+package-info javadocs and US-05's module follow it. `unlisted` dropped from
+`database-design.md` to match the API and stories. Nothing committed. Left:
+
+- **PR:** not opened. Next action: when it opens, set the KL2-0 Notion ticket's PR and
+  Status (In review) and tick its Done when items.
+- **sound is still in the pre-KL-R1 layout.** Next action: Dan decides whether to make a
+  refactor ticket (like KL-R1) to move it into the planned tree.
+- **like_count:** community owns likes, the database design puts the count on `builds`.
+  Next action: decide in US-21.
+
 ## KL-D1 Deploy KeyLab to production (live since 2026-11-17)
 
 KeyLab is live on https://app.tickin.me (PRODUCT.md, Current state). Shipped by PR #58
@@ -229,9 +246,6 @@ No migration changed. keylab-api on :8183 was restarted from the new jar. Left:
 - **Test shim:** `application/AdminSwitches` stays only so `AdminSwitchesTest` runs
   unedited; `CatalogArchitectureTest` exempts it by name. Next action: Dan decides whether
   to move that test to `Slug` and `JsonMergePatch` and delete the shim.
-- **Package structure lost the other modules' trees:** the ticket text replaced the
-  whole section, so sound, builds, community and the rest no longer list their planned
-  packages there. Next action: none unless Dan wants them back under each module.
 
 ## US-03 Compare switch sounds (branch feature/us-03-compare-sounds, 2026-11-16)
 
