@@ -823,8 +823,10 @@ Jenkins idle (2026-11-17, after the KL-D1 deploy): keylab-api 248 of 384 MiB, Ke
 gateway 273, api 177, Postgres 84, Traefik 38, Redis 17. Available 1,000 to 1,110 MiB
 (1,281 before KeyLab), swap 130 to 174 MiB, no OOM kill; during a backup it stayed above
 1,000 MiB. Go/no-go: no OOM kill, idle available above 600 MiB, swap below 768 MiB (all
-met), lowest during a deploy above 400 MiB (not measured yet: `sar` samples every 10
-minutes and missed the deploy; `.shipit/open.md`).
+met), lowest during a deploy above 400 MiB (met: sampled every second through Jenkins
+`deploy-playground/12`, 2026-11-17, from the gate to marked good, the low was 844 MiB during
+smoke, swap at most 387 MiB, no OOM kill). Swap had crept from about 150 to 371 MiB in the
+hours before that deploy and fell to 139 MiB when it recreated the containers.
 Tight but under 4 GiB with JVM heaps capped (`-XX:MaxRAMPercentage`) and a 1
 GiB swap file on the data disk as a cushion, not as working memory. If
 Keycloak is OOM killed, resize to B2ps v2 early.
@@ -1586,8 +1588,10 @@ Facts worth knowing:
   recording from `/bff/keylab/v1/assets/...`, then pulls it. The nightly backup uploads the
   Keycloak dump, the KeyLab dump and a files tarball, and `report` watches all three; the KeyLab
   dump restored into a throwaway Postgres on the VM with all 15 tables in 9 schemas, owned by
-  `keylab`. Not yet proven: a rollback that restores the previous keylab-api digest (the drill),
-  and the lowest memory during a deploy (`.shipit/open.md`). The first deploy's smoke failed on
+  `keylab`. During the next deploy (`589e7f9`, `deploy-playground/12`) available memory stayed
+  above 844 MiB. The Jenkins drill (2026-11-18, all 138 checks) showed both automatic rollbacks
+  and a `rollback-playground` click bring back the previous keylab-api digest with the other
+  three. The first deploy's smoke failed on
   Keycloak 26.8.2's `kc-admin-api` scope, and its rollback could not start the older Keycloak on
   the migrated database: fixed in smoke, and the rollback limit is in `.shipit/open.md`.
 - **Local observability, dev only.** With `lgtm` up and both `bootRun`s,
