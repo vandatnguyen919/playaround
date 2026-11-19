@@ -12,8 +12,8 @@ Each module is a top-level package under the app's root package (`app.keylab`), 
 
 | Module | Owns | API IDs |
 | --- | --- | --- |
-| `catalog` | Switches, keycap sets, mods, case options, publishing | CAT, ADM-02/03/06/07 |
-| `sound` | Uploads, recordings, processing, sound recipe | ADM-04/05, BLD-10 |
+| `catalog` | Switches, keycap sets, mods, case options, publishing, sound recipe | CAT, ADM-02/03/06/07, BLD-10 |
+| `sound` | Uploads, recordings, processing | ADM-04/05 |
 | `builds` | Builds, parts list, share image, guest import | BLD-01…09 |
 | `community` | Profiles, follows, likes, collections, activity, badges, reports | ME, SOC |
 | `moderation` | Queue, decisions, featured slots | ADM-09/10 |
@@ -68,6 +68,120 @@ implements it, or it listens to the other module's events.
 Forms over data with few rules: controller -> application service -> JDBC is
 fine. Add a domain package only when a real rule appears.
 
+### Planned trees for the other modules
+
+Plans, not code: the first story in each module creates what it needs and
+fixes the tree here if it changes. The sound recipe (BLD-10) is computed in
+`catalog` ([decision 0001](decisions/0001-sound-recipe.md)), so catalog's tree
+gains it (below) and `sound` has none.
+
+#### catalog additions for the sound recipe (US-05, US-06, US-07)
+
+    catalog/
+      CatalogApi.java          gains soundOf(parts): builds stores it in config.sound
+      domain/SoundRecipe.java  pure function: part effects + samples -> filters, meter, word
+      domain/PartSounds.java   port: each part's sound_fx and a switch's ready takes
+      application/ComposeSoundRecipe.java   loads the inputs, calls SoundRecipe
+      adapter/in/web/SoundRecipeController.java   BLD-10: parameters, cache, problems
+      adapter/out/persistence/JdbcPartSounds.java  catalog.* tables and switch_recordings
+
+#### builds (KL2: US-08, US-09, US-12, US-14; later US-10, US-11, US-13, US-15)
+
+    builds/
+      BuildsApi.java          public: isPublicBuildOf(owner, buildId), for
+                              community's daily-driver check (US-26)
+      BuildPublished.java     public event: a build became public, or a public
+                              build saved a new version
+      BuildWithdrawn.java     public event: a public build went private or was
+                              deleted (reason PRIVATE or DELETED)
+      domain/
+        Build.java            aggregate root (rules below)
+        BuildVersion.java     immutable entity: versionNo, Parts, config snapshot
+        Parts.java            value object: layout, switch + variant, mods + levels,
+                              keycaps, case, plate, mount, desk pad (catalog slugs)
+        Visibility.java       PRIVATE, PUBLIC
+        BuildEvent.java       sealed: Saved, Renamed, VisibilityChanged, Deleted
+        Builds.java           port: load, add, save (only at the loaded version)
+        PartsCatalog.java     port: which slugs exist and are live, each mod's levels,
+                              and the recipe's sound for config.sound
+        BuildNotFound, BuildChangedMeanwhile, InvalidParts   domain errors
+      application/            SaveBuild (BLD-02), EditBuild (BLD-04: rename, parts,
+                              visibility), DeleteBuild (BLD-05), CopyBuild (BLD-06),
+                              ImportGuestBuilds (BLD-09)
+      query/                  MyBuilds (BLD-01), BuildView (BLD-03), PartsList (BLD-07)
+      adapter/in/web/         BuildController (BLD-01..06, 09), PartsListController,
+                              ShareImageController (BLD-08)
+      adapter/out/persistence/  JdbcBuilds: schema "builds" (builds, build_versions,
+                                build_version_mods, share_links)
+      adapter/out/catalog/      PartsCatalog through catalog.CatalogApi
+      adapter/out/sharecard/    renders and stores the share PNG (BLD-08)
+
+`builds` depends on `catalog` (it checks parts through `CatalogApi`, which the
+first builds story creates) and on nothing else; `community` depends on
+`builds`. The Build aggregate, from [database-design.md](database-design.md)
+and the BLD endpoints:
+
+- **Owner only.** Every change takes the caller's id. Someone else's private
+  build is `BuildNotFound` (404, never 403), so private builds do not leak.
+- **Versions.** Creating a build writes version 1. A save with new parts
+  appends version n+1, immutable, and moves the current version; renaming and
+  visibility changes write no version. Share links and typing results point at
+  a version. `draft` (autosave) has no endpoint yet and stays out until a
+  story needs it.
+- **Visibility** is `PRIVATE` or `PUBLIC`; a new build starts private unless
+  asked public. Going public publishes `BuildPublished`; leaving public, by
+  either route, publishes `BuildWithdrawn`.
+- **Parts** must exist and be live in the catalog when saved, and a mod's level
+  must be one the mod offers. Old versions keep parts the catalog has since
+  retired (catalog never deletes a used row), so ids stay valid without a
+  cross-schema foreign key.
+- **Daily-driver pin** belongs to `community` (the profile). `builds` never
+  touches it: `community` checks a pin with `BuildsApi` and clears it on
+  `BuildWithdrawn` (US-12, US-26).
+- **Delete** is soft (`deletedAt`): the build is 404 everywhere at once and a
+  nightly job removes it after 30 days.
+- **Copy** (BLD-06) works only on a public build, starts private, and records
+  `copiedFrom`.
+- **Concurrency.** The row version is the `ETag`; a stale `If-Match` is 412.
+- `like_count` is not part of the aggregate: `community` owns likes (SOC-09).
+  Which module keeps the count is decided in US-21.
+
+#### sound (target tree; the code is still in the pre-KL-R1 layout)
+
+    sound/
+      SoundApi.java, SoundProcessed.java, SoundRemoved.java   public (exist)
+      SwitchDirectory.java    port catalog implements (exists, stays public)
+      domain/
+        Upload.java           aggregate: one presigned upload, used once
+                              (pending -> received -> used)
+        Recording.java        aggregate: one take, processing -> ready | failed;
+                              the newest ready take in a slot plays
+        WavAnalysis.java      the format rule, peaks and BS.1770 loudness (pure Java)
+        Uploads, Recordings, BlobStore   ports
+      application/            RequestUpload, ReceiveUpload, AttachRecording (ADM-04),
+                              ProcessRecording (async, publishes SoundProcessed),
+                              DeleteRecording (ADM-05, SoundRemoved), UsePhoto (SoundApi)
+      query/                  SoundLibrary (ADM-05 list)
+      adapter/in/web/         FileController (signed PUT /v1/uploads/{upload_id},
+                              GET /v1/assets/...), admin/AdminSoundController
+      adapter/out/persistence/  JDBC, schema "sound"
+      adapter/out/storage/      FileSystemBlobStore now, an object store later
+
+Today's `uploads/`, `recordings/`, `processing/`, `storage/` and `web/` move
+into this tree in a refactor ticket of their own, as KL-R1 did for catalog,
+not inside a story.
+
+#### The rest (one line each until their first story)
+
+- `community`: thin or ports and adapters, decided at its first story (US-16);
+  `adapter/in/events` listens to `BuildPublished` and `BuildWithdrawn`
+  (timeline, daily-driver pin); publishes `UserFollowed`.
+- `moderation`: thin; `ModerationController` (ADM-09, ADM-10) -> service -> JDBC.
+- `account`: thin; settings, identities through Keycloak, export and deletion jobs.
+- `billing`: ports and adapters; `adapter/out/provider` for the payment
+  provider, `adapter/in/web/WebhookController` (ACC-08).
+- `backoffice`: thin; overview metrics, team roles, app settings, audit log.
+
 ### Enforcement
 
 - `ModularityTests`: `ApplicationModules.verify()` (no cycles, only public
@@ -102,7 +216,7 @@ The REST API does not change through any of this. The gateway already routes `/b
 | --- | --- | --- |
 | `sound` | Split first | Processing recordings is CPU- and storage-heavy, already asynchronous (it answers `202`), and needs to scale on its own. |
 | `billing` | Split second | Its webhooks come straight from the payment provider, and it is better isolated from everything else. |
-| `catalog` + `builds` | Keep together | The sound recipe (BLD-10) runs on every toggle and needs catalog data; a split adds a network hop to the hottest path. If `sound` leaves, it keeps its own read-only copy of catalog data, updated by catalog events. |
+| `catalog` + `builds` | Keep together | The sound recipe (BLD-10) runs on every toggle and is computed in `catalog`, next to its data ([decision 0001](decisions/0001-sound-recipe.md)); a split adds a network hop to the hottest path. When `sound` leaves, the recipe stays behind and `sound` needs no copy of catalog data. |
 | `community` | Keep | Mostly reads and joins across profiles, follows and likes, so a split gains little. |
 
 A good reason to split is that a module needs to scale on its own, ship on a different schedule, be owned by a different team, or be kept apart so its failures don't spread. “Microservices on principle” is not a reason: each split costs eventual consistency, distributed tracing and one more thing to deploy.

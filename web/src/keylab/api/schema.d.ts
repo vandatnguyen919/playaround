@@ -341,7 +341,7 @@ export interface paths {
         };
         /**
          * Samples and filters for a set of parts
-         * @description **BLD-10** · access: Public · stories: US-05, US-06, US-07, US-09, US-14, US-19 · module: `sound`
+         * @description **BLD-10** · access: Public · stories: US-05, US-06, US-07, US-09, US-14, US-19 · module: `catalog`. Computed on the server by catalog (decision 0001). `variant` defaults to `stock`; a part left out adds no effect. Every part that was ever published resolves, pulled or retired ones included, so old shared builds still play. `samples` are the press and release of the chosen variant, or the stock ones when that variant has no ready take. The answer does not depend on parameter order; the client sorts `mod` values so equal mixes share a cache entry. Answers carry `Cache-Control: public, max-age=300` and an `ETag`; a matching `If-None-Match` gets `304`. A missing `switch`, a parameter given twice (other than `mod`), an unknown `variant`, or a malformed or repeated `mod` value is `400 invalid_parameter`. A slug that never named a published part is `422 part_not_found`, a level mod without a level `422 level_required`, a level the mod does not offer `422 level_not_offered`; each entry in `errors` has a `pointer` naming the parameter (`/switch`, `/mod/1`).
          */
         get: operations["getSoundRecipe"];
         put?: never;
@@ -3136,7 +3136,7 @@ export interface operations {
             query: {
                 switch: string;
                 variant?: "stock" | "lubed" | "foam";
-                /** @description Repeat for each mod (`?mod=foam&mod=tape:2`); each value is `slug` or `slug:level`. */
+                /** @description Repeat for each mod (`?mod=case-foam&mod=lube:light`); `slug` for a toggle mod, `slug:level` for a level mod. */
                 mod?: string[];
                 keycap_set?: string;
                 case_material?: string;
@@ -3160,6 +3160,14 @@ export interface operations {
                     "application/json": components["schemas"]["SoundRecipe"];
                 };
             };
+            /** @description Not modified (the `If-None-Match` tag still matches). */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
             410: components["responses"]["Gone"];
             422: components["responses"]["Unprocessable"];
             429: components["responses"]["TooManyRequests"];

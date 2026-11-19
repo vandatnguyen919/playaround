@@ -86,7 +86,7 @@ Catalog rows are retired with `is_active = false`, never deleted, so old builds 
 
 | Table | Key columns | Notes |
 | --- | --- | --- |
-| `builds` | `id` uuid PK, `owner_id` FK users, `name`, `visibility` enum (private, unlisted, public), `current_version_id` FK, `draft` jsonb, `remixed_from` FK builds, `thumb_key`, `like_count` int, `updated_at`, `deleted_at` | The thing in My builds; `draft` holds unsaved edits |
+| `builds` | `id` uuid PK, `owner_id` FK users, `name`, `visibility` enum (private, public; no story uses unlisted, so it was dropped in KL2-0 to match the API), `current_version_id` FK, `draft` jsonb, `remixed_from` FK builds, `thumb_key`, `like_count` int, `updated_at`, `deleted_at` | The thing in My builds; `draft` holds unsaved edits |
 | `build_versions` | `id` uuid PK, `build_id` FK, `version_no` int, unique (`build_id`, `version_no`), `layout_id`, `switch_id`, `keycap_profile_id`, `keycap_material_id`, `colorway_id`, `case_material_id`, `case_color_hex`, `plate_id`, `mount_id`, `desk_pad_id`, `config` jsonb, `schema_version` smallint | One immutable row per Save; catalog choices as FK columns |
 | `build_version_mods` | `version_id` FK, `mod_id` FK, `level` smallint, PK (`version_id`, `mod_id`) | Which mods a version uses, and at what level |
 
@@ -144,7 +144,7 @@ One Postgres instance with a read replica covers KeyLab well past launch; these 
 - Foreign keys to the catalog are `ON DELETE RESTRICT`; foreign keys from versions, mods and likes to a build are `ON DELETE CASCADE`.
 - Share slugs are 10 random base62 characters, so links can't be guessed.
 
-**Access:** people read and write only their own builds. Public and unlisted builds are readable through their share link. If the API runs on Supabase or similar, enforce this with row-level security policies; otherwise enforce it in the API layer.
+**Access:** people read and write only their own builds. Public builds are readable through their share link. If the API runs on Supabase or similar, enforce this with row-level security policies; otherwise enforce it in the API layer.
 
 **Deleting:** deleted builds keep `deleted_at` for 30 days so My builds can offer Undo, then a nightly job removes them and their images.
 
