@@ -17,8 +17,6 @@ on the VM as `*.pre-kld1`. Left:
 - **Dan:** open https://app.tickin.me/keylab/switches and a switch page; grant yourself
   `keylab-admin` in the admin console over the tunnel (not in the realm file); refresh the
   `.env` copy in the password manager (it gained both KeyLab secrets).
-- **`/tmp/kld1-keylab.dump` on the VM:** the fetched KeyLab dump from the restore proof, root
-  only, 35 KB. Next action: delete it with Dan's OK (`sudo rm /tmp/kld1-keylab.dump`).
 - **A rollback cannot cross a Keycloak upgrade:** 26.8.2 (in `main` since 2026-11-09, first
   deployed 2026-11-17) migrated the database, and 26.8.1 then fails (`No such provider
   'default-roles'`), so its `keycloak-config` exits 1 and the gateway never starts. Deploy #10's
