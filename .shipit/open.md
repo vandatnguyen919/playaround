@@ -2,11 +2,12 @@
 
 ## KL2-1 Parts catalog: seed and CAT-05 to CAT-08 (2026-11-20)
 
-Built and verified, not committed (on the KL2-0 branch, uncommitted). Left:
+PR #63 open (`feat/kl2-1-parts-catalog`); Notion ticket In review with five Done when items
+ticked. Left:
 
-- **PR:** not opened. Next action: commit (on this branch after KL2-0, or a new branch from
-  it), open the PR, then on the KL2-1 Notion ticket tick the six Done when items, set PR and
-  Status In review, and note the mod list choice (builder's mods, AdminCatalog updated).
+- **Production migration:** V5 was only simulated on a throwaway Postgres. Next action: after
+  the deploy, check V5 in production's `catalog.flyway_schema_history` and tick the second
+  Done when item.
 - **AdminCatalog.png is stale:** its tab still reads "Mods · 6" (the `.dc.html` now says 7
   and lists the builder's mods). Next action: re-render the PNG with the next design export.
 - **Recipe inputs for US-05:** mod `sound_fx` holds AdminCatalog's slider steps (-3..+3), and
@@ -21,10 +22,8 @@ Done: planned trees for `builds` and `sound` and one line per other module in
 server-computed in `catalog`. BLD-10 details in `api-design-v1.md` and `openapi-v1.yaml`
 (module `catalog`, cache, 304, error codes), Modules table and catalog tree, both
 package-info javadocs and US-05's module follow it. `unlisted` dropped from
-`database-design.md` to match the API and stories. Nothing committed. Left:
+`database-design.md` to match the API and stories. Merged in PR #62. Left:
 
-- **PR:** not opened. Next action: when it opens, set the KL2-0 Notion ticket's PR and
-  Status (In review) and tick its Done when items.
 - **sound is still in the pre-KL-R1 layout.** Next action: Dan decides whether to make a
   refactor ticket (like KL-R1) to move it into the planned tree.
 - **like_count:** community owns likes, the database design puts the count on `builds`.
