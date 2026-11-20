@@ -20,14 +20,14 @@ function psql(sql: string): string {
  * With a {@code tag} the files are `<tag>-press.opus` and `<tag>-release.opus`,
  * so a test can tell which switch played.
  */
-export function markStockSoundsReady(switchId: string, tag = ''): void {
+export function markStockSoundsReady(switchId: string, tag = '', base = 'https://cdn.keylab.test/assets/sounds/'): void {
   if (!/^[0-9a-f-]{36}$/.test(switchId)) {
     throw new Error(`Not a switch id: ${switchId}`)
   }
   const rows = ['press', 'release']
     .map(
       (stroke) =>
-        `('${switchId}', 'stock', '${stroke}', '${randomUUID()}', 'https://cdn.keylab.test/assets/sounds/${tag ? `${tag}-` : ''}${stroke}.opus', 180, -14.5, '[0.1,0.8,0.3]', now())`,
+        `('${switchId}', 'stock', '${stroke}', '${randomUUID()}', '${base}${tag ? `${tag}-` : ''}${stroke}.opus', 180, -14.5, '[0.1,0.8,0.3]', now())`,
     )
     .join(', ')
   psql(`

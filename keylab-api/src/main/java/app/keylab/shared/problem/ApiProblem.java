@@ -47,6 +47,11 @@ public class ApiProblem extends RuntimeException {
                 ProblemTypes.VALIDATION.title(), null, errors);
     }
 
+    /** 422 with its own stable code (such as {@code part_not_found}) and one entry per bad field. */
+    public static ApiProblem validation(String code, String title, List<FieldError> errors) {
+        return new ApiProblem(ProblemTypes.VALIDATION, code, title, null, errors);
+    }
+
     public ProblemTypes type() {
         return type;
     }

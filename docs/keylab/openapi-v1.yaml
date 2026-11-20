@@ -4301,6 +4301,11 @@ components:
           type: string
         description:
           type: string
+        impact:
+          type: string
+          description: The short line on the builder's mod card.
+          examples:
+          - smoother · deeper
         levels:
           type: array
           items:

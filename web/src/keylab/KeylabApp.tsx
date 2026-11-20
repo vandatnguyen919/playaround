@@ -4,6 +4,7 @@ import './styles/base.css'
 import AppShell from './layout/AppShell.tsx'
 import { BuildPage, Placeholder } from './pages/Pages.tsx'
 import SwitchesPage from './pages/SwitchesPage.tsx'
+import ModsPage from './pages/ModsPage.tsx'
 import AdminShell, { AdminPlaceholder } from './admin/AdminShell.tsx'
 import SwitchEditPage from './admin/switches/SwitchEditPage.tsx'
 import SoundLibraryPage from './admin/sounds/SoundLibraryPage.tsx'
@@ -53,7 +54,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <BuildPage /> },
       { path: 'switches', element: <SwitchesPage /> },
-      { path: 'mods', element: <Placeholder label="Mods" title="Mods" /> },
+      { path: 'mods', element: <ModsPage /> },
       { path: 'keycaps', element: <Placeholder label="Keycaps" title="Keycaps" /> },
       { path: 'case', element: <Placeholder label="Case & plate" title="Case & plate" /> },
       { path: 'playground', element: <Placeholder label="Playground" title="Sound playground" /> },

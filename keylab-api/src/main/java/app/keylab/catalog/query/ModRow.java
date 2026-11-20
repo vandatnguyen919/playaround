@@ -4,7 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * A mod the builder offers (CAT-07): its levels (null for a toggle mod) and
+ * A mod the builder offers (CAT-07): the short line on its card ({@code impact}),
+ * its levels (null for a toggle mod) and
  * its effect on the four sliders, -3 to +3 each.
  */
 public record ModRow(
@@ -12,6 +13,7 @@ public record ModRow(
         String slug,
         String name,
         String description,
+        String impact,
         List<String> levels,
         Effects effects,
         boolean live,

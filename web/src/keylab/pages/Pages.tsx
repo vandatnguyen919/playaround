@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router'
 import { useHealth } from '../api/useHealth.ts'
 import { getSwitch, type SwitchDetail } from '../api/switches.ts'
 import SwitchCard from '../catalog/SwitchCard.tsx'
+import { saveBuild } from '../builder/buildState.ts'
 
 // KL0 ships the shell only. Each page fills in with its user story
 // (docs/keylab/user-stories.md); until then it shows its title.
@@ -52,7 +53,13 @@ function SelectedSwitch() {
     }
     let active = true
     getSwitch(slug)
-      .then((sw) => active && setHeld({ slug, sw }))
+      .then((sw) => {
+        // The builder's other pages (Mods, US-05) start from this switch.
+        saveBuild({ switch: sw.slug })
+        if (active) {
+          setHeld({ slug, sw })
+        }
+      })
       .catch(() => active && setHeld({ slug, sw: null }))
     return () => {
       active = false

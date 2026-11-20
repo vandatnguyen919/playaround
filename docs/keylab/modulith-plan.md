@@ -77,6 +77,10 @@ gains it (below) and `sound` has none.
 
 #### catalog additions for the sound recipe (US-05, US-06, US-07)
 
+Built in US-05, except `CatalogApi.soundOf`, which waits for US-08. The port is
+`domain/PartSounds.java`, as planned; the mix is `domain/SoundMix.java` and an
+invalid one `domain/InvalidSoundMix.java`.
+
     catalog/
       CatalogApi.java          gains soundOf(parts): builds stores it in config.sound
       domain/SoundRecipe.java  pure function: part effects + samples -> filters, meter, word

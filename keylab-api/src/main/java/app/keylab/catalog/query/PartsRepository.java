@@ -91,7 +91,7 @@ public class PartsRepository {
     private ModRow mod(ResultSet rs, int rowNum) throws SQLException {
         Array levels = rs.getArray("levels");
         return new ModRow(rs.getObject("id", UUID.class), rs.getString("slug"), rs.getString("name"),
-                rs.getString("description"), levels == null ? null : texts(levels),
+                rs.getString("description"), rs.getString("impact"), levels == null ? null : texts(levels),
                 json.readValue(rs.getString("sound_fx"), Effects.class), rs.getBoolean("live"),
                 rs.getInt("position"));
     }
