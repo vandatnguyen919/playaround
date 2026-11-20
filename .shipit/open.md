@@ -11,7 +11,7 @@ ticked. Left:
 - **AdminCatalog.png is stale:** its tab still reads "Mods · 6" (the `.dc.html` now says 7
   and lists the builder's mods). Next action: re-render the PNG with the next design export.
 
-## US-05 Toggle mods and hear before and after (2026-11-20, not committed)
+## US-05 Toggle mods and hear before and after (2026-11-20, PR #64, stacked on PR #63)
 
 Built on top of `feat/kl2-1-parts-catalog` (PR #63), uncommitted in the working tree. BLD-10
 (`GET /v1/sound-recipe`) is computed in `catalog` as decision 0001 says: `domain/SoundRecipe`,
