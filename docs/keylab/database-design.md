@@ -66,14 +66,15 @@ The schema has four groups: the catalog, accounts, builds, and sharing plus resu
 | `keycap_materials` | `id` text PK, `name`, `sound_fx` jsonb | PBT, ABS |
 | `colorways` | `id` text PK, `name`, `alpha_hex`, `mod_hex`, `accent_hex` | Preset themes such as Navy Mustard |
 | `artisans` | `id` text PK, `name`, `image_key` | Arcade, Handheld, Resin |
-| `case_materials` | `id` text PK, `name`, `sound_fx` jsonb | Aluminium, polycarbonate, plastic, wood |
-| `plates` | `id` text PK, `name`, `flex` smallint, `sound_fx` jsonb | Alu, brass, FR4, PC, POM |
-| `mounts` | `id` text PK, `name`, `sound_fx` jsonb | Tray, gasket, top mount |
-| `mods` | `id` text PK, `name`, `kind` enum (toggle, level), `levels` text\[\], `sound_fx` jsonb | Lube, foam, PE foam, stabs, O-rings, springs |
+| `keycap_sets` | `id` uuid PK, `slug` text unique, `name`, `material` (pbt, abs, pom), `profile` (cherry, oem, sa, xda), `base_hex`, `alpha_hex`, `mod_hex`, `accent_hex`, `sound_shift` numeric(3,2) -1..1, `key_count`, `status` (draft, published, hidden), `position`, `is_seed`, `updated_at` | KL2-1 (`V5__parts_catalog.sql`): what CAT-05 and CAT-06 serve, a material, profile and colourway with its shift on the deep to bright scale. Addressed by uuid and slug like a switch, because the API returns both. Only published sets are public. Seeded with AdminCatalog's six |
+| `case_materials` | `id` text PK, `name`, `note`, `colors` text\[\], `sound_fx` jsonb, `is_active`, `position`, `is_seed`, `updated_at` | Aluminium, polycarbonate, plastic, wood. KL2-1: `note` is CAT-08's `soundEffect`, `colors` the case colours offered, `sound_fx` the recipe factors (`pitch`, `bright`, `decay`, `thump`) |
+| `plates` | `id` text PK, `name`, `note`, `flex` smallint 0..4, `sound_fx` jsonb, `is_active`, `position`, `is_seed`, `updated_at` | Alu, brass, FR4, PC, POM |
+| `mounts` | `id` text PK, `name`, `note`, `sound_fx` jsonb, `is_active`, `position`, `is_seed`, `updated_at` | Tray, gasket, top mount |
+| `mods` | `id` uuid PK, `slug` text unique, `name`, `description`, `impact`, `kind` enum (toggle, level), `levels` text\[\], `sound_fx` jsonb, `live`, `position`, `is_seed`, `updated_at` | Lube, case foam, PE foam, stabilizer tuning, O-rings, spring swap (KL2-1, from ModsDesktop; AdminCatalog's Holee mod seeded switched off). `sound_fx` is `{pitch, thock, volume, rattle}`, steps -3..+3. A level mod's first level is off. `live = false` hides it from the builder (CAT-07). uuid and slug because the API returns both |
 | `desk_pads` | `id` text PK, `name`, `style` jsonb, `thumb_key` | Sky, Splash, Grid, Dots, Stripes, Checker, Walnut |
 | `catalog_releases` | `id` int PK, `published_at`, `cdn_key` | Each publish of the catalog JSON to the CDN |
 
-Catalog rows are retired with `is_active = false`, never deleted, so old builds still resolve. Switches use `status = 'hidden'` for this; only a draft, which no build can use, is ever deleted.
+Catalog rows are retired with `is_active = false`, never deleted, so old builds still resolve (keycap sets use `status = 'hidden'` and mods `live = false` for this). Rows from the KL2-1 seed carry `is_seed = true`; US-40 edits them like any other row. Switches use `status = 'hidden'` for this; only a draft, which no build can use, is ever deleted.
 
 ### Accounts
 

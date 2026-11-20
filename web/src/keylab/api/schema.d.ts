@@ -113,7 +113,7 @@ export interface paths {
         };
         /**
          * List keycap sets
-         * @description **CAT-05** · access: Public · stories: US-06 · module: `catalog`
+         * @description **CAT-05** · access: Public · stories: US-06 · module: `catalog`. Published keycap sets only, in the editors' order; drafts and hidden sets never show. A `page_token` from another list is `400 invalid_page_token`. Answers carry `Cache-Control: public, max-age=300` and an `ETag`; a matching `If-None-Match` gets `304`.
          */
         get: operations["listKeycapSets"];
         put?: never;
@@ -133,7 +133,7 @@ export interface paths {
         };
         /**
          * Get one keycap set
-         * @description **CAT-06** · access: Public · stories: US-06 · module: `catalog`
+         * @description **CAT-06** · access: Public · stories: US-06 · module: `catalog`. A draft, a hidden set or an unknown slug is `404 keycap_set_not_found`. Answers carry `Cache-Control: public, max-age=300` and an `ETag`; a matching `If-None-Match` gets `304`.
          */
         get: operations["getKeycapSet"];
         put?: never;
@@ -153,7 +153,7 @@ export interface paths {
         };
         /**
          * List mods and their sound effects
-         * @description **CAT-07** · access: Public · stories: US-05 · module: `catalog`
+         * @description **CAT-07** · access: Public · stories: US-05 · module: `catalog`. Live mods only (an editor's `live` toggle hides a mod from the builder), in the editors' order. A level mod lists its levels, the first being off (`none`, `light`, `heavy`); a toggle mod has no `levels`. `effects` are steps from -3 to +3. A `page_token` from another list is `400 invalid_page_token`. Answers carry `Cache-Control: public, max-age=300` and an `ETag`; a matching `If-None-Match` gets `304`.
          */
         get: operations["listMods"];
         put?: never;
@@ -173,7 +173,7 @@ export interface paths {
         };
         /**
          * Case materials, plates and mounts
-         * @description **CAT-08** · access: Public · stories: US-07 · module: `catalog`
+         * @description **CAT-08** · access: Public · stories: US-07 · module: `catalog`. Active case materials, plates and mounts, in the editors' order; retired ones never show. `colors` are the case colours a material offers; `soundEffect` is the line that says how it sounds. Answers carry `Cache-Control: public, max-age=300` and an `ETag`; a matching `If-None-Match` gets `304`.
          */
         get: operations["getCaseOptions"];
         put?: never;
@@ -2771,6 +2771,14 @@ export interface operations {
                     };
                 };
             };
+            /** @description Not modified (the `If-None-Match` tag still matches). */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
             410: components["responses"]["Gone"];
             429: components["responses"]["TooManyRequests"];
         };
@@ -2796,6 +2804,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["KeycapSet"];
                 };
+            };
+            /** @description Not modified (the `If-None-Match` tag still matches). */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             404: components["responses"]["NotFound"];
             410: components["responses"]["Gone"];
@@ -2829,6 +2844,14 @@ export interface operations {
                     };
                 };
             };
+            /** @description Not modified (the `If-None-Match` tag still matches). */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
             410: components["responses"]["Gone"];
             429: components["responses"]["TooManyRequests"];
         };
@@ -2852,6 +2875,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CaseOptions"];
                 };
+            };
+            /** @description Not modified (the `If-None-Match` tag still matches). */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             410: components["responses"]["Gone"];
             429: components["responses"]["TooManyRequests"];
