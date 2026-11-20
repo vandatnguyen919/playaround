@@ -133,7 +133,7 @@ class PartsCatalogApiTest extends IntegrationTest {
         assertThat(json.writeValueAsString(lube)).isEqualTo("""
                 {"id":"0193a8c0-0000-7000-8000-000000000201","slug":"lube","name":"Lube",\
                 "description":"Lubing stems and springs smooths the stroke and rounds off scratchy, high-pitched noise.",\
-                "levels":["none","light","heavy"],"effects":{"pitch":-1,"thock":1,"volume":-1,"rattle":-1},\
+                "impact":"smoother · deeper","levels":["none","light","heavy"],"effects":{"pitch":-1,"thock":1,"volume":-1,"rattle":-1},\
                 "live":true}""");
         // A toggle mod has no levels.
         assertThat(data.get(1).has("levels")).isFalse();

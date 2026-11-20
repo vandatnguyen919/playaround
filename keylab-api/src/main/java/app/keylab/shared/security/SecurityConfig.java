@@ -37,6 +37,8 @@ class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/v1/switches", "/v1/switches/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/v1/keycap-sets", "/v1/keycap-sets/*", "/v1/mods",
                         "/v1/case-options").permitAll()
+                // The sound recipe (BLD-10): guests hear any parts mix.
+                .requestMatchers(HttpMethod.GET, "/v1/sound-recipe").permitAll()
                 // Content-addressed sound and photo files (US-38): public, like a CDN.
                 .requestMatchers(HttpMethod.GET, "/v1/assets/**").permitAll()
                 // Presigned upload URLs (ADM-04): the signature in the URL is the permission.

@@ -5,6 +5,7 @@ import java.util.List;
 import jakarta.servlet.http.HttpServletRequest;
 
 import app.keylab.catalog.domain.CatalogException;
+import app.keylab.catalog.domain.InvalidSoundMix;
 import app.keylab.catalog.domain.InvalidSwitchSpecs;
 import app.keylab.catalog.domain.MissingRequiredSounds;
 import app.keylab.catalog.domain.SlugTaken;
@@ -58,6 +59,7 @@ class CatalogProblems {
                     "Another switch just took this name. Save again.");
             case SwitchChangedMeanwhile changed -> ApiProblem.of(ProblemTypes.PRECONDITION_FAILED);
             case InvalidSwitchSpecs invalid -> ApiProblem.validation(fieldErrors(invalid));
+            case InvalidSoundMix invalid -> soundMix(invalid);
             case InvalidPageToken token -> ApiProblem.of(ProblemTypes.BAD_REQUEST, "invalid_page_token",
                     "page_token is not a token from a previous page");
             default -> {
@@ -65,6 +67,27 @@ class CatalogProblems {
                 yield ApiProblem.of(ProblemTypes.INTERNAL);
             }
         };
+    }
+
+    /**
+     * BLD-10: the problem's code is the reason all bad parts share
+     * ({@code part_not_found}, {@code level_required}, {@code level_not_offered}),
+     * or {@code validation_failed} when they differ; each entry names its parameter.
+     */
+    private static ApiProblem soundMix(InvalidSoundMix invalid) {
+        List<FieldError> errors = invalid.violations().stream()
+            .map((v) -> new FieldError(v.pointer(), v.code(), v.message()))
+            .toList();
+        List<String> codes = errors.stream().map(FieldError::code).distinct().toList();
+        if (codes.size() != 1) {
+            return ApiProblem.validation(errors);
+        }
+        String title = switch (codes.get(0)) {
+            case "part_not_found" -> "A part in this mix does not exist";
+            case "level_required" -> "Pick a level for this mod";
+            default -> "This mod does not offer that level";
+        };
+        return ApiProblem.validation(codes.get(0), title, errors);
     }
 
     private static List<FieldError> fieldErrors(InvalidSwitchSpecs invalid) {

@@ -71,7 +71,7 @@ class PartsController {
     }
 
     static Mod mod(ModRow mod) {
-        return new Mod(mod.id(), mod.slug(), mod.name(), mod.description(), mod.levels(), mod.effects(), mod.live());
+        return new Mod(mod.id(), mod.slug(), mod.name(), mod.description(), mod.impact(), mod.levels(), mod.effects(), mod.live());
     }
 
     static CaseOption option(CaseOptionsView.Part part) {
@@ -88,7 +88,7 @@ class PartsController {
 
     /** Mod in openapi-v1.yaml; {@code levels} is left out for a toggle mod. */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    record Mod(UUID id, String slug, String name, String description, List<String> levels, Effects effects,
+    record Mod(UUID id, String slug, String name, String description, String impact, List<String> levels, Effects effects,
             boolean live) {
     }
 

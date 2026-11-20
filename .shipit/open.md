@@ -10,9 +10,52 @@ ticked. Left:
   Done when item.
 - **AdminCatalog.png is stale:** its tab still reads "Mods · 6" (the `.dc.html` now says 7
   and lists the builder's mods). Next action: re-render the PNG with the next design export.
-- **Recipe inputs for US-05:** mod `sound_fx` holds AdminCatalog's slider steps (-3..+3), and
-  case parts hold CaseDesktop's multipliers. For a level mod the steps are for its first "on"
-  level; US-05 decides how heavy and spring levels scale them.
+
+## US-05 Toggle mods and hear before and after (2026-11-20, not committed)
+
+Built on top of `feat/kl2-1-parts-catalog` (PR #63), uncommitted in the working tree. BLD-10
+(`GET /v1/sound-recipe`) is computed in `catalog` as decision 0001 says: `domain/SoundRecipe`,
+`domain/PartSounds` port, `application/ComposeSoundRecipe`, `adapter/out/persistence/JdbcPartSounds`,
+`adapter/in/web/SoundRecipeController`. `/keylab/mods` is the Mods workshop (ModsDesktop,
+ModsMobile). Verified: all 147 keylab-api tests (new `SoundRecipeTest`, `SoundRecipeApiTest`),
+web unit tests (46), `tsc`, lint, `vite build`, `check:api`, all KeyLab e2e incl. the new
+`keylab-mods.spec.ts` (3 tests, three clean runs in a row) against the local stack, after
+restarting keylab-api from the new jar. Toggle back to a heard mix: 1 to 13 ms on the
+production build through the gateway (browser pane, 8 samples, real CSP); 16 to 93 ms on the
+Vite dev server. An uncached BLD-10 call took 24 ms locally. Left:
+
+- **Toggle test judges p75, not every sample:** on the dev server one sample now and then
+  passed 100 ms (128, 147 ms) from machine load while the rest sat near 20 ms; decision 0001
+  judges real users at p75. It also checks that no request goes out. Next action: Dan accepts
+  or asks for a production-build e2e (sign-in on :8181 does not work for the e2e users).
+- **Gateway rate limit (10/s, burst 20):** loading the page used to send about 19 requests, so
+  recipes are no longer all fetched up front: a card's Before and After are fetched when the
+  pointer or focus reaches it. A first tap on a phone card waits one round trip.
+
+- **Commit, PR and Notion.** Next action: Dan says go; branch `feat/us-05-mods-workshop` off
+  PR #63's branch, then tick the three Done when items on the ticket, set PR and In review.
+- **Recipe rule is invented:** level scaling (heavy = twice light), the shelf, gain and reverb
+  formulas, the profile bases and the logistic meter (api-design-v1.md, BLD-10 details). They
+  sound plausible with the seed but nobody has listened to real takes. Next action: Dan listens
+  with a real switch and tunes the numbers in `SoundRecipe`.
+- **Spring swap makes no sound:** its seeded `sound_fx` is all zero, and "lighter" and
+  "heavier" go in opposite directions, which one set of steps scaled by level cannot express.
+  Before and After play the same, and the meter stays when it is toggled. Next action: Dan
+  decides whether mods get one `sound_fx` per level (a V6 migration and the ADM-07 editor).
+- **Variant is not tied to lube:** the page always asks for the stock takes and lube works
+  through its filters. Sending `variant=lubed` too would count lube twice. Next action: decide
+  with real lubed takes.
+- **CAT-07 gained `impact`** (the card's sticker); openapi, api-design and the e2e of
+  PartsCatalogApiTest updated.
+- **Copy not in the design:** "This switch could not be loaded." with "Pick a switch", "The mods
+  could not be loaded. Reload to try again.", "This sound could not be played.", "…" in the
+  meter before the first recipe. On a phone "Mods workshop" wraps to two lines beside Reset;
+  the design fits it on one. Not built: the sidebar "Current build" card (waits for
+  builds). The switch comes from `?switch=`, else the one from "Use in a build" (kept in
+  localStorage `keylab.build` with the mods), else the first recorded switch.
+- **Production:** the local library had no published switch with sound, so only test switches
+  were heard, with silent WAVs. Next action: after deploy, open `/keylab/mods` on
+  app.tickin.me and listen.
 
 ## KL2-0 Prep: builds package plan and sound recipe decision (2026-11-20)
 

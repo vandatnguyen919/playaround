@@ -1817,6 +1817,11 @@ export interface components {
             slug: string;
             name: string;
             description?: string;
+            /**
+             * @description The short line on the builder's mod card.
+             * @example smoother · deeper
+             */
+            impact?: string;
             levels?: string[];
             effects?: {
                 pitch?: number;
