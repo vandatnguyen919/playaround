@@ -1,5 +1,18 @@
 # Open
 
+## KL2-1 Parts catalog: seed and CAT-05 to CAT-08 (2026-11-20)
+
+Built and verified, not committed (on the KL2-0 branch, uncommitted). Left:
+
+- **PR:** not opened. Next action: commit (on this branch after KL2-0, or a new branch from
+  it), open the PR, then on the KL2-1 Notion ticket tick the six Done when items, set PR and
+  Status In review, and note the mod list choice (builder's mods, AdminCatalog updated).
+- **AdminCatalog.png is stale:** its tab still reads "Mods · 6" (the `.dc.html` now says 7
+  and lists the builder's mods). Next action: re-render the PNG with the next design export.
+- **Recipe inputs for US-05:** mod `sound_fx` holds AdminCatalog's slider steps (-3..+3), and
+  case parts hold CaseDesktop's multipliers. For a level mod the steps are for its first "on"
+  level; US-05 decides how heavy and spring levels scale them.
+
 ## KL2-0 Prep: builds package plan and sound recipe decision (2026-11-20)
 
 Done: planned trees for `builds` and `sound` and one line per other module in

@@ -12,6 +12,7 @@ import app.keylab.catalog.domain.SwitchChangedMeanwhile;
 import app.keylab.catalog.domain.SwitchNotDraft;
 import app.keylab.catalog.domain.SwitchNotFound;
 import app.keylab.catalog.query.InvalidPageToken;
+import app.keylab.catalog.query.KeycapSetNotFound;
 import app.keylab.shared.problem.ApiProblem;
 import app.keylab.shared.problem.FieldError;
 import app.keylab.shared.problem.ProblemAdvice;
@@ -28,7 +29,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
  * Catalog's domain errors as RFC 9457 problems, with the types, codes and
- * titles of api-design-v1.md (ADM-02, ADM-03, CAT-01 to CAT-04). Ordered
+ * titles of api-design-v1.md (ADM-02, ADM-03, CAT-01 to CAT-06). Ordered
  * before the shared {@link ProblemAdvice}, whose catch-all would otherwise
  * answer 500.
  */
@@ -47,6 +48,8 @@ class CatalogProblems {
         return switch (error) {
             case SwitchNotFound notFound -> ApiProblem.of(ProblemTypes.NOT_FOUND, "switch_not_found",
                     notFound.lookup() == SwitchNotFound.Lookup.ID ? "No switch with this id" : "No switch with this name");
+            case KeycapSetNotFound notFound -> ApiProblem.of(ProblemTypes.NOT_FOUND, "keycap_set_not_found",
+                    "No keycap set with this name");
             case MissingRequiredSounds missing -> ApiProblem.of(ProblemTypes.CONFLICT, "missing_required_sounds",
                     "Upload the stock press and release sounds to publish.");
             case SwitchNotDraft notDraft -> ApiProblem.of(ProblemTypes.CONFLICT, "switch_not_draft",

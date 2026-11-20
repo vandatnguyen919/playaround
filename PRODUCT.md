@@ -48,6 +48,14 @@ and "Play in turn"; switches with no recording say "Sound coming soon" and
 cannot be picked. The public landing page `/keylab/home` (hero copy and the
 "Compare three switches" strip of the three newest recorded switches) is where
 the site logo now points; `/keylab` stays the builder.
+KL2-1 (2026-11-20): the builder's other parts exist as seed data
+(`catalog/V5__parts_catalog.sql`, rows marked `is_seed`): six keycap sets from
+AdminCatalog (four published), the builder's six mods from ModsDesktop plus a
+switched-off Holee mod (Dan's choice over AdminCatalog's list), and CaseDesktop's
+case materials, plates and mounts with their sound effect values. Public and
+cached like the library: CAT-05 to CAT-08 (`/v1/keycap-sets`, `/v1/mods`,
+`/v1/case-options`), published sets, live mods and active case parts only. No
+screen uses them yet; US-05 to US-07 do.
 
 ## First useful result
 
