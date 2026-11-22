@@ -1,17 +1,29 @@
 import { get, toSearchParams, type Schemas } from './client.ts'
 
-// The builder's parts besides switches (CAT-07) and the sound recipe
+// The builder's parts besides switches (CAT-05 to CAT-07) and the sound recipe
 // (BLD-10). Both are public and cached for 300 s; recipes are also kept in
 // memory for the page's life, so toggling back to a mix heard before answers
 // at once (US-05: under 100 ms from cache).
 
 export type Mod = Schemas['Mod']
+export type KeycapSet = Schemas['KeycapSet']
 export type SoundRecipe = Schemas['SoundRecipe']
 
 /** CAT-07: every live mod, in the order the builder shows them. One page holds them all. */
 export async function listMods(): Promise<Mod[]> {
   const page = await get('/mods', { query: { page_size: 100 } })
   return page.data
+}
+
+/** CAT-05: every published keycap set, in the editors' order. One page holds them all. */
+export async function listKeycapSets(): Promise<KeycapSet[]> {
+  const page = await get('/keycap-sets', { query: { page_size: 100 } })
+  return page.data
+}
+
+/** CAT-06: one keycap set with its colourway; rejects with 404 keycap_set_not_found for a draft, hidden or unknown slug. */
+export function getKeycapSet(slug: string): Promise<KeycapSet> {
+  return get('/keycap-sets/{slug}', { path: { slug } })
 }
 
 export type RecipeQuery = {

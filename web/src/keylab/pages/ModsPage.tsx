@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { Link } from 'react-router'
 import { cachedRecipe, getSoundRecipe, listMods, type Mod, type SoundRecipe } from '../api/parts.ts'
-import { getSwitch, listSwitches } from '../api/switches.ts'
 import { loadBuild, saveBuild } from '../builder/buildState.ts'
 import Keyboard, { type KeyboardHandle } from '../builder/Keyboard.tsx'
+import { PADS } from '../builder/pads.ts'
+import { useBuildSwitch } from '../builder/useBuildSwitch.ts'
 import {
   applied,
   beforeAfter,
@@ -28,49 +29,8 @@ import './mods.css'
 // at once, a card's Before and After when the pointer or focus reaches it, so
 // a click plays from memory.
 
-const PADS = [
-  { id: 'sky', name: 'Sky', className: 'pad-sky' },
-  { id: 'splash', name: 'Splash', className: 'pad-splash' },
-  { id: 'grid', name: 'Grid', className: 'pad-grid' },
-  { id: 'dots', name: 'Dots', className: 'pad-dots' },
-  { id: 'stripes', name: 'Stripes', className: 'pad-stripes' },
-  { id: 'checker', name: 'Checker', className: 'pad-checker' },
-  { id: 'walnut', name: 'Walnut desk', className: 'pad-walnut' },
-]
-
-type Source = { slug: string; name: string } | { error: string } | null
-
-/** The build's switch: `?switch=`, else the one picked earlier, else the first recorded switch. */
-function useBuildSwitch(): Source {
-  const [params] = useSearchParams()
-  const wanted = params.get('switch') ?? loadBuild().switch ?? ''
-  const [source, setSource] = useState<Source>(null)
-  useEffect(() => {
-    let active = true
-    const pick = wanted
-      ? getSwitch(wanted, 'sounds').then((sw) => ({ slug: sw.slug, name: sw.name }))
-      : listSwitches({ sound: 'recorded', page_size: 1 }).then((page) => {
-          const first = page.data[0]
-          if (!first) {
-            throw new Error('No recorded switch yet.')
-          }
-          return { slug: first.slug, name: first.name }
-        })
-    pick
-      .then((sw) => {
-        saveBuild({ switch: sw.slug })
-        if (active) setSource(sw)
-      })
-      .catch(() => active && setSource({ error: 'This switch could not be loaded.' }))
-    return () => {
-      active = false
-    }
-  }, [wanted])
-  return source
-}
-
 /** One recipe per mix, from BLD-10 (or memory). Null until the switch's first one arrives. */
-function useRecipe(switchSlug: string | null, mods: Mod[] | null, levels: ModLevels): SoundRecipe | null {
+function useRecipe(switchSlug: string | null, mods: Mod[] | null, levels: ModLevels, keycapSet?: string): SoundRecipe | null {
   // The switch and mod values, in one string: the effect runs once per mix.
   const key = switchSlug && mods ? [switchSlug, ...modParams(mods, levels)].join('\n') : ''
   const [held, setHeld] = useState<{ key: string; recipe: SoundRecipe } | null>(null)
@@ -80,7 +40,7 @@ function useRecipe(switchSlug: string | null, mods: Mod[] | null, levels: ModLev
     }
     const [slug, ...mod] = key.split('\n')
     let active = true
-    getSoundRecipe({ switch: slug, mod })
+    getSoundRecipe({ switch: slug, mod, keycap_set: keycapSet })
       .then((recipe) => {
         preload(recipe)
         if (active) setHeld({ key, recipe })
@@ -89,11 +49,11 @@ function useRecipe(switchSlug: string | null, mods: Mod[] | null, levels: ModLev
     return () => {
       active = false
     }
-  }, [key])
+  }, [key, keycapSet])
   // A mix heard before renders at once, without waiting for the effect.
   if (key) {
     const [slug, ...mod] = key.split('\n')
-    const ready = cachedRecipe({ switch: slug, mod })
+    const ready = cachedRecipe({ switch: slug, mod, keycap_set: keycapSet })
     if (ready) {
       return ready
     }
@@ -109,6 +69,8 @@ export default function ModsPage() {
   const [mods, setMods] = useState<Mod[] | null>(null)
   const [modsError, setModsError] = useState(false)
   const [levels, setLevels] = useState<ModLevels>(() => loadBuild().mods ?? {})
+  // The build's keycap set (US-06) is part of every mix heard here.
+  const [keycapSet] = useState(() => loadBuild().keycapSet)
   const [pad, setPad] = useState(0)
   const [padOpen, setPadOpen] = useState(false)
   const [playError, setPlayError] = useState<string | null>(null)
@@ -138,8 +100,8 @@ export default function ModsPage() {
     if (mods) saveBuild({ mods: levels })
   }, [mods, levels])
 
-  const current = useRecipe(switchSlug, mods, levels)
-  const stock = useRecipe(switchSlug, mods, {})
+  const current = useRecipe(switchSlug, mods, levels, keycapSet)
+  const stock = useRecipe(switchSlug, mods, {}, keycapSet)
 
   // A card's Before and After (which are also the mixes its toggle leads to),
   // fetched when the pointer or focus reaches the card, so a click plays at
@@ -149,10 +111,10 @@ export default function ModsPage() {
       if (!switchSlug || !mods) return
       const { before, after } = beforeAfter(levels, mod)
       for (const mix of [before, after]) {
-        getSoundRecipe({ switch: switchSlug, mod: modParams(mods, mix) }).then(preload, () => undefined)
+        getSoundRecipe({ switch: switchSlug, mod: modParams(mods, mix), keycap_set: keycapSet }).then(preload, () => undefined)
       }
     },
-    [switchSlug, mods, levels],
+    [switchSlug, mods, levels, keycapSet],
   )
 
   const play = useCallback((recipe: Promise<SoundRecipe> | SoundRecipe | null, flash = false) => {
@@ -172,8 +134,9 @@ export default function ModsPage() {
   }, [])
 
   const recipeFor = useCallback(
-    (mix: ModLevels) => (switchSlug && mods ? getSoundRecipe({ switch: switchSlug, mod: modParams(mods, mix) }) : null),
-    [switchSlug, mods],
+    (mix: ModLevels) =>
+      switchSlug && mods ? getSoundRecipe({ switch: switchSlug, mod: modParams(mods, mix), keycap_set: keycapSet }) : null,
+    [switchSlug, mods, keycapSet],
   )
 
   // The keyboards keep one onStroke for the page's life and read the current

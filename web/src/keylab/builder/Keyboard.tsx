@@ -1,4 +1,5 @@
 import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { capInsets, type KeyColors, type Profile } from './keycaps.ts'
 import './keyboard.css'
 
 // The builder's keyboard preview, from Keyboard.dc.html: the 65% layout,
@@ -61,9 +62,13 @@ export type KeyboardProps = {
   onStroke: (stroke: 'press' | 'release') => void
   /** Listen to the computer's keyboard too (the page's main preview only). */
   typing?: boolean
+  /** A keycap set's colours (US-06); the design's navy and mustard when left out. */
+  colors?: KeyColors
+  /** A keycap set's profile, which sets how much of each key the cap top covers. */
+  profile?: Profile
 }
 
-const Keyboard = forwardRef<KeyboardHandle, KeyboardProps>(function Keyboard({ width, onStroke, typing = false }, ref) {
+const Keyboard = forwardRef<KeyboardHandle, KeyboardProps>(function Keyboard({ width, onStroke, typing = false, colors, profile }, ref) {
   const [pressed, setPressed] = useState<Record<string, boolean>>({})
   const u = width / (UNITS_WIDE + 1.1)
   const pad = u * 0.55
@@ -152,9 +157,25 @@ const Keyboard = forwardRef<KeyboardHandle, KeyboardProps>(function Keyboard({ w
 
   const f1 = (v: number) => Math.round(v * 10) / 10
   const keys = KEYS
+  const inset = capInsets(profile)
+  // Colours as custom properties, read by keyboard.css.
+  const palette: Record<string, string> = {}
+  if (colors) {
+    for (const group of ['alpha', 'mod', 'accent'] as const) {
+      palette[`--kb-${group}-top`] = colors[group].top
+      palette[`--kb-${group}-side`] = colors[group].side
+      palette[`--kb-${group}-legend`] = colors[group].legend
+    }
+  }
 
   return (
-    <div className="kb" style={{ width, height: Math.round(visibleH + u * 0.9) }} data-testid="keyboard">
+    <div
+      className="kb"
+      style={{ width, height: Math.round(visibleH + u * 0.9), ...palette }}
+      data-testid="keyboard"
+      data-profile={profile ?? 'cherry'}
+      data-alpha={colors?.alpha.top}
+    >
       <div
         className="kb-tilt"
         style={{ top: f1(-(caseH - visibleH)), height: f1(caseH), transform: `perspective(${perspective}px) rotateX(22deg)` }}
@@ -191,10 +212,10 @@ const Keyboard = forwardRef<KeyboardHandle, KeyboardProps>(function Keyboard({ w
                 <span
                   className="kb-top"
                   style={{
-                    top: f1(0.09 * u),
-                    left: f1(0.12 * u),
-                    right: f1(0.12 * u),
-                    bottom: f1(0.21 * u),
+                    top: f1(inset.top * u),
+                    left: f1(inset.side * u),
+                    right: f1(inset.side * u),
+                    bottom: f1(inset.bottom * u),
                     borderRadius: f1(0.1 * u * 0.4),
                     padding: f1(u * 0.08),
                     fontSize: f1(word ? u * 0.17 : u * 0.27),

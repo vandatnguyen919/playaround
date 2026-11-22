@@ -1,0 +1,493 @@
+/* Keycaps studio (US-06): KeycapsDesktop and KeycapsMobile .dc.html. The desk
+   pads, stage stitch and pad control come from mods.css. .desk shows above
+   767px, .phone below; on a phone the tabs show one section at a time. */
+
+.kcs {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.kcs .phone {
+  display: none;
+}
+
+.kcs-head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 18px;
+  border-bottom: var(--bw-thick) solid var(--text);
+}
+
+.kcs-summary {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Stage */
+.kcs-stage {
+  position: relative;
+  padding: 16px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  color: #000;
+  border: var(--bw-thick) solid #000;
+  box-shadow: var(--shadow-xl);
+}
+
+.kcs-hint {
+  position: relative;
+  width: 100%;
+  min-height: 52px;
+  padding-right: 150px;
+  display: flex;
+  align-items: center;
+}
+
+.kcs-hint-main {
+  margin: 0;
+  padding: 4px 10px;
+  border: var(--bw) solid #000;
+  background: #fffdf5;
+  color: #000;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.kcs-stage .stage-board {
+  max-width: 100%;
+}
+
+/* Cards */
+.kcs-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.kcs-card {
+  background: #ffffff;
+  color: #000;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 6px 6px 0 #000;
+}
+
+.kcs-sec {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Tiles (.tile in KeycapsDesktop) */
+.kcs .tile {
+  appearance: none;
+  margin: 0;
+  font: inherit;
+  color: #000;
+  text-align: left;
+  cursor: pointer;
+  background: #ffffff;
+  border: var(--bw) solid #000;
+  border-radius: 0;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: var(--shadow);
+  transition:
+    transform var(--press),
+    box-shadow var(--press);
+}
+
+.kcs .tile:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 #000;
+}
+
+.kcs .tile[aria-pressed='true'],
+.kcs .tile[aria-checked='true'] {
+  background: var(--acc);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #000;
+}
+
+.kcs .tile:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.kcs .tile:disabled:active {
+  transform: none;
+  box-shadow: var(--shadow);
+}
+
+.kcs .sq {
+  border: 2px solid #000;
+}
+
+/* Profile */
+.kcs-profiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.kcs .kcs-profile {
+  align-items: center;
+  padding: 8px 2px;
+}
+
+.kcs-caps {
+  width: 56px;
+  height: 30px;
+  flex: none;
+}
+
+.kcs-profile-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kcs-profile-name {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.kcs-spec {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Material */
+.kcs-materials {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.kcs-mat-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kcs-mat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kcs-mat-name {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.kcs-mat-sound {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0 5px;
+  border: 2px solid #000;
+  background: #fffdf5;
+}
+
+.kcs-mat-desc {
+  font-size: 12px;
+  line-height: 17px;
+  font-weight: 500;
+}
+
+.mat-pbt {
+  background: #3d6a8c;
+}
+
+.mat-abs {
+  background: linear-gradient(135deg, #3d6a8c 0 55%, #a6ecf5 55% 62%, #3d6a8c 62%);
+}
+
+.mat-pom {
+  background: #ece6d8;
+}
+
+/* Colorways: one tile per keycap set */
+.kcs-sets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 10px;
+}
+
+.kcs-swatches {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.kcs-swatches .sq {
+  height: 16px;
+}
+
+.kcs-set-name {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.kcs-set-meta {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.kcs-shift {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kcs-shift-word {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.kcs-shift-track {
+  position: relative;
+  height: 10px;
+  border-bottom: 2px solid #000;
+}
+
+/* Stock, in the middle of the scale. */
+.kcs-shift-track::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 3px;
+  height: 12px;
+  margin-left: -1.5px;
+  background: #000;
+}
+
+.kcs-shift-dot {
+  position: absolute;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border: 2px solid #000;
+  border-radius: 50%;
+  background: var(--coral);
+}
+
+.kcs-shift-scale {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* Phone (KeycapsMobile) */
+.kcs-tabs {
+  gap: 8px;
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 2px 16px 10px;
+  border-bottom: var(--bw-thick) solid var(--text);
+  scrollbar-width: none;
+}
+
+.kcs-tabs .kc {
+  flex: none;
+}
+
+.kcs-tabs .kc[aria-selected='true'] {
+  background: var(--acc);
+}
+
+.kcs-stage-foot {
+  position: relative;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.kcs-padbtn {
+  padding: 0 10px 0 6px;
+  font-size: 11px;
+  box-shadow: var(--shadow-sm);
+}
+
+.kcs-padbtn-sw {
+  width: 26px;
+  height: 26px;
+  border: 2px solid #000;
+}
+
+@media (max-width: 767px) {
+  .kcs {
+    gap: 14px;
+  }
+
+  .kcs .desk {
+    display: none;
+  }
+
+  .kcs .phone {
+    display: flex;
+  }
+
+  .kcs-head {
+    gap: 6px;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .kcs-summary {
+    font-size: 11px;
+    line-height: 15px;
+  }
+
+  .kcs-stage {
+    padding: 10px 8px;
+    gap: 8px;
+    box-shadow: 6px 6px 0 #000;
+  }
+
+  .kcs-stage .stage-stitch {
+    inset: 5px;
+  }
+
+  /* One section at a time, with no card around it. */
+  .kcs-cards {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .kcs-card {
+    display: contents;
+  }
+
+  .kcs[data-tab='profile'] .kcs-sec:not(.sec-profile),
+  .kcs[data-tab='material'] .kcs-sec:not(.sec-material),
+  .kcs[data-tab='colors'] .kcs-sec:not(.sec-colors) {
+    display: none;
+  }
+
+  .kcs .tile {
+    border-width: var(--bw-thick);
+    box-shadow: 4px 4px 0 #000;
+  }
+
+  .kcs .tile[aria-pressed='true'],
+  .kcs .tile[aria-checked='true'] {
+    box-shadow: 7px 7px 0 #000;
+  }
+
+  .kcs-profiles,
+  .kcs-materials {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .kcs .kcs-profile,
+  .kcs .kcs-material {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+  }
+
+  .kcs .kcs-material {
+    align-items: flex-start;
+  }
+
+  .kcs-caps {
+    width: 120px;
+    height: 48px;
+  }
+
+  .kcs-profile-name {
+    font-size: 18px;
+    letter-spacing: -0.03em;
+  }
+
+  .kcs-profile-spec {
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .kcs-mat-swatch.phone {
+    display: block;
+    flex: none;
+    width: 52px;
+    height: 52px;
+    border: 3px solid #000;
+  }
+
+  .kcs-mat-text {
+    flex: 1;
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .kcs-mat-head {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .kcs-mat-desc {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .kcs-mat-hint {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  /* Colorways scroll sideways, as KeycapsMobile draws them. */
+  .kcs-sets {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    margin: 0 -16px;
+    padding: 2px 16px 10px;
+    scrollbar-width: none;
+    /* Without it the tiles past the edge still widened the page on a phone. */
+    contain: paint;
+  }
+
+  .kcs .kcs-set {
+    flex: none;
+    width: 118px;
+    gap: 8px;
+  }
+
+  .kcs-swatches .sq {
+    height: 20px;
+  }
+
+  .kcs-set-name {
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kcs .tile {
+    transition: none;
+  }
+}
