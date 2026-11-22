@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { getKeycapSet, getSoundRecipe, listKeycapSets, listMods, type KeycapSet, type RecipeQuery, type SoundRecipe } from '../api/parts.ts'
 import { loadBuild, saveBuild } from '../builder/buildState.ts'
+import { buildParts, caseLook } from '../builder/caseParts.ts'
 import Keyboard, { type KeyboardHandle } from '../builder/Keyboard.tsx'
 import {
   keyColors,
@@ -59,6 +60,9 @@ export default function KeycapsPage() {
   // from a ref, so a pick does not re-render their keys twice.
   const currentRef = useRef<SoundRecipe | null>(null)
   const shouldPlay = useRef(false)
+  // The saved case (US-07) is heard and drawn here too; the set comes from this page.
+  const [saved] = useState(() => loadBuild())
+  const look = useMemo(() => caseLook(saved.case), [saved])
 
   /** Presses one key on the preview that is on screen, which plays the current recipe. */
   const ping = useCallback(() => {
@@ -102,8 +106,8 @@ export default function KeycapsPage() {
 
   const query = useCallback(
     (set: KeycapSet | null): RecipeQuery | null =>
-      switchSlug && mod && set ? { switch: switchSlug, mod, keycap_set: set.slug } : null,
-    [switchSlug, mod],
+      switchSlug && mod && set ? { switch: switchSlug, mod, ...buildParts(saved), keycap_set: set.slug } : null,
+    [switchSlug, mod, saved],
   )
 
   // The recipe of the chosen set: on load it is fetched and preloaded; a pick
@@ -351,10 +355,10 @@ export default function KeycapsPage() {
           <p className="kcs-hint-main">Click any key to hear it.</p>
         </div>
         <div className="stage-board desk">
-          <Keyboard ref={keyboard} width={720} onStroke={onStroke} typing colors={colors} profile={chosen?.profile} />
+          <Keyboard ref={keyboard} width={720} onStroke={onStroke} typing colors={colors} profile={chosen?.profile} {...look} />
         </div>
         <div className="stage-board phone">
-          <Keyboard ref={phoneKeyboard} width={310} onStroke={onStroke} colors={colors} profile={chosen?.profile} />
+          <Keyboard ref={phoneKeyboard} width={310} onStroke={onStroke} colors={colors} profile={chosen?.profile} {...look} />
         </div>
         <div className="kcs-stage-foot phone">
           <button

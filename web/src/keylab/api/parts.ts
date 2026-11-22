@@ -1,6 +1,6 @@
 import { get, toSearchParams, type Schemas } from './client.ts'
 
-// The builder's parts besides switches (CAT-05 to CAT-07) and the sound recipe
+// The builder's parts besides switches (CAT-05 to CAT-08) and the sound recipe
 // (BLD-10). Both are public and cached for 300 s; recipes are also kept in
 // memory for the page's life, so toggling back to a mix heard before answers
 // at once (US-05: under 100 ms from cache).
@@ -24,6 +24,11 @@ export async function listKeycapSets(): Promise<KeycapSet[]> {
 /** CAT-06: one keycap set with its colourway; rejects with 404 keycap_set_not_found for a draft, hidden or unknown slug. */
 export function getKeycapSet(slug: string): Promise<KeycapSet> {
   return get('/keycap-sets/{slug}', { path: { slug } })
+}
+
+/** CAT-08: the active case materials (each with its colours), plates and mounts. */
+export function getCaseOptions(): Promise<Schemas['CaseOptions']> {
+  return get('/case-options', {})
 }
 
 export type RecipeQuery = {
