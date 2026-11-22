@@ -55,9 +55,9 @@ Vite dev server. An uncached BLD-10 call took 24 ms locally. Left:
   were heard, with silent WAVs. Next action: after deploy, open `/keylab/mods` on
   app.tickin.me and listen.
 
-## US-06 Pick a keycap set and hear the shift (2026-11-22, uncommitted)
+## US-06 Pick a keycap set and hear the shift (2026-11-22, PR #70, stacked on PR #64)
 
-Uncommitted in the working tree on top of `feat/us-05-mods-workshop` (PR #64). No backend
+Committed on `feat/us-06-keycaps-studio`, on top of `feat/us-05-mods-workshop` (PR #64). No backend
 change: CAT-05, CAT-06 and BLD-10's `keycap_set` already ship in `catalog` (KL2-1, US-05).
 `/keylab/keycaps` is the Keycaps studio (KeycapsDesktop, KeycapsMobile): `pages/KeycapsPage.tsx`,
 `builder/keycaps.ts`, the preview `Keyboard` takes a set's colours and profile. The set is kept
@@ -67,9 +67,7 @@ new `keylab-keycaps.spec.ts` (3 tests; it fails when `keycap_set` is left out of
 call) and all 21 KeyLab e2e against the local stack. keylab-api tests not rerun (no change).
 Left:
 
-- **Commit, PR and Notion.** Next action: Dan says go; branch `feat/us-06-keycaps-studio` off
-  `feat/us-05-mods-workshop`, open the PR stacked on PR #64, then tick the three Done when
-  items on the ticket, set PR and In review.
+- **Review.** Ticket ticked, PR set, In review. Next action: Dan reviews PR #70 after PR #64.
 - **The design and the data disagree on what a pick is:** the screens pick profile, material
   and colourway on their own and add a custom painter; a keycap set (CAT-05, database design)
   is one material, one profile and one colourway. So Colorways lists the sets, and a Profile or
