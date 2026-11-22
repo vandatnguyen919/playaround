@@ -13,7 +13,7 @@ ticked. Left:
 
 ## US-05 Toggle mods and hear before and after (2026-11-20, PR #64, stacked on PR #63)
 
-Built on top of `feat/kl2-1-parts-catalog` (PR #63), uncommitted in the working tree. BLD-10
+Built on top of `feat/kl2-1-parts-catalog` (PR #63), committed on `feat/us-05-mods-workshop`. BLD-10
 (`GET /v1/sound-recipe`) is computed in `catalog` as decision 0001 says: `domain/SoundRecipe`,
 `domain/PartSounds` port, `application/ComposeSoundRecipe`, `adapter/out/persistence/JdbcPartSounds`,
 `adapter/in/web/SoundRecipeController`. `/keylab/mods` is the Mods workshop (ModsDesktop,
@@ -32,8 +32,6 @@ Vite dev server. An uncached BLD-10 call took 24 ms locally. Left:
   recipes are no longer all fetched up front: a card's Before and After are fetched when the
   pointer or focus reaches it. A first tap on a phone card waits one round trip.
 
-- **Commit, PR and Notion.** Next action: Dan says go; branch `feat/us-05-mods-workshop` off
-  PR #63's branch, then tick the three Done when items on the ticket, set PR and In review.
 - **Recipe rule is invented:** level scaling (heavy = twice light), the shelf, gain and reverb
   formulas, the profile bases and the logistic meter (api-design-v1.md, BLD-10 details). They
   sound plausible with the seed but nobody has listened to real takes. Next action: Dan listens
@@ -56,6 +54,42 @@ Vite dev server. An uncached BLD-10 call took 24 ms locally. Left:
 - **Production:** the local library had no published switch with sound, so only test switches
   were heard, with silent WAVs. Next action: after deploy, open `/keylab/mods` on
   app.tickin.me and listen.
+
+## US-06 Pick a keycap set and hear the shift (2026-11-22, uncommitted)
+
+Uncommitted in the working tree on top of `feat/us-05-mods-workshop` (PR #64). No backend
+change: CAT-05, CAT-06 and BLD-10's `keycap_set` already ship in `catalog` (KL2-1, US-05).
+`/keylab/keycaps` is the Keycaps studio (KeycapsDesktop, KeycapsMobile): `pages/KeycapsPage.tsx`,
+`builder/keycaps.ts`, the preview `Keyboard` takes a set's colours and profile. The set is kept
+in `keylab.build` (`keycapSet`), and the Mods workshop now sends it with every recipe.
+Verified: web unit tests (53, new `keycaps.test.ts`), `tsc`, lint, `vite build`, `check:api`,
+new `keylab-keycaps.spec.ts` (3 tests; it fails when `keycap_set` is left out of the recipe
+call) and all 21 KeyLab e2e against the local stack. keylab-api tests not rerun (no change).
+Left:
+
+- **Commit, PR and Notion.** Next action: Dan says go; branch `feat/us-06-keycaps-studio` off
+  `feat/us-05-mods-workshop`, open the PR stacked on PR #64, then tick the three Done when
+  items on the ticket, set PR and In review.
+- **The design and the data disagree on what a pick is:** the screens pick profile, material
+  and colourway on their own and add a custom painter; a keycap set (CAT-05, database design)
+  is one material, one profile and one colourway. So Colorways lists the sets, and a Profile or
+  Material pick chooses the first set with it (keeping the other choice when it can); profiles
+  and materials no set has are greyed out. MT3 is not drawn: the API has no MT3. Next action:
+  Dan decides whether the design changes, or sets get split into parts (an API change).
+- **Not built (no story or API yet):** the 3D views, orbit and spin, the custom painter,
+  legends, shine-through, artisans, Save build (US-08) and the "Current build" sidebar card.
+  The phone tabs are Profile, Material and Colors only.
+- **Copy not in the design:** each set's shift ("A touch deeper", "Like stock", "Brighter")
+  with a small scale and "BRIGHT · | = STOCK · DEEP" under the sets; the set's
+  "PBT · CHERRY" line; the hint is "Click any key to hear it." (the painter half dropped);
+  POM's card ("MUTED", "Dense and slick. A soft, muted sound."), shown only when a POM set is
+  published; "No keycap set in this profile yet." on a greyed tile; "The keycap sets could not
+  be loaded. Reload to try again."; "No keycap sets yet.". Next action: Dan reviews.
+- **Flaky-policy entry, 2026-11-22, all KeyLab e2e (local, dev server):**
+  `keylab-library.spec.ts` "a guest filters the public library" failed once after "Clear
+  filters" (no library card within 15 s); it passed alone and in a full rerun (21 of 21). This
+  change does not touch the library. Suspected cause: load from the run before it. Next
+  action: watch for a repeat.
 
 ## KL2-0 Prep: builds package plan and sound recipe decision (2026-11-20)
 

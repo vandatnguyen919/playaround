@@ -1,5 +1,6 @@
 /* The keyboard preview (Keyboard.dc.html, flat view): navy case, brass plate,
-   blue alphas, dark mods, yellow Esc and Enter. Sizes come from Keyboard.tsx. */
+   blue alphas, dark mods, yellow Esc and Enter. Sizes come from Keyboard.tsx;
+   a keycap set's colours come in as --kb-<group>-top, -side and -legend. */
 
 .kb {
   position: relative;
@@ -52,18 +53,18 @@
 }
 
 .kb-key.alpha {
-  background: #33597a;
-  color: #a6ecf5;
+  background: var(--kb-alpha-side, #33597a);
+  color: var(--kb-alpha-legend, #a6ecf5);
 }
 
 .kb-key.mod {
-  background: #1a243a;
-  color: #f3e2b0;
+  background: var(--kb-mod-side, #1a243a);
+  color: var(--kb-mod-legend, #f3e2b0);
 }
 
 .kb-key.accent {
-  background: #cba241;
-  color: #1f2b45;
+  background: var(--kb-accent-side, #cba241);
+  color: var(--kb-accent-legend, #1f2b45);
 }
 
 .kb-top {
@@ -79,15 +80,15 @@
 }
 
 .kb-key.alpha .kb-top {
-  background: #3d6a8c;
+  background: var(--kb-alpha-top, #3d6a8c);
 }
 
 .kb-key.mod .kb-top {
-  background: #1f2b45;
+  background: var(--kb-mod-top, #1f2b45);
 }
 
 .kb-key.accent .kb-top {
-  background: #f2c14e;
+  background: var(--kb-accent-top, #f2c14e);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -6,7 +6,7 @@ import type { ModLevels } from './mods.ts'
 
 const KEY = 'keylab.build'
 
-export type BuildState = { switch?: string; mods?: ModLevels }
+export type BuildState = { switch?: string; mods?: ModLevels; keycapSet?: string }
 
 export function loadBuild(): BuildState {
   try {
@@ -24,7 +24,11 @@ export function loadBuild(): BuildState {
         }
       }
     }
-    return { switch: typeof held.switch === 'string' ? held.switch : undefined, mods }
+    return {
+      switch: typeof held.switch === 'string' ? held.switch : undefined,
+      mods,
+      keycapSet: typeof held.keycapSet === 'string' ? held.keycapSet : undefined,
+    }
   } catch {
     return {}
   }
