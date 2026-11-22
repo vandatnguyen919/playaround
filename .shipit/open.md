@@ -55,9 +55,9 @@ Vite dev server. An uncached BLD-10 call took 24 ms locally. Left:
   were heard, with silent WAVs. Next action: after deploy, open `/keylab/mods` on
   app.tickin.me and listen.
 
-## US-07 Choose case, plate and mount (2026-11-22, uncommitted)
+## US-07 Choose case, plate and mount (2026-11-22, PR #71, stacked on PR #70)
 
-Uncommitted on `feat/us-07-case-plate`, off `feat/us-06-keycaps-studio` (PR #70). No backend
+Committed on `feat/us-07-case-plate`, off `feat/us-06-keycaps-studio` (PR #70). No backend
 change: CAT-08 and BLD-10's `case_material`, `plate` and `mount` already ship in `catalog`
 (KL2-1, US-05). `/keylab/case` is Case & plate (CaseDesktop, CaseMobile): `pages/CasePage.tsx`,
 `builder/caseParts.ts`; the preview `Keyboard` takes the case face and plate. The choice is
@@ -69,8 +69,7 @@ call) and all 24 KeyLab e2e against the local stack; after that run only `case.c
 (one preview per width) and `keylab-case.spec.ts` was rerun. keylab-api tests not rerun.
 Left:
 
-- **Commit, PR and Notion.** Next action: Dan says go; commit, open the PR stacked on PR #70,
-  then tick the three Done when items on the ticket, set PR and In review.
+- **Review.** Ticket ticked, PR set, In review. Next action: Dan reviews PR #71 after PR #70.
 - **Not from CAT-08, taken from the design by slug:** colour names (Navy blue, Coral …), each
   material's sample strip, each plate's colour and each mount's drawing. A part editors add
   later gets a plain fallback (the hex as its name, an aluminum strip, a top-mount drawing).
