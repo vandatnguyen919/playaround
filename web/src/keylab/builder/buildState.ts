@@ -6,7 +6,10 @@ import type { ModLevels } from './mods.ts'
 
 const KEY = 'keylab.build'
 
-export type BuildState = { switch?: string; mods?: ModLevels; keycapSet?: string }
+/** The case as BuildParts keeps it (US-07): material, plate and mount slugs and the case colour. */
+export type BuildCase = { material?: string; color?: string; plate?: string; mount?: string }
+
+export type BuildState = { switch?: string; mods?: ModLevels; keycapSet?: string; case?: BuildCase }
 
 export function loadBuild(): BuildState {
   try {
@@ -28,10 +31,20 @@ export function loadBuild(): BuildState {
       switch: typeof held.switch === 'string' ? held.switch : undefined,
       mods,
       keycapSet: typeof held.keycapSet === 'string' ? held.keycapSet : undefined,
+      case: caseOf(held.case),
     }
   } catch {
     return {}
   }
+}
+
+function caseOf(raw: unknown): BuildCase | undefined {
+  if (!raw || typeof raw !== 'object') {
+    return undefined
+  }
+  const held = raw as Record<string, unknown>
+  const text = (v: unknown) => (typeof v === 'string' ? v : undefined)
+  return { material: text(held.material), color: text(held.color), plate: text(held.plate), mount: text(held.mount) }
 }
 
 export function saveBuild(change: BuildState): void {

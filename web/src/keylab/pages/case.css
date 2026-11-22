@@ -1,0 +1,448 @@
+/* Case & plate (US-07): CaseDesktop and CaseMobile .dc.html. The desk pads,
+   stage stitch, pad control and the phone's pad square come from mods.css.
+   .desk shows above 767px, .phone below. */
+
+.cse {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.cse .phone {
+  display: none;
+}
+
+.cse-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: var(--bw-thick) solid var(--text);
+}
+
+.cse-title {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cse-sub {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cse-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 28px;
+}
+
+/* Stage */
+.cse-stage {
+  position: relative;
+  flex: 999 1 600px;
+  min-width: 0;
+  padding: 76px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  color: #000;
+  border: var(--bw-thick) solid #000;
+  box-shadow: 7px 7px 0 #000;
+}
+
+.cse-stage .stage-board {
+  position: relative;
+  max-width: 100%;
+  overflow-x: auto;
+  justify-content: center;
+}
+
+/* Only the board for this width shows (.desk or .phone sets display). */
+.cse-stage .stage-board.desk {
+  display: flex;
+}
+
+.cse-meter-box {
+  position: relative;
+  padding: 12px 14px 10px;
+  border: var(--bw-thick) solid #000;
+  background: var(--sky);
+  color: #000;
+}
+
+.cse-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cse-meter-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cse-word {
+  background: #fffdf5;
+  font-size: 12px;
+}
+
+.cse-track {
+  position: relative;
+  height: 4px;
+  margin: 8px 0;
+  background: #000;
+}
+
+.cse-dot {
+  position: absolute;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border-radius: 50%;
+  border: var(--bw-thick) solid #000;
+  background: var(--coral);
+  transition: left 200ms ease;
+}
+
+.cse-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cse-picked {
+  position: relative;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cse-picked > div {
+  border: var(--bw) solid #000;
+  background: #ffffff;
+  padding: 8px 10px;
+}
+
+.cse-picked dd {
+  margin: 3px 0 0;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+/* Options */
+.cse-options {
+  flex: 1 1 360px;
+  min-width: 0;
+  border: var(--bw-thick) solid #000;
+  background: #ffffff;
+  color: #000;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 7px 7px 0 #000;
+}
+
+.cse-sec {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cse .tile {
+  appearance: none;
+  margin: 0;
+  font: inherit;
+  color: #000;
+  text-align: left;
+  cursor: pointer;
+  background: #ffffff;
+  border: var(--bw) solid #000;
+  border-radius: 0;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: var(--shadow);
+  transition:
+    transform var(--press),
+    box-shadow var(--press);
+}
+
+.cse .tile:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 #000;
+}
+
+.cse .tile[aria-checked='true'] {
+  background: var(--acc);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #000;
+}
+
+.cse .tile:focus-visible,
+.cse-sw:focus-visible {
+  outline: 3px solid var(--coral);
+  outline-offset: 3px;
+}
+
+.cse-materials {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cse-mat-sample {
+  height: 20px;
+  border: 2px solid #000;
+}
+
+.cse-mat-name {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.cse-mat-note {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+}
+
+.cse-colors {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cse-sw {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  min-height: 44px;
+  border: var(--bw) solid #000;
+  border-radius: 0;
+  box-shadow: var(--shadow);
+}
+
+.cse-sw:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+.cse-sw[aria-pressed='true'] {
+  outline: 3px solid #000;
+  outline-offset: 3px;
+}
+
+.cse-plates {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.cse .cse-plate {
+  flex-direction: column;
+  gap: 4px;
+  min-height: 58px;
+  padding: 0;
+}
+
+.cse .cse-plate[aria-checked='true'] {
+  background: var(--acc);
+}
+
+.cse-plate-sw {
+  width: 24px;
+  height: 9px;
+  border: 2px solid #000;
+}
+
+.cse-plate-note {
+  margin: 0;
+  min-height: 18px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+.cse-plate-note strong {
+  font-weight: 900;
+}
+
+.cse-mounts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cse-mount-art {
+  width: 60px;
+  height: 34px;
+}
+
+.cse-mount-name {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.cse-mount-note {
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 500;
+}
+
+@media (max-width: 767px) {
+  .cse {
+    gap: 14px;
+  }
+
+  .cse .desk {
+    display: none;
+  }
+
+  .cse .phone {
+    display: flex;
+  }
+
+  .cse-head {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .cse-grid {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 22px;
+  }
+
+  .cse-stage {
+    flex: none;
+    padding: 14px 10px 10px;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 6px 6px 0 #000;
+  }
+
+  .cse-stage .stage-stitch {
+    inset: 5px;
+  }
+
+  .cse-stage .stage-board {
+    width: 100%;
+  }
+
+  .cse-stage .stage-board.desk {
+    display: none;
+  }
+
+  .cse-meter-box {
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px 6px 8px;
+    border-width: var(--bw);
+  }
+
+  .cse-meter.sm {
+    flex: 1;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .cse-meter.sm .cse-word {
+    font-size: 10px;
+  }
+
+  .cse-meter.sm .cse-track {
+    height: 3px;
+    margin: 6px 0;
+  }
+
+  .cse-meter.sm .cse-dot {
+    width: 18px;
+    height: 18px;
+    margin: -9px 0 0 -9px;
+    border-width: var(--bw);
+  }
+
+  .cse-meter.sm .cse-scale {
+    font-size: 10px;
+  }
+
+  /* The options sit on the page, with no card around them. */
+  .cse-options {
+    flex: none;
+    padding: 0;
+    gap: 22px;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    box-shadow: none;
+  }
+
+  .cse-materials {
+    gap: 12px;
+  }
+
+  .cse .tile {
+    border-width: var(--bw-thick);
+    box-shadow: 4px 4px 0 #000;
+  }
+
+  .cse .tile[aria-checked='true'] {
+    box-shadow: 7px 7px 0 #000;
+  }
+
+  .cse-mat-sample {
+    height: 24px;
+    border-width: var(--bw);
+  }
+
+  .cse-mat-name {
+    font-size: 16px;
+    letter-spacing: -0.02em;
+  }
+
+  .cse .cse-plate {
+    min-height: 60px;
+  }
+
+  .cse-plate-sw {
+    height: 10px;
+  }
+
+  .cse .cse-mount {
+    padding: 8px;
+  }
+
+  .cse-mount-art {
+    width: 72px;
+    height: 38px;
+  }
+
+  .cse-mount-name {
+    font-size: 14px;
+  }
+
+  .cse-options > .phone .kc.primary {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cse .tile,
+  .cse-dot {
+    transition: none;
+  }
+}

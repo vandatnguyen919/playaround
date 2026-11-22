@@ -55,6 +55,33 @@ Vite dev server. An uncached BLD-10 call took 24 ms locally. Left:
   were heard, with silent WAVs. Next action: after deploy, open `/keylab/mods` on
   app.tickin.me and listen.
 
+## US-07 Choose case, plate and mount (2026-11-22, uncommitted)
+
+Uncommitted on `feat/us-07-case-plate`, off `feat/us-06-keycaps-studio` (PR #70). No backend
+change: CAT-08 and BLD-10's `case_material`, `plate` and `mount` already ship in `catalog`
+(KL2-1, US-05). `/keylab/case` is Case & plate (CaseDesktop, CaseMobile): `pages/CasePage.tsx`,
+`builder/caseParts.ts`; the preview `Keyboard` takes the case face and plate. The choice is
+kept in `keylab.build` as `case` (BuildParts.case: material, color, plate, mount), and the Mods
+workshop and Keycaps studio now send it with every recipe and draw it on their previews.
+Verified: web unit tests (59, new `caseParts.test.ts`), `tsc`, lint, `vite build`, `check:api`,
+new `keylab-case.spec.ts` (3 tests; it fails when `case_material` is left out of the recipe
+call) and all 24 KeyLab e2e against the local stack; after that run only `case.css` changed
+(one preview per width) and `keylab-case.spec.ts` was rerun. keylab-api tests not rerun.
+Left:
+
+- **Commit, PR and Notion.** Next action: Dan says go; commit, open the PR stacked on PR #70,
+  then tick the three Done when items on the ticket, set PR and In review.
+- **Not from CAT-08, taken from the design by slug:** colour names (Navy blue, Coral …), each
+  material's sample strip, each plate's colour and each mount's drawing. A part editors add
+  later gets a plain fallback (the hex as its name, an aluminum strip, a top-mount drawing).
+  Next action: Dan decides whether CAT-08 should carry them (an API change) before US-40.
+- **Choices:** nothing saved starts on the design's aluminum, navy blue, brass and gasket, and
+  that is saved on the first visit; a saved part CAT-08 no longer offers falls back to it. A
+  colour pick changes the look only (no recipe, no key), as the design does. Not built: the
+  "Current build" sidebar card (no saved build until US-08).
+- **Copy not in the design:** "The case options could not be loaded. Reload to try again." and
+  "No case options yet.". Next action: Dan reviews.
+
 ## US-06 Pick a keycap set and hear the shift (2026-11-22, PR #70, stacked on PR #64)
 
 Committed on `feat/us-06-keycaps-studio`, on top of `feat/us-05-mods-workshop` (PR #64). No backend

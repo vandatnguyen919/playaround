@@ -66,9 +66,12 @@ export type KeyboardProps = {
   colors?: KeyColors
   /** A keycap set's profile, which sets how much of each key the cap top covers. */
   profile?: Profile
+  /** The case's face and the plate (US-07, caseParts.ts); the design's navy aluminum and brass when left out. */
+  caseBg?: string
+  plateBg?: string
 }
 
-const Keyboard = forwardRef<KeyboardHandle, KeyboardProps>(function Keyboard({ width, onStroke, typing = false, colors, profile }, ref) {
+const Keyboard = forwardRef<KeyboardHandle, KeyboardProps>(function Keyboard({ width, onStroke, typing = false, colors, profile, caseBg, plateBg }, ref) {
   const [pressed, setPressed] = useState<Record<string, boolean>>({})
   const u = width / (UNITS_WIDE + 1.1)
   const pad = u * 0.55
@@ -167,6 +170,8 @@ const Keyboard = forwardRef<KeyboardHandle, KeyboardProps>(function Keyboard({ w
       palette[`--kb-${group}-legend`] = colors[group].legend
     }
   }
+  if (caseBg) palette['--kb-case'] = caseBg
+  if (plateBg) palette['--kb-plate'] = plateBg
 
   return (
     <div
@@ -175,6 +180,8 @@ const Keyboard = forwardRef<KeyboardHandle, KeyboardProps>(function Keyboard({ w
       data-testid="keyboard"
       data-profile={profile ?? 'cherry'}
       data-alpha={colors?.alpha.top}
+      data-case={caseBg}
+      data-plate={plateBg}
     >
       <div
         className="kb-tilt"

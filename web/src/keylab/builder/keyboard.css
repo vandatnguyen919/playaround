@@ -1,6 +1,7 @@
 /* The keyboard preview (Keyboard.dc.html, flat view): navy case, brass plate,
    blue alphas, dark mods, yellow Esc and Enter. Sizes come from Keyboard.tsx;
-   a keycap set's colours come in as --kb-<group>-top, -side and -legend. */
+   a keycap set's colours come in as --kb-<group>-top, -side and -legend,
+   the case's face and plate as --kb-case and --kb-plate. */
 
 .kb {
   position: relative;
@@ -23,13 +24,13 @@
   inset: 0;
   border: 2px solid #000;
   border-radius: 4px;
-  background: #2b4677;
+  background: var(--kb-case, #2b4677);
 }
 
 .kb-plate {
   position: absolute;
   /* Brass, shaded as the design does (klShade(#A9873A, -.55)). */
-  background: #4c3d1a;
+  background: var(--kb-plate, #4c3d1a);
 }
 
 .kb-key {
