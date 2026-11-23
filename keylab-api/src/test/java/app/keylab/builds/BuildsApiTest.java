@@ -3,6 +3,7 @@ package app.keylab.builds;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.startsWith;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -23,6 +24,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
@@ -35,7 +38,11 @@ import tools.jackson.databind.json.JsonMapper;
  * Patch and If-Match (BLD-04, a stale tag is 412), and lists public and
  * private builds (BLD-01). Parts come from the KL2-1 seed and a switch of
  * the test's own. Each test signs in as a new member, so lists start empty.
+ * US-12: the visibility toggle (BLD-04 with If-Match), delete (BLD-05 with
+ * If-Match), the build's link (BLD-03) and the events the profile's
+ * daily-driver pin listens to.
  */
+@RecordApplicationEvents
 class BuildsApiTest extends IntegrationTest {
 
     static final String BUILDS = "/v1/builds";
@@ -51,6 +58,9 @@ class BuildsApiTest extends IntegrationTest {
 
     @Autowired
     JsonMapper json;
+
+    @Autowired
+    ApplicationEvents events;
 
     @BeforeEach
     void newMemberAndSwitch() throws Exception {
@@ -288,6 +298,106 @@ class BuildsApiTest extends IntegrationTest {
             .andExpect(status().isNotFound());
     }
 
+    // --- US-12 visibility and delete ---------------------------------------------------
+
+    @Test
+    void theVisibilityToggleNeedsTheCurrentTagAndAnnouncesTheChange() throws Exception {
+        String location = create(nightThock(null));
+        UUID id = UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
+
+        // Private: the link is the owner's only.
+        mvc.perform(get(location)).andExpect(status().isNotFound());
+        mvc.perform(asMember(get(location))).andExpect(status().isOk())
+            .andExpect(jsonPath("$.owner.username").value("me"))
+            .andExpect(header().string("Cache-Control", containsString("private")));
+        assertThat(events.stream(BuildPublished.class)).isEmpty();
+
+        mvc.perform(asMember(patch(location)).contentType(MERGE_PATCH).header("If-Match", "\"1\"")
+                .content("{ \"visibility\": \"public\" }"))
+            .andExpect(status().isOk())
+            .andExpect(header().string("ETag", "\"2\""))
+            .andExpect(jsonPath("$.visibility").value("public"));
+        assertThat(events.stream(BuildPublished.class)).containsExactly(new BuildPublished(id, ownerOf(id), 1));
+        assertThat(versions(id)).isEqualTo(1);
+
+        // Public: guests and other members open the link too.
+        mvc.perform(get(location)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.name").value("Night Thock 65"))
+            .andExpect(jsonPath("$.owner.username").value("member"))
+            .andExpect(header().string("ETag", "\"2\""))
+            .andExpect(header().string("Cache-Control", containsString("no-cache")));
+        mvc.perform(bearer(get(location), memberToken(UUID.randomUUID()))).andExpect(status().isOk());
+
+        // Back to private with a stale tag: 412, and it stays public.
+        mvc.perform(asMember(patch(location)).contentType(MERGE_PATCH).header("If-Match", "\"1\"")
+                .content("{ \"visibility\": \"private\" }"))
+            .andExpect(status().isPreconditionFailed());
+        mvc.perform(get(location)).andExpect(status().isOk());
+
+        mvc.perform(asMember(patch(location)).contentType(MERGE_PATCH).header("If-Match", "\"2\"")
+                .content("{ \"visibility\": \"private\" }"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.visibility").value("private"));
+        assertThat(events.stream(BuildWithdrawn.class))
+            .containsExactly(new BuildWithdrawn(id, ownerOf(id), BuildWithdrawn.Reason.PRIVATE));
+        mvc.perform(get(location)).andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.code").value("build_not_found"));
+    }
+
+    @Test
+    void deleteNeedsTheCurrentTagAndTheOldLinkIs404Afterwards() throws Exception {
+        String location = create(nightThock("public"));
+        UUID id = UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
+        mvc.perform(get(location)).andExpect(status().isOk());
+
+        mvc.perform(asMember(delete(location))).andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("if_match_required"));
+        mvc.perform(asMember(delete(location)).header("If-Match", "\"9\""))
+            .andExpect(status().isPreconditionFailed());
+        mvc.perform(bearer(delete(location), memberToken(UUID.randomUUID())).header("If-Match", "\"1\""))
+            .andExpect(status().isNotFound());
+        mvc.perform(delete(location).header("If-Match", "\"1\"")).andExpect(status().isUnauthorized());
+        assertThat(events.stream(BuildWithdrawn.class)).isEmpty();
+        mvc.perform(get(location)).andExpect(status().isOk());
+
+        mvc.perform(asMember(delete(location)).header("If-Match", "\"1\"")).andExpect(status().isNoContent());
+        assertThat(events.stream(BuildWithdrawn.class))
+            .containsExactly(new BuildWithdrawn(id, ownerOf(id), BuildWithdrawn.Reason.DELETED));
+
+        // Gone everywhere at once: the old link (guest and owner), My builds, edits, a second delete.
+        mvc.perform(get(location)).andExpect(status().isNotFound());
+        mvc.perform(asMember(get(location))).andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.code").value("build_not_found"));
+        mvc.perform(asMember(get(MY_BUILDS))).andExpect(jsonPath("$.data.length()").value(0));
+        mvc.perform(asMember(patch(location)).contentType(MERGE_PATCH).header("If-Match", "\"2\"")
+                .content("{ \"name\": \"Back\" }"))
+            .andExpect(status().isNotFound());
+        mvc.perform(asMember(delete(location)).header("If-Match", "\"2\"")).andExpect(status().isNotFound());
+        // Soft: the row stays, marked deleted.
+        assertThat(jdbc.sql("SELECT deleted_at IS NOT NULL FROM builds.builds WHERE id = ?").param(id)
+            .query(Boolean.class).single()).isTrue();
+    }
+
+    @Test
+    void aDeletedPrivateBuildIsAnnouncedAndPublicChangesArePublished() throws Exception {
+        String priv = create(nightThock(null));
+        UUID privId = UUID.fromString(priv.substring(priv.lastIndexOf('/') + 1));
+        mvc.perform(asMember(delete(priv)).header("If-Match", "\"1\"")).andExpect(status().isNoContent());
+        assertThat(events.stream(BuildWithdrawn.class))
+            .containsExactly(new BuildWithdrawn(privId, ownerOf(privId), BuildWithdrawn.Reason.DELETED));
+
+        String pub = create(nightThock("public"));
+        UUID pubId = UUID.fromString(pub.substring(pub.lastIndexOf('/') + 1));
+        assertThat(events.stream(BuildPublished.class)).containsExactly(new BuildPublished(pubId, ownerOf(pubId), 1));
+        // A rename alone announces nothing; new parts on a public build publish the new version.
+        mvc.perform(asMember(patch(pub)).contentType(MERGE_PATCH).header("If-Match", "\"1\"")
+                .content("{ \"name\": \"Renamed\" }")).andExpect(status().isOk());
+        assertThat(events.stream(BuildPublished.class)).hasSize(1);
+        mvc.perform(asMember(patch(pub)).contentType(MERGE_PATCH).header("If-Match", "\"2\"")
+                .content("{ \"mods\": [] }")).andExpect(status().isOk());
+        assertThat(events.stream(BuildPublished.class)).last().isEqualTo(new BuildPublished(pubId, ownerOf(pubId), 2));
+    }
+
     // --- BLD-01 list --------------------------------------------------------------------
 
     @Test
@@ -380,6 +490,10 @@ class BuildsApiTest extends IntegrationTest {
 
     String firstId(MvcResult result) throws Exception {
         return json.readTree(result.getResponse().getContentAsString()).at("/data/0/id").asString();
+    }
+
+    UUID ownerOf(UUID buildId) {
+        return jdbc.sql("SELECT owner_id FROM builds.builds WHERE id = ?").param(buildId).query(UUID.class).single();
     }
 
     int versions(UUID buildId) {

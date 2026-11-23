@@ -233,14 +233,14 @@ export interface paths {
         };
         /**
          * Get one build
-         * @description **BLD-03** · access: Public or owner · stories: US-09, US-14, US-19 · module: `builds`
+         * @description **BLD-03** · access: Public or owner · stories: US-09, US-14, US-19 · module: `builds`. A public build for anyone, a private one for its owner only; someone else's private build, an unknown id and a deleted build are all `404 build_not_found` (US-12). Sent with `Cache-Control: no-cache` (private for the owner) and the `ETag`, so going private or a delete shows at once.
          */
         get: operations["getBuild"];
         put?: never;
         post?: never;
         /**
          * Delete a build
-         * @description **BLD-05** · access: Owner · stories: US-12 · module: `builds`
+         * @description **BLD-05** · access: Owner · stories: US-12 · module: `builds`. Soft delete: from then on the build is `404` on every endpoint, its link (BLD-03) included. Needs `If-Match` (`400 if_match_required` without it, `412` when stale); someone else's build is `404`. The `BuildWithdrawn` event lets the profile clear a daily-driver pin on it.
          */
         delete: operations["deleteBuild"];
         options?: never;
@@ -1920,7 +1920,7 @@ export interface components {
             id: string;
             name: string;
             visibility: components["schemas"]["Visibility"];
-            /** @description On BLD-01, BLD-02 and BLD-04 the caller owns the build, and `username` is `me` until profiles give members a username. */
+            /** @description On BLD-01, BLD-02 and BLD-04 the caller owns the build, and `username` is `me` until profiles give members a username. On BLD-03 it is `me` for the owner and `member` for anyone else, until profiles (US-24). */
             owner: components["schemas"]["UserRef"];
             likeCount?: number;
             copiedFrom?: null | {
@@ -3003,6 +3003,7 @@ export interface operations {
         requestBody?: never;
         responses: {
             204: components["responses"]["NoContent"];
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["NotFound"];
             410: components["responses"]["Gone"];

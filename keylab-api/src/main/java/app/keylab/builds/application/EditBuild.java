@@ -7,6 +7,7 @@ import java.util.UUID;
 import app.keylab.builds.domain.Build;
 import app.keylab.builds.domain.BuildRules;
 import app.keylab.builds.domain.BuildNotFound;
+import app.keylab.builds.domain.BuildNotices;
 import app.keylab.builds.domain.Builds;
 import app.keylab.builds.domain.PartsCatalog;
 
@@ -44,16 +45,18 @@ public class EditBuild {
 
     private final Builds builds;
     private final PartsCatalog catalog;
+    private final BuildNotices notices;
     private final Clock clock;
 
     @Autowired
-    EditBuild(Builds builds, PartsCatalog catalog) {
-        this(builds, catalog, Clock.systemUTC());
+    EditBuild(Builds builds, PartsCatalog catalog, BuildNotices notices) {
+        this(builds, catalog, notices, Clock.systemUTC());
     }
 
-    EditBuild(Builds builds, PartsCatalog catalog, Clock clock) {
+    EditBuild(Builds builds, PartsCatalog catalog, BuildNotices notices, Clock clock) {
         this.builds = builds;
         this.catalog = catalog;
+        this.notices = notices;
         this.clock = clock;
     }
 
@@ -83,6 +86,7 @@ public class EditBuild {
         }
         if (!build.events().isEmpty()) {
             builds.save(build);
+            notices.announce(build);
         }
     }
 }

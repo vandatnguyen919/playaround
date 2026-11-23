@@ -96,8 +96,10 @@ invalid one `domain/InvalidSoundMix.java`.
 
     builds/
       (US-08 built domain, SaveBuild, EditBuild, MyBuilds, BuildController and
-      JdbcBuilds; BuildsApi and the events wait for the stories that need them.
-      The save rules live in domain/BuildRules.java, shared by both use cases.)
+      JdbcBuilds; the save rules live in domain/BuildRules.java. US-12 added
+      DeleteBuild, the two public events, the domain port BuildNotices with
+      adapter/out/events/SpringBuildNotices, and SharedBuildController for
+      BLD-03's access rule. BuildsApi waits for US-26.)
       BuildsApi.java          public: isPublicBuildOf(owner, buildId), for
                               community's daily-driver check (US-26)
       BuildPublished.java     public event: a build became public, or a public

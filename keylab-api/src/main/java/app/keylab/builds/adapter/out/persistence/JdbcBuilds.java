@@ -90,13 +90,15 @@ class JdbcBuilds implements Builds {
         }
         int updated = jdbc.sql("""
                 UPDATE builds.builds SET name = :name, visibility = :visibility, updated_at = :now,
-                  current_version_id = COALESCE(:versionId, current_version_id), version = version + 1
+                  current_version_id = COALESCE(:versionId, current_version_id), version = version + 1,
+                  deleted_at = :deletedAt
                 WHERE id = :id AND version = :version AND deleted_at IS NULL
                 """)
             .param("name", build.name())
             .param("visibility", build.visibility().wire())
             .param("now", Timestamp.from(build.updatedAt()))
             .param("versionId", newVersion)
+            .param("deletedAt", build.deletedAt() == null ? null : Timestamp.from(build.deletedAt()))
             .param("id", build.id())
             .param("version", build.version())
             .update();

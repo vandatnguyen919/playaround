@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type KeyboardEvent } from 'react'
 import { Link, useLocation } from 'react-router'
-import { listMyBuilds, updateBuild, type Build } from '../api/builds.ts'
+import { deleteBuild, listMyBuilds, updateBuild, type Build } from '../api/builds.ts'
 import { SIGN_IN_URL, toApiProblem } from '../api/problem.ts'
 import { useHealth } from '../api/useHealth.ts'
 import BuildCard from '../builder/BuildCard.tsx'
@@ -12,8 +12,10 @@ import './builds.css'
 // My builds (US-08): BuildsDesktop and BuildsMobile. Lists the member's
 // public and private builds (BLD-01) and renames the picked one (BLD-04 with
 // If-Match). A stale tag means the build changed elsewhere: the page asks to
-// reload instead of overwriting it. The parts list (US-10), share card
-// (US-11) and "Type on it" (US-14) come with their stories.
+// reload instead of overwriting it. US-12 adds the public switch (BLD-04) and
+// Delete build with a confirmation (BLD-05), both with If-Match. The parts
+// list (US-10), share card (US-11) and "Type on it" (US-14) come with their
+// stories.
 
 type Arrived = { saved?: string; select?: string } | null
 
@@ -95,12 +97,22 @@ export default function BuildsPage() {
   const list = builds ?? []
   const selected = list.find((b) => b.id === selectedId) ?? list[0] ?? null
 
-  function renamed(build: Build) {
+  function changed(build: Build, word = 'saved') {
     setBuilds((held) => (held ?? []).map((b) => (b.id === build.id ? build : b)))
-    setStatus(`${build.name} saved`)
+    setStatus(`${build.name} ${word}`)
     const current = loadBuild().saved
     if (current?.id === build.id) {
       saveBuild({ saved: { id: build.id, name: build.name, version: build.version ?? current.version, spec: shortSpec(build, names) } })
+    }
+  }
+
+  function deleted(build: Build) {
+    setBuilds((held) => (held ?? []).filter((b) => b.id !== build.id))
+    setSelectedId(null)
+    setStatus(`${build.name} deleted`)
+    // The builder no longer saves into it: its next save makes a new build.
+    if (loadBuild().saved?.id === build.id) {
+      forgetSaved()
     }
   }
 
@@ -162,6 +174,9 @@ export default function BuildsPage() {
                 </span>
                 <span className="bld-tile-text">
                   <span className="bld-tile-name">{b.name}</span>
+                  <span className={`sticker bld-vis ${b.visibility === 'public' ? 'pub' : ''}`} data-testid={`vis-${b.id}`}>
+                    {b.visibility === 'public' ? 'Public' : 'Private'}
+                  </span>
                   <span className="mono bld-tile-spec">{buildSpec(b, names)}</span>
                 </span>
                 <ChevronIcon />
@@ -175,7 +190,14 @@ export default function BuildsPage() {
           </section>
 
           <section aria-label="Build summary" className="bld-summary">
-            <NameField key={`${selected.id}:${selected.version}`} build={selected} onRenamed={renamed} onReload={load} />
+            <NameField key={`${selected.id}:${selected.version}`} build={selected} onRenamed={changed} onReload={load} />
+            <BuildSettings
+              key={`settings:${selected.id}:${selected.version}`}
+              build={selected}
+              onChanged={changed}
+              onDeleted={deleted}
+              onReload={load}
+            />
             <div className="desk">
               <BuildCard build={selected} names={names} keyboardWidth={406} />
             </div>
@@ -183,6 +205,125 @@ export default function BuildsPage() {
               <BuildCard build={selected} names={names} keyboardWidth={296} />
             </div>
           </section>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * US-12: the public switch and Delete build. Both send the build's tag
+ * (If-Match); a stale one shows the reload prompt and changes nothing.
+ * Delete asks first, in place, as the editor's delete does.
+ */
+function BuildSettings({
+  build,
+  onChanged,
+  onDeleted,
+  onReload,
+}: {
+  build: Build
+  onChanged: (b: Build, word?: string) => void
+  onDeleted: (b: Build) => void
+  onReload: () => Promise<unknown>
+}) {
+  const [busy, setBusy] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const [stale, setStale] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const isPublic = build.visibility === 'public'
+
+  async function run(action: () => Promise<void>) {
+    if (busy || stale) return
+    setBusy(true)
+    setError(null)
+    try {
+      await action()
+    } catch (failure) {
+      const problem = toApiProblem(failure)
+      if (problem.status === 412) {
+        setStale(true)
+        setConfirming(false)
+      } else if (problem.status === 404) {
+        setError('This build is gone. Reload to see your builds.')
+      } else {
+        setError(problem.userMessage)
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const toggle = () =>
+    run(async () => {
+      const next = await updateBuild(build.id, { visibility: isPublic ? 'private' : 'public' }, build.version)
+      onChanged(next, next.visibility === 'public' ? 'is public' : 'is private')
+    })
+
+  const remove = () =>
+    run(async () => {
+      await deleteBuild(build.id, build.version)
+      onDeleted(build)
+    })
+
+  return (
+    <div className="bld-settings">
+      <div className="bld-public">
+        <button
+          type="button"
+          className="tg"
+          role="switch"
+          aria-checked={isPublic}
+          aria-labelledby="pub-l"
+          aria-describedby="pub-d"
+          aria-disabled={busy || stale}
+          data-testid="build-public"
+          onClick={() => void toggle()}
+        >
+          <span />
+        </button>
+        <span className="bld-public-text">
+          <span id="pub-l" className="bld-public-label">
+            Public build
+          </span>
+          <span id="pub-d" className="mono bld-public-note">
+            {isPublic ? 'Anyone with the link can see and hear it.' : 'Only you can see it.'}
+          </span>
+        </span>
+      </div>
+
+      {confirming ? (
+        <div className="bld-confirm" role="alertdialog" aria-labelledby="del-h" aria-describedby="del-b" data-testid="delete-confirm">
+          <span id="del-h" className="bld-confirm-title">
+            Delete {build.name}?
+          </span>
+          <span id="del-b">Its link stops working at once, for everyone. This can’t be undone.</span>
+          <div className="bld-confirm-actions">
+            <button type="button" className="kc coral" aria-disabled={busy} onClick={() => void remove()}>
+              Delete build
+            </button>
+            <button type="button" className="kc" onClick={() => setConfirming(false)} autoFocus>
+              Keep it
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button type="button" className="kc sm bld-delete" aria-disabled={stale} onClick={() => !stale && setConfirming(true)}>
+          Delete build
+        </button>
+      )}
+
+      {error && (
+        <p className="bld-field-error" role="alert">
+          {error}
+        </p>
+      )}
+      {stale && (
+        <div className="bld-stale" role="alert" data-testid="settings-stale">
+          <p>This build changed somewhere else, so nothing was changed. Reload to get the latest version.</p>
+          <button type="button" className="kc sm" onClick={() => void onReload()}>
+            Reload
+          </button>
         </div>
       )}
     </div>

@@ -55,6 +55,37 @@ Vite dev server. An uncached BLD-10 call took 24 ms locally. Left:
   were heard, with silent WAVs. Next action: after deploy, open `/keylab/mods` on
   app.tickin.me and listen.
 
+## US-12 Make a build private or delete it (2026-11-23, PR #73, stacked on PR #72)
+
+Committed on `feat/us-12-private-delete`, off `feat/us-08-save-builds` (PR #72). Backend in `builds`: `DeleteBuild` (BLD-05, soft delete with If-Match), the visibility
+switch is BLD-04 from US-08, `SharedBuildController` (BLD-03: public for anyone, private for the
+owner, deleted 404), public events `BuildPublished` and `BuildWithdrawn` through the domain port
+`BuildNotices`. Web: My builds gets the Public build switch, Delete build with an in-place
+confirm, and Public/Private stickers on the tiles.
+Verified: BuildsApiTest (14, 3 new) and the full keylab-api suite (167 of 167, run with the local
+stack stopped: with it up the test JVM ran out of native memory); web unit tests (67), `tsc`,
+lint, `vite build`, `check:api`; `keylab-builds.spec.ts` (3 tests, 1 new) and all 27 KeyLab e2e
+(`keylab-sounds` failed once and passed on rerun; `keylab-shell` now uses `/me/builds` as its
+members-only example, since BLD-03 is open to guests).
+Left:
+
+- **Daily-driver pin not cleared yet (Done when item 2, unticked).** There are no profiles or
+  pins until US-24/US-26. `builds` publishes `BuildWithdrawn` (DELETED on every delete, PRIVATE
+  when a build goes private), tested. Next action: US-26 adds the `community` listener that clears
+  the pin, and its test ticks this item.
+- **No design for the switch, Delete build or the confirm.** BuildsDesktop/BuildsMobile do not
+  show them; built from the design's `.tg` switch, ProfileDesktop's Public/Private stickers and
+  the editor's in-place delete confirm. Copy is mine ("Public build", "Only you can see it.",
+  "Delete {name}?", "Its link stops working at once, for everyone. This can't be undone.",
+  "Keep it"). Next action: Dan or the design adds them to the two Builds screens.
+- **BLD-03 answers early.** US-09 owns the shared page; here only the access rule, `no-cache`
+  instead of the five-minute public cache, and `owner.username` `member` for non-owners. Next
+  action: US-09 adds the page and preview metadata, US-24 real usernames.
+- **Nightly purge of deleted builds (after 30 days, modulith-plan.md) not built.** Next action:
+  a ticket of its own.
+- **Notion ticket (Notion not connected).** Next action: tick items 1 and 3, set PR to
+  https://github.com/vandatnguyen919/playaround/pull/73, Status In review. Module, endpoints and screens unchanged.
+
 ## US-08 Save and rename a build (2026-11-23, PR #72, stacked on PR #71)
 
 Committed on `feat/us-08-save-builds`, off `feat/us-07-case-plate` (PR #71).

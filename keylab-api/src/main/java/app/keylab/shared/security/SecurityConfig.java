@@ -39,6 +39,8 @@ class SecurityConfig {
                         "/v1/case-options").permitAll()
                 // The sound recipe (BLD-10): guests hear any parts mix.
                 .requestMatchers(HttpMethod.GET, "/v1/sound-recipe").permitAll()
+                // A build's link (BLD-03): public builds for guests; the controller hides private and deleted ones.
+                .requestMatchers(HttpMethod.GET, "/v1/builds/*").permitAll()
                 // Content-addressed sound and photo files (US-38): public, like a CDN.
                 .requestMatchers(HttpMethod.GET, "/v1/assets/**").permitAll()
                 // Presigned upload URLs (ADM-04): the signature in the URL is the permission.

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { expect, test, type Page } from '@playwright/test'
-import { createUser, deleteUser, newUser, signIn } from './support'
+import { APP, createUser, deleteUser, newUser, signIn } from './support'
 import { createDraft, markStockSoundsReady, setPublished, xsrf } from './keylab-support'
 
 // US-08, end to end: Save build on the Keycaps studio (BLD-02), My builds
@@ -135,6 +135,91 @@ test('Save build makes a private build once, My builds lists public and private,
   await page.goto('/keylab/builds')
   await expect(page.getByTestId('build-card').last()).toBeVisible()
   await page.screenshot({ path: info.outputPath('builds-mobile.png'), fullPage: true })
+})
+
+/** BLD-02 straight through the API: a build to toggle or delete. */
+async function saveVia(page: Page, name: string, visibility = 'private'): Promise<{ id: string; version: number }> {
+  const res = await page.request.post(`${API}/builds`, {
+    data: { name, visibility, layout: '65', switch: { slug: sw.slug }, mods: [{ slug: 'case-foam' }] },
+    headers: { 'Idempotency-Key': randomUUID(), 'X-XSRF-TOKEN': await xsrf(page) },
+  })
+  expect(res.status()).toBe(201)
+  return res.json()
+}
+
+// US-12: the public switch (BLD-04 with If-Match), Delete build with a
+// confirmation (BLD-05 with If-Match), and the build's link (BLD-03).
+test('a build goes public and private with its tag, and a deleted build is 404 on its old link', async ({ page, playwright }, info) => {
+  await signIn(page, member)
+  await page.setViewportSize({ width: 1440, height: 1200 })
+  const guest = await playwright.request.newContext({ baseURL: APP })
+  const name = `${token} Toggle`
+  const build = await saveVia(page, name)
+  const link = `${API}/builds/${build.id}`
+  expect((await guest.get(link)).status()).toBe(404)
+
+  await page.goto('/keylab/builds')
+  await page.getByTestId(`build-${build.id}`).click()
+  await expect(page.getByLabel('Build name')).toHaveValue(name)
+  await expect(page.getByTestId(`vis-${build.id}`)).toHaveText('Private')
+  const toggle = page.getByRole('switch', { name: 'Public build' })
+  await expect(toggle).toHaveAttribute('aria-checked', 'false')
+
+  // Public: BLD-04 with If-Match, and the link opens for guests.
+  const patches: (string | null)[] = []
+  page.on('request', (r) => {
+    if (r.method() === 'PATCH' && r.url().endsWith(`/builds/${build.id}`)) patches.push(r.headers()['if-match'] ?? null)
+  })
+  await toggle.click()
+  await expect(page.getByTestId('builds-status')).toHaveText(`${name} is public`)
+  await expect(toggle).toHaveAttribute('aria-checked', 'true')
+  await expect(page.getByTestId(`vis-${build.id}`)).toHaveText('Public')
+  expect(patches).toEqual([`"${build.version}"`])
+  expect((await guest.get(link)).status()).toBe(200)
+  await page.screenshot({ path: info.outputPath('settings-desktop.png'), fullPage: true })
+
+  // Changed somewhere else meanwhile: the switch gets 412, shows the reload prompt and changes nothing.
+  const now = (await myBuilds(page)).find((b) => b.id === build.id)!
+  await renameElsewhere(page, build.id, now.version, `${name} 2`)
+  await toggle.click()
+  await expect(page.getByTestId('settings-stale')).toContainText('This build changed somewhere else')
+  expect((await myBuilds(page)).find((b) => b.id === build.id)!.visibility).toBe('public')
+  await page.getByTestId('settings-stale').getByRole('button', { name: 'Reload' }).click()
+  await expect(page.getByLabel('Build name')).toHaveValue(`${name} 2`)
+
+  // Back to private: the link is the owner's only again.
+  await toggle.click()
+  await expect(toggle).toHaveAttribute('aria-checked', 'false')
+  expect((await guest.get(link)).status()).toBe(404)
+  expect((await page.request.get(link)).status()).toBe(200)
+
+  // Delete asks first; "Keep it" keeps it.
+  await page.getByRole('button', { name: 'Delete build' }).click()
+  const confirm = page.getByRole('alertdialog', { name: `Delete ${name} 2?` })
+  await expect(confirm).toContainText('Its link stops working at once')
+  await confirm.getByRole('button', { name: 'Keep it' }).click()
+  await expect(confirm).toHaveCount(0)
+  expect((await page.request.get(link)).status()).toBe(200)
+
+  await page.screenshot({ path: info.outputPath('before-delete.png') })
+  await page.getByRole('button', { name: 'Delete build' }).click()
+  await page.screenshot({ path: info.outputPath('delete-confirm.png'), fullPage: true })
+  await confirm.getByRole('button', { name: 'Delete build' }).click()
+  await expect(page.getByTestId('builds-status')).toHaveText(`${name} 2 deleted`)
+  await expect(page.getByTestId(`build-${build.id}`)).toHaveCount(0)
+  // The old link: 404 for its owner and for guests; My builds no longer lists it.
+  const gone = await page.request.get(link)
+  expect(gone.status()).toBe(404)
+  expect((await gone.json()).code).toBe('build_not_found')
+  expect((await guest.get(link)).status()).toBe(404)
+  expect((await myBuilds(page)).some((b) => b.id === build.id)).toBe(false)
+
+  // BuildsMobile: the switch and Delete build under the name.
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.reload()
+  await expect(page.getByRole('switch', { name: 'Public build' }).last()).toBeVisible()
+  await page.screenshot({ path: info.outputPath('settings-mobile.png'), fullPage: true })
+  await guest.dispose()
 })
 
 test('a guest is asked to sign in', async ({ page }) => {

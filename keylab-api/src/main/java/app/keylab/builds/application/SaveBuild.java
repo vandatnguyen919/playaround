@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import app.keylab.builds.domain.Build;
 import app.keylab.builds.domain.BuildRules;
+import app.keylab.builds.domain.BuildNotices;
 import app.keylab.builds.domain.Builds;
 import app.keylab.builds.domain.PartsCatalog;
 import app.keylab.shared.Ids;
@@ -25,16 +26,18 @@ public class SaveBuild {
 
     private final Builds builds;
     private final PartsCatalog catalog;
+    private final BuildNotices notices;
     private final Clock clock;
 
     @Autowired
-    SaveBuild(Builds builds, PartsCatalog catalog) {
-        this(builds, catalog, Clock.systemUTC());
+    SaveBuild(Builds builds, PartsCatalog catalog, BuildNotices notices) {
+        this(builds, catalog, notices, Clock.systemUTC());
     }
 
-    SaveBuild(Builds builds, PartsCatalog catalog, Clock clock) {
+    SaveBuild(Builds builds, PartsCatalog catalog, BuildNotices notices, Clock clock) {
         this.builds = builds;
         this.catalog = catalog;
+        this.notices = notices;
         this.clock = clock;
     }
 
@@ -49,6 +52,7 @@ public class SaveBuild {
         Build build = Build.create(Ids.uuidV7(), owner, input.name(), checked.visibility(), input.parts(),
                 checked.review().keycaps(), checked.review().sound(), clock.instant());
         builds.add(build);
+        notices.announce(build);
         return build.id();
     }
 }

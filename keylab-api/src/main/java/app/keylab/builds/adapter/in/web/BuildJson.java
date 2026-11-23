@@ -171,9 +171,19 @@ final class BuildJson {
     }
 
     static BuildView view(BuildRow row) {
+        return view(row, ME);
+    }
+
+    /** The caller's own builds name their owner "me"; profiles (US-24) bring real usernames. */
+    static final String ME = "me";
+
+    /** Someone else's build, until profiles (US-24) give its owner a username. */
+    static final String MEMBER = "member";
+
+    static BuildView view(BuildRow row, String ownerName) {
         boolean hasCase = row.caseMaterial() != null || row.caseColor() != null || row.plate() != null
                 || row.mount() != null;
-        return new BuildView(row.id(), row.name(), row.visibility(), new Owner("me"), 0, row.version(),
+        return new BuildView(row.id(), row.name(), row.visibility(), new Owner(ownerName), 0, row.version(),
                 row.createdAt(), row.updatedAt(), row.layout(), new SwitchPick(row.switchSlug(), row.variant()),
                 row.mods().stream().map((m) -> new ModPick(m.slug(), m.level())).toList(),
                 row.keycapSet() == null ? null
