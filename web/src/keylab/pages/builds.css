@@ -1,0 +1,419 @@
+/* My builds (US-08): BuildsDesktop and BuildsMobile .dc.html, and the
+   summary BuildCard (BuildCard.dc.html). .desk shows above 767px, .phone
+   below; on a phone the list follows the summary, as in BuildsMobile. */
+
+.bld {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.bld .phone {
+  display: none;
+}
+
+.bld-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: var(--bw-thick) solid var(--text);
+}
+
+.bld-title {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bld-status {
+  margin: 0;
+  align-self: flex-start;
+  padding: 6px 12px;
+  border: var(--bw-thick) solid #000;
+  background: var(--lime);
+  color: #000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.bld-new.kc {
+  min-height: 54px;
+}
+
+.bld-guest {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  max-width: 460px;
+}
+
+.bld-cols {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 28px;
+}
+
+.bld-list {
+  flex: 1 1 260px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bld .tile {
+  appearance: none;
+  margin: 0;
+  font: inherit;
+  color: #000;
+  text-align: left;
+  cursor: pointer;
+  background: #ffffff;
+  border: var(--bw-thick) solid #000;
+  border-radius: 0;
+  padding: 12px 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 66px;
+  box-shadow: var(--shadow-md);
+  transition:
+    transform var(--press),
+    box-shadow var(--press);
+}
+
+.bld .tile:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 #000;
+}
+
+.bld .tile[aria-pressed='true'] {
+  background: var(--acc);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-xl);
+}
+
+.bld-swatch {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border: var(--bw) solid #000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 4px;
+}
+
+.bld-stem {
+  width: 13px;
+  height: 13px;
+  border: var(--bw-thin) solid #000;
+}
+
+.bld-tile-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bld-tile-name {
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.bld-tile-spec {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.bld-summary {
+  flex: 999 1 420px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.bld-name {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 460px;
+}
+
+.bld .field {
+  width: 100%;
+  min-height: 54px;
+  border: var(--bw-thick) solid #000;
+  border-radius: 0;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #000;
+  background: #ffffff;
+  box-shadow: var(--shadow-md);
+}
+
+.bld .field:focus {
+  outline: none;
+  background: #fff1c7;
+}
+
+.bld .field[aria-invalid='true'] {
+  border-color: var(--coral);
+}
+
+.bld .field:disabled {
+  background: #fffdf5;
+  color: var(--muted);
+}
+
+.bld-field-error {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.bld-stale {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 10px 12px;
+  border: var(--bw-thick) solid #000;
+  background: var(--coral);
+  color: #000;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.bld-stale p {
+  flex: 1 1 220px;
+  margin: 0;
+}
+
+/* BuildCard, summary variant */
+.bc {
+  width: 100%;
+  max-width: 460px;
+  border: var(--bw-thick) solid #000;
+  padding: 14px;
+  background: #ffffff;
+  color: #000;
+  box-shadow: 6px 6px 0 #000;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bc-stage {
+  border: var(--bw-thick) solid #000;
+  background: var(--sky);
+  padding: 14px 0 10px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.bc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bc-name {
+  margin: 0;
+  font-size: 22px;
+  line-height: 24px;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+}
+
+.bc-layout {
+  flex: none;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border: var(--bw-thin) solid #000;
+  background: #ffd24d;
+}
+
+.bc-specs {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  border: var(--bw) solid #000;
+}
+
+.bc-specs dt {
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: var(--bw-thin) solid #000;
+  border-right: var(--bw-thin) solid #000;
+  background: #fffdf5;
+}
+
+.bc-specs dd {
+  margin: 0;
+  padding: 8px 10px;
+  border-bottom: var(--bw-thin) solid #000;
+  font-size: 12px;
+  min-width: 0;
+}
+
+.bc-specs dt:last-of-type,
+.bc-specs dd:last-of-type {
+  border-bottom: 0;
+}
+
+.bc-specs .bc-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.bc-stem {
+  width: 11px;
+  height: 11px;
+  border: var(--bw-thin) solid #000;
+}
+
+.bc-sw {
+  font-weight: 800;
+}
+
+.bc-type {
+  font-size: 11px;
+}
+
+.bc-specs .bc-mods {
+  padding: 7px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.bc-mod {
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border: var(--bw-thin) solid #000;
+  background: var(--lime);
+}
+
+@media (max-width: 767px) {
+  .bld {
+    gap: 18px;
+  }
+
+  .bld .desk {
+    display: none;
+  }
+
+  .bld .phone {
+    display: block;
+  }
+
+  .bld .tile .phone {
+    display: inline;
+    flex: none;
+  }
+
+  .bld-head {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .bld-title {
+    display: contents;
+  }
+
+  .bld-status {
+    order: 3;
+    align-self: stretch;
+    padding: 8px 12px;
+  }
+
+  .bld-head:has(.bld-status) {
+    flex-wrap: wrap;
+  }
+
+  .bld-head .h1 {
+    flex: 1;
+  }
+
+  .bld-new.kc {
+    min-height: var(--target);
+    padding: 0 12px;
+    font-size: 14px;
+  }
+
+  .bld-cols {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+  }
+
+  .bld-summary {
+    order: 1;
+    flex: none;
+  }
+
+  .bld-list {
+    order: 2;
+    flex: none;
+    gap: 12px;
+  }
+
+  .bld-name {
+    max-width: none;
+  }
+
+  .bld-swatch {
+    width: 38px;
+    height: 38px;
+  }
+
+  .bld-stem {
+    width: 12px;
+    height: 12px;
+  }
+
+  .bld-tile-name {
+    font-size: 16px;
+  }
+
+  .bc {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bld .tile {
+    transition: none;
+  }
+}

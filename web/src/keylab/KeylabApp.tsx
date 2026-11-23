@@ -3,6 +3,7 @@ import './styles/tokens.css'
 import './styles/base.css'
 import AppShell from './layout/AppShell.tsx'
 import { BuildPage, Placeholder } from './pages/Pages.tsx'
+import BuildsPage from './pages/BuildsPage.tsx'
 import SwitchesPage from './pages/SwitchesPage.tsx'
 import ModsPage from './pages/ModsPage.tsx'
 import CasePage from './pages/CasePage.tsx'
@@ -60,7 +61,7 @@ const router = createBrowserRouter([
       { path: 'keycaps', element: <KeycapsPage /> },
       { path: 'case', element: <CasePage /> },
       { path: 'playground', element: <Placeholder label="Playground" title="Sound playground" /> },
-      { path: 'builds', element: <Placeholder label="My builds" title="My builds" /> },
+      { path: 'builds', element: <BuildsPage /> },
       { path: 'profile', element: <Placeholder label="Profile" title="Profile" /> },
       { path: 'settings', element: <Placeholder label="Settings" title="Settings" /> },
       { path: '*', element: <Placeholder label="404" title="Nothing here" /> },

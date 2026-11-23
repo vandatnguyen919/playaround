@@ -14,10 +14,17 @@
 
 .kcs-head {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
   padding-bottom: 18px;
   border-bottom: var(--bw-thick) solid var(--text);
+}
+
+.kcs-title {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .kcs-summary {

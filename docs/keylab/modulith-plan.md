@@ -77,12 +77,15 @@ gains it (below) and `sound` has none.
 
 #### catalog additions for the sound recipe (US-05, US-06, US-07)
 
-Built in US-05, except `CatalogApi.soundOf`, which waits for US-08. The port is
+Built in US-05. US-08 added `CatalogApi.review(parts)` (instead of the
+planned `soundOf`): it checks a build's parts are published and offered and
+returns their sound and the keycap set's profile and material, through
+`domain/OfferedParts.java` and `application/ReviewBuildParts.java`. The port is
 `domain/PartSounds.java`, as planned; the mix is `domain/SoundMix.java` and an
 invalid one `domain/InvalidSoundMix.java`.
 
     catalog/
-      CatalogApi.java          gains soundOf(parts): builds stores it in config.sound
+      CatalogApi.java          review(parts): problems, sound, keycap look (US-08)
       domain/SoundRecipe.java  pure function: part effects + samples -> filters, meter, word
       domain/PartSounds.java   port: each part's sound_fx and a switch's ready takes
       application/ComposeSoundRecipe.java   loads the inputs, calls SoundRecipe
@@ -92,6 +95,9 @@ invalid one `domain/InvalidSoundMix.java`.
 #### builds (KL2: US-08, US-09, US-12, US-14; later US-10, US-11, US-13, US-15)
 
     builds/
+      (US-08 built domain, SaveBuild, EditBuild, MyBuilds, BuildController and
+      JdbcBuilds; BuildsApi and the events wait for the stories that need them.
+      The save rules live in domain/BuildRules.java, shared by both use cases.)
       BuildsApi.java          public: isPublicBuildOf(owner, buildId), for
                               community's daily-driver check (US-26)
       BuildPublished.java     public event: a build became public, or a public

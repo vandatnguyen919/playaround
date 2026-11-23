@@ -465,7 +465,11 @@ paths:
       tags:
       - Builds
       summary: My builds
-      description: '**BLD-01** · access: Member · stories: US-08 · module: `builds`'
+      description: '**BLD-01** · access: Member · stories: US-08 · module: `builds`. Public and
+        private builds of the caller, deleted ones never. `sort` is `-updatedAt` (default, newest
+        change first) or `-createdAt`; anything else, or a `visibility` other than public or private,
+        is `400 invalid_parameter`. A `page_token` from the other sort is `400 invalid_page_token`.
+        Sent with `Cache-Control: private, no-store`.'
       x-endpoint-id: BLD-01
       x-module: builds
       x-stories:
@@ -474,7 +478,14 @@ paths:
       parameters:
       - $ref: '#/components/parameters/pageSize'
       - $ref: '#/components/parameters/pageToken'
-      - $ref: '#/components/parameters/sort'
+      - name: sort
+        in: query
+        schema:
+          type: string
+          enum:
+          - -updatedAt
+          - -createdAt
+          default: -updatedAt
       - name: visibility
         in: query
         schema:
@@ -485,8 +496,6 @@ paths:
           headers:
             KeyLab-API-Revision:
               $ref: '#/components/headers/Revision'
-            ETag:
-              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
@@ -501,6 +510,8 @@ paths:
                       $ref: '#/components/schemas/Build'
                   page:
                     $ref: '#/components/schemas/PageInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '410':
@@ -513,7 +524,11 @@ paths:
       tags:
       - Builds
       summary: Save a build
-      description: '**BLD-02** · access: Member · stories: US-08 · module: `builds`'
+      description: '**BLD-02** · access: Member · stories: US-08 · module: `builds`. Starts private
+        unless `visibility` is public, at version 1. Every part must be offered today (published switch
+        and keycap set, live mod, active case part), else `422 part_not_found` or `part_retired`; a level
+        mod needs a level it offers (`level_required`, `level_not_offered`). One `errors` entry per bad
+        field. The answer carries the build''s `ETag`.'
       x-endpoint-id: BLD-02
       x-module: builds
       x-stories:
@@ -535,12 +550,18 @@ paths:
               $ref: '#/components/headers/Revision'
             Location:
               $ref: '#/components/headers/Location'
+            ETag:
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Build'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '410':
           $ref: '#/components/responses/Gone'
         '422':
@@ -591,7 +612,11 @@ paths:
       tags:
       - Builds
       summary: Rename, change parts or visibility
-      description: '**BLD-04** · access: Owner · stories: US-08, US-12 · module: `builds`'
+      description: '**BLD-04** · access: Owner · stories: US-08, US-12 · module: `builds`. The patch
+        is applied to the build as stored and the result checked like a save. A rename or a visibility
+        change writes no version; new parts add version n + 1. Someone else''s build is `404
+        build_not_found`. No `If-Match` is `400 if_match_required`; a stale one `412
+        precondition_failed`.'
       x-endpoint-id: BLD-04
       x-module: builds
       x-stories:
@@ -613,10 +638,14 @@ paths:
           headers:
             KeyLab-API-Revision:
               $ref: '#/components/headers/Revision'
+            ETag:
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Build'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -4381,7 +4410,7 @@ components:
       properties:
         layout:
           type: string
-          examples:
+          enum:
           - '60'
           - '65'
           - '75'
@@ -4413,13 +4442,16 @@ components:
             - slug
         keycaps:
           type: object
+          description: '`profile` and `material` are read only: they come from the keycap set.'
           properties:
             set:
               type: string
             profile:
               type: string
+              readOnly: true
             material:
               type: string
+              readOnly: true
         case:
           type: object
           properties:
@@ -4434,6 +4466,7 @@ components:
               type: string
         deskPad:
           type: string
+          pattern: ^[a-z0-9-]{1,32}$
       required:
       - layout
       - switch
@@ -4443,7 +4476,9 @@ components:
         properties:
           name:
             type: string
+            minLength: 1
             maxLength: 60
+            description: Trimmed before it is checked and kept.
           visibility:
             $ref: '#/components/schemas/Visibility'
         required:
@@ -4483,7 +4518,10 @@ components:
           visibility:
             $ref: '#/components/schemas/Visibility'
           owner:
-            $ref: '#/components/schemas/UserRef'
+            allOf:
+            - $ref: '#/components/schemas/UserRef'
+            description: On BLD-01, BLD-02 and BLD-04 the caller owns the build, and `username` is
+              `me` until profiles give members a username.
           likeCount:
             type: integer
           copiedFrom:
@@ -4498,6 +4536,8 @@ components:
                   $ref: '#/components/schemas/UserRef'
           version:
             type: integer
+            description: Row version, the value of the build's ETag. It moves on every change, a
+              rename included, so If-Match can be built from it.
           createdAt:
             type: string
             format: date-time

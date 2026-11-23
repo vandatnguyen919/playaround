@@ -20,6 +20,7 @@ import {
 import { cleanLevels, modParams } from '../builder/mods.ts'
 import { PADS } from '../builder/pads.ts'
 import { preload, playStroke } from '../builder/recipePlayer.ts'
+import SaveBuildButton from '../builder/SaveBuildButton.tsx'
 import { useBuildSwitch } from '../builder/useBuildSwitch.ts'
 import './mods.css'
 import './keycaps.css'
@@ -31,7 +32,7 @@ import './keycaps.css'
 // named by `?keycap_set=` or picked before is loaded with CAT-06.
 //
 // Not built here (no story or API yet): the 3D views and orbit, the custom
-// painter, legends, artisans and Save build (US-08).
+// painter, legends and artisans. Save build (US-08) saves the build on hand.
 
 type Tab = 'profile' | 'material' | 'colors'
 const TABS: [Tab, string][] = [
@@ -42,6 +43,7 @@ const TABS: [Tab, string][] = [
 
 export default function KeycapsPage() {
   const sw = useBuildSwitch()
+  const switchLabel = sw && 'name' in sw ? sw.name : undefined
   const switchSlug = sw && 'slug' in sw ? sw.slug : null
   const [params] = useSearchParams()
   const [sets, setSets] = useState<KeycapSet[] | null>(null)
@@ -294,10 +296,13 @@ export default function KeycapsPage() {
   return (
     <div className="kcs" data-tab={tab}>
       <div className="kcs-head">
-        <h1 className="h1">Keycaps studio</h1>
-        <p className="mono kcs-summary" data-testid="keycaps-summary">
-          {chosen ? summary(chosen) : '…'}
-        </p>
+        <div className="kcs-title">
+          <h1 className="h1">Keycaps studio</h1>
+          <p className="mono kcs-summary" data-testid="keycaps-summary">
+            {chosen ? summary(chosen) : '…'}
+          </p>
+        </div>
+        <SaveBuildButton className="desk" switchName={switchLabel} />
       </div>
 
       {sw && 'error' in sw && (
@@ -388,6 +393,8 @@ export default function KeycapsPage() {
         </div>
         <div className="card kcs-card">{colorGroup}</div>
       </div>
+
+      <SaveBuildButton className="phone kcs-save" switchName={switchLabel} />
     </div>
   )
 }

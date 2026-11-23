@@ -39,3 +39,16 @@ export async function getSwitch(slug: string, include: 'sounds,related' | 'sound
 export async function getSwitchSounds(slug: string): Promise<SwitchSounds> {
   return get('/switches/{slug}/sounds', { path: { slug } })
 }
+
+const summaries = new Map<string, Promise<SwitchDetail>>()
+
+/** CAT-02 without recordings, once per page life: what a saved build's card names. A failed call is forgotten. */
+export function getSwitchOnce(slug: string): Promise<SwitchDetail> {
+  let pending = summaries.get(slug)
+  if (!pending) {
+    pending = get('/switches/{slug}', { path: { slug } })
+    pending.catch(() => summaries.delete(slug))
+    summaries.set(slug, pending)
+  }
+  return pending
+}

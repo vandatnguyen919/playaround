@@ -87,9 +87,9 @@ Catalog rows are retired with `is_active = false`, never deleted, so old builds 
 
 | Table | Key columns | Notes |
 | --- | --- | --- |
-| `builds` | `id` uuid PK, `owner_id` FK users, `name`, `visibility` enum (private, public; no story uses unlisted, so it was dropped in KL2-0 to match the API), `current_version_id` FK, `draft` jsonb, `remixed_from` FK builds, `thumb_key`, `like_count` int, `updated_at`, `deleted_at` | The thing in My builds; `draft` holds unsaved edits |
-| `build_versions` | `id` uuid PK, `build_id` FK, `version_no` int, unique (`build_id`, `version_no`), `layout_id`, `switch_id`, `keycap_profile_id`, `keycap_material_id`, `colorway_id`, `case_material_id`, `case_color_hex`, `plate_id`, `mount_id`, `desk_pad_id`, `config` jsonb, `schema_version` smallint | One immutable row per Save; catalog choices as FK columns |
-| `build_version_mods` | `version_id` FK, `mod_id` FK, `level` smallint, PK (`version_id`, `mod_id`) | Which mods a version uses, and at what level |
+| `builds` | `id` uuid PK, `owner_id` (the Keycloak `sub`), `name` (1 to 60), `visibility` enum (private, public; no story uses unlisted, so it was dropped in KL2-0 to match the API), `current_version_id` FK, `draft` jsonb, `remixed_from` FK builds, `thumb_key`, `like_count` int, `version` bigint, `created_at`, `updated_at`, `deleted_at` | The thing in My builds; `draft` holds unsaved edits. `version` goes up on every change and is the API's `ETag` (US-08, `builds/V2__builds.sql`) |
+| `build_versions` | `id` uuid PK, `build_id` FK, `version_no` int, unique (`build_id`, `version_no`), `layout`, `switch_slug`, `switch_variant`, `keycap_set`, `keycap_profile`, `keycap_material`, `case_material`, `case_color_hex`, `plate`, `mount`, `desk_pad`, `config` jsonb, `schema_version` smallint | One immutable row per Save. Catalog choices are kept by slug, with no foreign key into `catalog` (one schema per module, modulith-plan.md); catalog never deletes a used part, so the slugs stay valid. `config.sound` keeps the recipe's filters and meter |
+| `build_version_mods` | `version_id` FK, `mod_slug`, `level` text (the level's name, null for a toggle mod), `position`, PK (`version_id`, `mod_slug`) | Which mods a version uses, at what level, in the build's order |
 
 ### Sharing and results
 
@@ -133,7 +133,7 @@ One Postgres instance with a read replica covers KeyLab well past launch; these 
 | Community feed of public builds | `builds (like_count desc, updated_at desc) where visibility = 'public' and deleted_at is null` |
 | Open a share link | `share_links (slug)`, the primary key |
 | Versions of a build | `build_versions (build_id, version_no desc)` |
-| Builds that use a mod | `build_version_mods (mod_id)` |
+| Builds that use a mod | `build_version_mods (mod_slug)` (not built until a story asks) |
 | Switch library filters | `switches (type, actuation_g) where is_active` |
 | A person's typing history | `typing_results (user_id, created_at desc)` |
 
@@ -141,7 +141,7 @@ One Postgres instance with a read replica covers KeyLab well past launch; these 
 
 - Colour columns are `CHECK (x ~ '^#[0-9A-F]{6}$')`.
 - `wpm` is between 0 and 300, and `accuracy` between 0 and 100.
-- `mods.kind = 'level'` rows must have `levels`, and a version's `level` must index into them; the API checks the second rule.
+- `mods.kind = 'level'` rows must have `levels`, and a version's `level` must be one of them; the API checks the second rule.
 - Foreign keys to the catalog are `ON DELETE RESTRICT`; foreign keys from versions, mods and likes to a build are `ON DELETE CASCADE`.
 - Share slugs are 10 random base62 characters, so links can't be guessed.
 

@@ -4,6 +4,7 @@ import { useHealth } from '../api/useHealth.ts'
 import { getSwitch, type SwitchDetail } from '../api/switches.ts'
 import SwitchCard from '../catalog/SwitchCard.tsx'
 import { saveBuild } from '../builder/buildState.ts'
+import RecentBuilds from '../builder/RecentBuilds.tsx'
 
 // KL0 ships the shell only. Each page fills in with its user story
 // (docs/keylab/user-stories.md); until then it shows its title.
@@ -34,6 +35,7 @@ export function BuildPage() {
         <h1 className="h1">Start a build</h1>
       </div>
       <SelectedSwitch />
+      <RecentBuilds />
       <ApiStatus />
     </>
   )
