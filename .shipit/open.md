@@ -55,7 +55,7 @@ Vite dev server. An uncached BLD-10 call took 24 ms locally. Left:
   were heard, with silent WAVs. Next action: after deploy, open `/keylab/mods` on
   app.tickin.me and listen.
 
-## US-12 Make a build private or delete it (2026-11-23, stacked on PR #72)
+## US-12 Make a build private or delete it (2026-11-23, PR #73, stacked on PR #72)
 
 Committed on `feat/us-12-private-delete`, off `feat/us-08-save-builds` (PR #72). Backend in `builds`: `DeleteBuild` (BLD-05, soft delete with If-Match), the visibility
 switch is BLD-04 from US-08, `SharedBuildController` (BLD-03: public for anyone, private for the
@@ -83,8 +83,8 @@ Left:
   action: US-09 adds the page and preview metadata, US-24 real usernames.
 - **Nightly purge of deleted builds (after 30 days, modulith-plan.md) not built.** Next action:
   a ticket of its own.
-- **Notion ticket (Notion not connected).** Next action, when the PR opens: tick items 1 and 3,
-  set PR, Status In review. Module, endpoints and screens unchanged.
+- **Notion ticket (Notion not connected).** Next action: tick items 1 and 3, set PR to
+  https://github.com/vandatnguyen919/playaround/pull/73, Status In review. Module, endpoints and screens unchanged.
 
 ## US-08 Save and rename a build (2026-11-23, PR #72, stacked on PR #71)
 
