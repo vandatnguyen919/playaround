@@ -11,7 +11,8 @@ import java.util.UUID;
  * {@link BuildNotFound}); a new build starts private unless asked public and
  * starts at version 1; new parts add version n + 1 and make it the current
  * one, while a rename or a visibility change writes no version; the name is
- * 1 to {@value #NAME_MAX} characters after trimming. Each change is recorded
+ * 1 to {@value #NAME_MAX} characters after trimming; a delete (US-12) is soft
+ * and final. Each change is recorded
  * as a {@link BuildEvent} for {@link Builds#save} to write.
  *
  * <p>{@code version} is the row version this state was loaded at, sent as the
@@ -29,6 +30,7 @@ public final class Build {
     private final long version;
     private final Instant createdAt;
     private Instant updatedAt;
+    private Instant deletedAt;
     private final List<BuildEvent> events = new ArrayList<>();
 
     private Build(UUID id, UUID ownerId, String name, Visibility visibility, BuildVersion current, long version,
@@ -51,8 +53,10 @@ public final class Build {
     public static Build create(UUID id, UUID ownerId, String name, Visibility visibility, Parts parts,
             KeycapLook keycaps, Sound sound, Instant now) {
         String checked = checkedName(name);
-        return new Build(id, ownerId, checked, visibility == null ? Visibility.PRIVATE : visibility,
+        Build build = new Build(id, ownerId, checked, visibility == null ? Visibility.PRIVATE : visibility,
                 new BuildVersion(1, parts, keycaps, sound), 1, now, now);
+        build.events.add(new BuildEvent.Created());
+        return build;
     }
 
     /** A build as it was stored, for the persistence adapter. */
@@ -105,6 +109,16 @@ public final class Build {
         events.add(new BuildEvent.VisibilityChanged(newVisibility));
     }
 
+    /** Soft delete: the build answers 404 everywhere from now on. Deleting twice changes nothing. */
+    public void delete(Instant now) {
+        if (deletedAt != null) {
+            return;
+        }
+        deletedAt = now;
+        updatedAt = now;
+        events.add(new BuildEvent.Deleted(visibility));
+    }
+
     /** New parts become version n + 1; the same parts again change nothing. */
     public void changeParts(Parts parts, KeycapLook keycaps, Sound sound, Instant now) {
         if (parts.equals(current.parts())) {
@@ -145,6 +159,11 @@ public final class Build {
 
     public Instant updatedAt() {
         return updatedAt;
+    }
+
+    /** When it was deleted, or null while it stands. */
+    public Instant deletedAt() {
+        return deletedAt;
     }
 
     public List<BuildEvent> events() {

@@ -197,9 +197,9 @@ As a member, I want to make a build private or delete it.
 
 **Done when**
 
-- [ ] Visibility toggle with If-Match
+- [x] Visibility toggle with If-Match
 - [ ] Delete asks for confirmation; deleting the daily driver clears the pin
-- [ ] Deleted builds return 404 on their old link
+- [x] Deleted builds return 404 on their old link
 
 ### US-10 · Parts list for a build
 

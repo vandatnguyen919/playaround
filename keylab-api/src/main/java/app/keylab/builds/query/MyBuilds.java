@@ -23,7 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * BLD-01 (US-08): a member's builds, public and private, newest change first
  * (or newest created first), paged by cursor. Deleted builds never show.
- * Also the one build a save or an edit answers with.
+ * Also the one build a save or an edit answers with, and BLD-03's one build
+ * as a given viewer may see it.
  */
 @Component
 public class MyBuilds {
@@ -115,6 +116,31 @@ public class MyBuilds {
             .query(MyBuilds::base)
             .list();
         return withMods(rows).stream().findFirst();
+    }
+
+    /** BLD-03: one build and whether the viewer owns it. */
+    public record Shared(BuildRow row, boolean own) {
+    }
+
+    /**
+     * BLD-03 (US-12; US-09 adds the shared page): a public build for anyone,
+     * a private one for its owner only, a deleted one for nobody.
+     *
+     * @param viewer the signed-in caller, or null for a guest
+     */
+    @Transactional(readOnly = true)
+    public Optional<Shared> shared(UUID viewer, UUID id) {
+        List<UUID> owners = new ArrayList<>();
+        List<Base> rows = jdbc.sql(COLUMNS.replace("SELECT b.id,", "SELECT b.owner_id, b.id,")
+                + " WHERE b.id = :id AND b.deleted_at IS NULL AND (b.visibility = 'public' OR b.owner_id = :viewer)")
+            .param("id", id)
+            .param("viewer", viewer)
+            .query((rs, n) -> {
+                owners.add(rs.getObject("owner_id", UUID.class));
+                return base(rs, n);
+            })
+            .list();
+        return withMods(rows).stream().findFirst().map((row) -> new Shared(row, owners.get(0).equals(viewer)));
     }
 
     /** A row before its mods are read. */

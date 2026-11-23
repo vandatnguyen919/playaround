@@ -206,6 +206,125 @@
   margin: 0;
 }
 
+/* US-12: visibility and delete. The switch is the design's .tg
+   (AdminSwitches, ProfileDesktop); the stickers follow ProfileDesktop's
+   Public (sky) and Private (white); the confirm follows the editor's delete. */
+.bld-settings {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  max-width: 460px;
+}
+
+.bld-public {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bld .tg {
+  appearance: none;
+  margin: 0;
+  cursor: pointer;
+  position: relative;
+  flex: none;
+  width: 56px;
+  height: 32px;
+  border: var(--bw) solid #000;
+  border-radius: 0;
+  background: #ffffff;
+  padding: 0;
+  box-shadow: var(--shadow);
+  transition:
+    transform var(--press),
+    box-shadow var(--press);
+}
+
+.bld .tg:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 #000;
+}
+
+.bld .tg[aria-checked='true'] {
+  background: #000;
+}
+
+.bld .tg span {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 19px;
+  height: 19px;
+  border: var(--bw) solid #000;
+  background: #000;
+  transition: left 100ms ease;
+}
+
+.bld .tg[aria-checked='true'] span {
+  left: 28px;
+  background: var(--lime);
+}
+
+.bld .tg[aria-disabled='true'] {
+  cursor: progress;
+}
+
+.bld-public-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bld-public-label {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.bld-public-note {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.bld-confirm {
+  align-self: stretch;
+  border: var(--bw) solid #000;
+  border-left-width: 8px;
+  border-left-color: var(--coral);
+  background: var(--acc);
+  color: #000;
+  box-shadow: var(--shadow-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bld-confirm-title {
+  flex-basis: 100%;
+  font-size: 15px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.bld-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bld-vis.sticker {
+  align-self: flex-start;
+  background: #ffffff;
+}
+
+.bld-vis.sticker.pub {
+  background: var(--sky);
+}
+
 /* BuildCard, summary variant */
 .bc {
   width: 100%;
@@ -389,7 +508,8 @@
     gap: 12px;
   }
 
-  .bld-name {
+  .bld-name,
+  .bld-settings {
     max-width: none;
   }
 
@@ -413,7 +533,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bld .tile {
+  .bld .tile,
+  .bld .tg,
+  .bld .tg span {
     transition: none;
   }
 }

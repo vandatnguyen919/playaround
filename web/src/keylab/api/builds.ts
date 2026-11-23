@@ -39,3 +39,11 @@ export async function updateBuild(id: string, patch: Record<string, unknown>, ve
   })
   return response.data
 }
+
+/**
+ * BLD-05: soft delete. Afterwards the build is 404 everywhere, its link
+ * included. Rejects with 412 when the build changed since `version`.
+ */
+export async function deleteBuild(id: string, version: number | undefined): Promise<void> {
+  await keylab.delete(`/builds/${encodeURIComponent(id)}`, { headers: { 'If-Match': etagOf({ version }) } })
+}

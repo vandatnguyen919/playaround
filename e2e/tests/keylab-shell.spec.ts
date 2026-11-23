@@ -93,8 +93,9 @@ test('mobile: the sun header and the bottom tab bar at 390 px', async ({ page },
 })
 
 test('errors from keylab-api come through the BFF as problem+json', async ({ page }) => {
-  // A guest: nothing is relayed, keylab-api asks for a sign-in.
-  const guest = await page.request.get('/bff/keylab/v1/builds/0193f2c4-7a1e-7c5b-9d2e-4f8a1b3c5d6e', { maxRedirects: 0 })
+  // A guest on a members-only endpoint (BLD-01): nothing is relayed, keylab-api asks for a sign-in.
+  // (A build's link, BLD-03, is open to guests since US-12, so it is no longer the example.)
+  const guest = await page.request.get('/bff/keylab/v1/me/builds', { maxRedirects: 0 })
   expect(guest.status()).toBe(401)
   expect(guest.headers()['content-type']).toContain('application/problem+json')
   expect(guest.headers()['keylab-api-revision']).toBe('2026-11-08')

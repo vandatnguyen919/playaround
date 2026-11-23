@@ -574,7 +574,10 @@ paths:
       tags:
       - Builds
       summary: Get one build
-      description: '**BLD-03** · access: Public or owner · stories: US-09, US-14, US-19 · module: `builds`'
+      description: '**BLD-03** · access: Public or owner · stories: US-09, US-14, US-19 · module: `builds`.
+        A public build for anyone, a private one for its owner only; someone else''s private build, an
+        unknown id and a deleted build are all `404 build_not_found` (US-12). Sent with `Cache-Control:
+        no-cache` (private for the owner) and the `ETag`, so going private or a delete shows at once.'
       x-endpoint-id: BLD-03
       x-module: builds
       x-stories:
@@ -663,7 +666,10 @@ paths:
       tags:
       - Builds
       summary: Delete a build
-      description: '**BLD-05** · access: Owner · stories: US-12 · module: `builds`'
+      description: '**BLD-05** · access: Owner · stories: US-12 · module: `builds`. Soft delete:
+        from then on the build is `404` on every endpoint, its link (BLD-03) included. Needs `If-Match`
+        (`400 if_match_required` without it, `412` when stale); someone else''s build is `404`. The
+        `BuildWithdrawn` event lets the profile clear a daily-driver pin on it.'
       x-endpoint-id: BLD-05
       x-module: builds
       x-stories:
@@ -675,6 +681,8 @@ paths:
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -4521,7 +4529,8 @@ components:
             allOf:
             - $ref: '#/components/schemas/UserRef'
             description: On BLD-01, BLD-02 and BLD-04 the caller owns the build, and `username` is
-              `me` until profiles give members a username.
+              `me` until profiles give members a username. On BLD-03 it is `me` for the owner and
+              `member` for anyone else, until profiles (US-24).
           likeCount:
             type: integer
           copiedFrom:

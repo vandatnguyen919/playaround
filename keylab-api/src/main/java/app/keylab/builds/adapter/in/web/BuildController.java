@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import app.keylab.builds.adapter.in.web.BuildJson.BuildView;
+import app.keylab.builds.application.DeleteBuild;
 import app.keylab.builds.application.EditBuild;
 import app.keylab.builds.application.SaveBuild;
 import app.keylab.builds.domain.BuildNotFound;
@@ -28,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,7 +45,8 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * US-08: BLD-01 lists my builds, BLD-02 saves one (Idempotency-Key, starts
  * private), BLD-04 renames it or changes its parts or visibility (JSON Merge
- * Patch with If-Match). Members only; someone else's build is 404.
+ * Patch with If-Match; US-12 visibility), BLD-05 deletes it (If-Match).
+ * Members only; someone else's build is 404.
  */
 @RestController
 @PreAuthorize("hasRole('" + Roles.USER + "')")
@@ -54,14 +57,16 @@ class BuildController {
 
     private final SaveBuild saveBuild;
     private final EditBuild editBuild;
+    private final DeleteBuild deleteBuild;
     private final MyBuilds myBuilds;
     private final IdempotencyKeys idempotencyKeys;
     private final JsonMapper json;
 
-    BuildController(SaveBuild saveBuild, EditBuild editBuild, MyBuilds myBuilds, IdempotencyKeys idempotencyKeys,
-            JsonMapper json) {
+    BuildController(SaveBuild saveBuild, EditBuild editBuild, DeleteBuild deleteBuild, MyBuilds myBuilds,
+            IdempotencyKeys idempotencyKeys, JsonMapper json) {
         this.saveBuild = saveBuild;
         this.editBuild = editBuild;
+        this.deleteBuild = deleteBuild;
         this.myBuilds = myBuilds;
         this.idempotencyKeys = idempotencyKeys;
         this.json = json;
@@ -129,6 +134,15 @@ class BuildController {
         return ResponseEntity.ok().cacheControl(PRIVATE).eTag(ETags.of(row.version())).body(BuildJson.view(row));
     }
 
+    /** BLD-05: soft delete with If-Match; afterwards the build is 404 everywhere, its old link included. */
+    @DeleteMapping("/v1/builds/{id}")
+    ResponseEntity<Void> delete(@PathVariable String id,
+            @RequestHeader(value = HttpHeaders.IF_MATCH, required = false) String ifMatch,
+            @AuthenticationPrincipal Jwt jwt) {
+        deleteBuild.delete(owner(jwt), parse(id), (version) -> IfMatch.check(ifMatch, ETags.of(version)));
+        return ResponseEntity.noContent().build();
+    }
+
     private BuildRow row(UUID owner, UUID id) {
         return myBuilds.get(owner, id).orElseThrow(BuildNotFound::new);
     }
@@ -138,7 +152,7 @@ class BuildController {
     }
 
     /** Anything that is not a UUID names no build: 404, like an id that does not exist. */
-    private static UUID parse(String id) {
+    static UUID parse(String id) {
         try {
             return UUID.fromString(id);
         }
