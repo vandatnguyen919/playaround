@@ -55,7 +55,7 @@ Vite dev server. An uncached BLD-10 call took 24 ms locally. Left:
   were heard, with silent WAVs. Next action: after deploy, open `/keylab/mods` on
   app.tickin.me and listen.
 
-## US-08 Save and rename a build (2026-11-23, stacked on PR #71)
+## US-08 Save and rename a build (2026-11-23, PR #72, stacked on PR #71)
 
 Committed on `feat/us-08-save-builds`, off `feat/us-07-case-plate` (PR #71).
 Backend in `builds` (ports and adapters): `V2__builds.sql` (builds, build_versions,
@@ -73,8 +73,8 @@ limit); database-design.md (slugs instead of cross-schema FK ids, mod level as t
 api-design-v1.md (BLD-01/02/04 details); openapi-v1.yaml (sort, ETag, errors, owner `me`).
 Left:
 
-- **Notion ticket (Notion not connected in the session).** Next action, when the PR opens:
-  tick the three Done when items, set PR to the PR URL, Status In review. Module, endpoints
+- **Notion ticket (Notion not connected in the session).** Next action: in the ticket,
+  tick the three Done when items, set PR to https://github.com/vandatnguyen919/playaround/pull/72, Status In review. Module, endpoints
   and screens are unchanged.
 - **Not built, waiting for their stories:** the Parts list (US-10), Share card (US-11),
   "Type on it" (US-14), `BuildPublished`/`BuildWithdrawn` and `BuildsApi` (US-12, US-26).
