@@ -55,6 +55,37 @@ Vite dev server. An uncached BLD-10 call took 24 ms locally. Left:
   were heard, with silent WAVs. Next action: after deploy, open `/keylab/mods` on
   app.tickin.me and listen.
 
+## US-08 Save and rename a build (2026-11-23, PR #72, stacked on PR #71)
+
+Committed on `feat/us-08-save-builds`, off `feat/us-07-case-plate` (PR #71).
+Backend in `builds` (ports and adapters): `V2__builds.sql` (builds, build_versions,
+build_version_mods), `SaveBuild` (BLD-02), `EditBuild` (BLD-04), `MyBuilds` (BLD-01),
+`BuildController`. `catalog` gained `CatalogApi.review(parts)`, so `builds` checks parts and
+stores `config.sound` without reaching into catalog. Web: Save build on the Keycaps studio,
+My builds (`/keylab/builds`), Recent builds on the Build page, Current build in the sidebar.
+Verified: BuildsApiTest (11) and BuildsArchitectureTest (6) with ModularityTests and
+CatalogArchitectureTest; full keylab-api suite 161 of 164 on the first run; the 3 misses were one Keycloak Testcontainer that timed out starting while the e2e ran, and that class passed alone (3 of 3); web unit tests (50), `tsc`, lint, `vite build`,
+`check:api`; new `keylab-builds.spec.ts` (2 tests) and all 26 KeyLab e2e against the local
+stack, with desktop and mobile screenshots of My builds.
+Specs that lost and were updated: BuildsDesktop/BuildsMobile `maxlength` 32 to 60 (the API's
+limit); database-design.md (slugs instead of cross-schema FK ids, mod level as text, row
+`version`); modulith-plan.md (`CatalogApi.review` instead of `soundOf`, what US-08 built);
+api-design-v1.md (BLD-01/02/04 details); openapi-v1.yaml (sort, ETag, errors, owner `me`).
+Left:
+
+- **Notion ticket (Notion not connected in the session).** Next action: in the ticket,
+  tick the three Done when items, set PR to https://github.com/vandatnguyen919/playaround/pull/72, Status In review. Module, endpoints
+  and screens are unchanged.
+- **Not built, waiting for their stories:** the Parts list (US-10), Share card (US-11),
+  "Type on it" (US-14), `BuildPublished`/`BuildWithdrawn` and `BuildsApi` (US-12, US-26).
+- **Owner shows as `me`.** The Keycloak username is the email, so it is never sent. Next
+  action: use the profile username once US-24 adds profiles.
+- **Layout is always 65% and the desk pad is not saved:** the builder draws only a 65% board
+  and the pad is per page. Next action: a layout picker story, and keep the pad in
+  `keylab.build` if a story asks for it.
+- **Save build only on the Keycaps studio,** where the design puts it. Saving again updates the
+  same build (new version); "New build" on My builds starts a fresh one.
+
 ## US-07 Choose case, plate and mount (2026-11-22, PR #71, stacked on PR #70)
 
 Committed on `feat/us-07-case-plate`, off `feat/us-06-keycaps-studio` (PR #70). No backend

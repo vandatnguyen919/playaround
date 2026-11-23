@@ -193,7 +193,7 @@ export interface paths {
         };
         /**
          * My builds
-         * @description **BLD-01** · access: Member · stories: US-08 · module: `builds`
+         * @description **BLD-01** · access: Member · stories: US-08 · module: `builds`. Public and private builds of the caller, deleted ones never. `sort` is `-updatedAt` (default, newest change first) or `-createdAt`; anything else, or a `visibility` other than public or private, is `400 invalid_parameter`. A `page_token` from the other sort is `400 invalid_page_token`. Sent with `Cache-Control: private, no-store`.
          */
         get: operations["listMyBuilds"];
         put?: never;
@@ -215,7 +215,7 @@ export interface paths {
         put?: never;
         /**
          * Save a build
-         * @description **BLD-02** · access: Member · stories: US-08 · module: `builds`
+         * @description **BLD-02** · access: Member · stories: US-08 · module: `builds`. Starts private unless `visibility` is public, at version 1. Every part must be offered today (published switch and keycap set, live mod, active case part), else `422 part_not_found` or `part_retired`; a level mod needs a level it offers (`level_required`, `level_not_offered`). One `errors` entry per bad field. The answer carries the build's `ETag`.
          */
         post: operations["createBuild"];
         delete?: never;
@@ -247,7 +247,7 @@ export interface paths {
         head?: never;
         /**
          * Rename, change parts or visibility
-         * @description **BLD-04** · access: Owner · stories: US-08, US-12 · module: `builds`
+         * @description **BLD-04** · access: Owner · stories: US-08, US-12 · module: `builds`. The patch is applied to the build as stored and the result checked like a save. A rename or a visibility change writes no version; new parts add version n + 1. Someone else's build is `404 build_not_found`. No `If-Match` is `400 if_match_required`; a stale one `412 precondition_failed`.
          */
         patch: operations["updateBuild"];
         trace?: never;
@@ -1850,14 +1850,8 @@ export interface components {
             }[];
         };
         BuildParts: {
-            /**
-             * @example 60
-             * @example 65
-             * @example 75
-             * @example tkl
-             * @example full
-             */
-            layout: string;
+            /** @enum {string} */
+            layout: "60" | "65" | "75" | "tkl" | "full";
             switch: {
                 slug: string;
                 /** @enum {string} */
@@ -1867,10 +1861,11 @@ export interface components {
                 slug: string;
                 level?: string;
             }[];
+            /** @description `profile` and `material` are read only: they come from the keycap set. */
             keycaps?: {
                 set?: string;
-                profile?: string;
-                material?: string;
+                readonly profile?: string;
+                readonly material?: string;
             };
             case?: {
                 material?: string;
@@ -1916,6 +1911,7 @@ export interface components {
          *     }
          */
         BuildInput: {
+            /** @description Trimmed before it is checked and kept. */
             name: string;
             visibility?: components["schemas"]["Visibility"];
         } & components["schemas"]["BuildParts"];
@@ -1924,6 +1920,7 @@ export interface components {
             id: string;
             name: string;
             visibility: components["schemas"]["Visibility"];
+            /** @description On BLD-01, BLD-02 and BLD-04 the caller owns the build, and `username` is `me` until profiles give members a username. */
             owner: components["schemas"]["UserRef"];
             likeCount?: number;
             copiedFrom?: null | {
@@ -1931,6 +1928,7 @@ export interface components {
                 buildId?: string;
                 owner?: components["schemas"]["UserRef"];
             };
+            /** @description Row version, the value of the build's ETag. It moves on every change, a rename included, so If-Match can be built from it. */
             version?: number;
             /** Format: date-time */
             createdAt: string;
@@ -2898,8 +2896,7 @@ export interface operations {
                 page_size?: components["parameters"]["pageSize"];
                 /** @description Opaque; from page.nextPageToken. */
                 page_token?: components["parameters"]["pageToken"];
-                /** @description Field name, `-` prefix for descending. */
-                sort?: components["parameters"]["sort"];
+                sort?: "-updatedAt" | "-createdAt";
                 visibility?: components["schemas"]["Visibility"];
             };
             header?: never;
@@ -2912,7 +2909,6 @@ export interface operations {
             200: {
                 headers: {
                     "KeyLab-API-Revision": components["headers"]["Revision"];
-                    ETag: components["headers"]["ETag"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -2922,6 +2918,7 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             410: components["responses"]["Gone"];
             429: components["responses"]["TooManyRequests"];
@@ -2948,13 +2945,16 @@ export interface operations {
                 headers: {
                     "KeyLab-API-Revision": components["headers"]["Revision"];
                     Location: components["headers"]["Location"];
+                    ETag: components["headers"]["ETag"];
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["Build"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            409: components["responses"]["Conflict"];
             410: components["responses"]["Gone"];
             422: components["responses"]["Unprocessable"];
             429: components["responses"]["TooManyRequests"];
@@ -3032,12 +3032,14 @@ export interface operations {
             200: {
                 headers: {
                     "KeyLab-API-Revision": components["headers"]["Revision"];
+                    ETag: components["headers"]["ETag"];
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["Build"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["NotFound"];
             410: components["responses"]["Gone"];

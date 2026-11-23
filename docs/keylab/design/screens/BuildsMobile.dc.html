@@ -57,7 +57,7 @@ a{color:inherit}a:hover{color:inherit}
     </p>
     <div style="display: flex; flex-direction: column; gap: 8px">
       <label for="bname" class="lbl">Build name</label>
-      <input id="bname" class="field" type="text" value="{{name}}" onChange="{{rename}}" maxlength="32">
+      <input id="bname" class="field" type="text" value="{{name}}" onChange="{{rename}}" maxlength="60">
     </div>
 
     <dc-import name="BuildCard" build="{{card}}" width="352" hint-size="352px,440px"></dc-import>

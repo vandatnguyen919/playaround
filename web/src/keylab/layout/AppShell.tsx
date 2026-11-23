@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { useHealth } from '../api/useHealth.ts'
 import { SIGN_IN_URL } from '../api/problem.ts'
+import { CurrentBuild } from '../builder/RecentBuilds.tsx'
 import {
   BuildIcon,
   BuildsIcon,
@@ -94,6 +95,7 @@ export default function AppShell() {
           ))}
         </nav>
         <div className="side-foot">
+          <CurrentBuild />
           <button
             type="button"
             className="kc sm"

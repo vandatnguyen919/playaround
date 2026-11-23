@@ -155,9 +155,9 @@ As a member, I want to save a build and rename it later.
 
 **Done when**
 
-- [ ] POST /v1/builds with Idempotency-Key; new builds start private
-- [ ] Rename via PATCH with If-Match; a stale tag shows a reload prompt (412)
-- [ ] My builds lists public and private builds
+- [x] POST /v1/builds with Idempotency-Key; new builds start private
+- [x] Rename via PATCH with If-Match; a stale tag shows a reload prompt (412)
+- [x] My builds lists public and private builds
 
 ### US-09 · Open and hear a shared build link
 

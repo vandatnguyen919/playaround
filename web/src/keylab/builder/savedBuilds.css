@@ -1,0 +1,187 @@
+/* Saved builds (US-08): Save build on the Keycaps studio, Recent builds on
+   the Build page (HomeDesktop, Main) and the sidebar's current build. */
+
+.save-build {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.save-build .kc.primary {
+  min-height: 54px;
+}
+
+.save-build-error {
+  margin: 0;
+  max-width: 320px;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: right;
+}
+
+@media (max-width: 767px) {
+  .save-build {
+    align-items: stretch;
+  }
+
+  .save-build .kc.primary {
+    width: 100%;
+  }
+
+  .save-build-error {
+    max-width: none;
+    text-align: left;
+  }
+}
+
+/* Recent builds (HomeDesktop; Main scrolls them sideways) */
+.recent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 460px;
+}
+
+.recent-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kl .recent-all {
+  font-size: 13px;
+  font-weight: 900;
+  text-decoration: underline;
+  text-decoration-thickness: 2.5px;
+  text-underline-offset: 3px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kl .recent-tile {
+  color: #000;
+  text-decoration: none;
+  background: #ffffff;
+  border: var(--bw-thick) solid #000;
+  padding: 12px 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 66px;
+  box-shadow: var(--shadow-md);
+  transition:
+    transform var(--press),
+    box-shadow var(--press);
+}
+
+.recent-tile:hover {
+  background: #fff1c7;
+}
+
+.recent-tile:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 #000;
+}
+
+.recent-swatch {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border: var(--bw) solid #000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 4px;
+}
+
+.recent-stem {
+  width: 12px;
+  height: 12px;
+  border: var(--bw-thin) solid #000;
+}
+
+.recent-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recent-name {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.recent-spec {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.recent-when {
+  flex: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* The sidebar's current build */
+.side-build {
+  border: var(--bw-thick) solid #000;
+  background: var(--indigo);
+  color: #fffdf5;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: var(--shadow-md);
+}
+
+.side-build .lbl {
+  color: var(--acc);
+}
+
+.side-build-name {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.side-build-spec {
+  font-size: 11px;
+}
+
+@media (max-width: 767px) {
+  .recent {
+    max-width: none;
+  }
+
+  .recent-list {
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -16px;
+    padding: 0 16px 8px;
+  }
+
+  .kl .recent-tile {
+    flex: none;
+    width: 236px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recent-tile {
+    transition: none;
+  }
+}
