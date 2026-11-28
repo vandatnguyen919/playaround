@@ -29,7 +29,7 @@ services:
   # API, then exits. Runs on every `up`, so realm edits land without a wipe and
   # admin console drift is put back. Rerun alone: docker compose up keycloak-config
   keycloak-config:
-    image: adorsys/keycloak-config-cli:6.5.1-26.5.5
+    image: adorsys/keycloak-config-cli:6.6.0-26.8.1
     depends_on:
       keycloak:
         condition: service_healthy
@@ -67,7 +67,7 @@ services:
   # Password and ACL from start.sh, policy in redis/redis.conf. The gateway
   # signs in as user "gateway" (REDIS_PASSWORD); the default user is off.
   redis:
-    image: redis:8.10-alpine
+    image: redis:8.12-alpine
     entrypoint: ["/bin/sh", "/usr/local/etc/redis/start.sh"]
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis-dev-password}
@@ -108,7 +108,7 @@ services:
       retries: 20
 
   mailpit:
-    image: axllent/mailpit:v1.31.6
+    image: axllent/mailpit:v1.34.0
     ports:
       - "8025:8025" # Web UI + API
       - "1025:1025" # SMTP
@@ -122,7 +122,7 @@ services:
   # with it. Grafana signs anyone in as admin, so both ports stay on loopback.
   # compose.prod.yml has no equivalent; phase 2 has its own stack (PRODUCT.md).
   lgtm:
-    image: grafana/otel-lgtm:0.39.0
+    image: grafana/otel-lgtm:0.41.1
     environment:
       OTELCOL_EXTRA_ARGS: --config=file:/otel-lgtm/otelcol-dev-logs.yaml
     # Grafana's first-start database migrations took 7 minutes on the container
@@ -146,7 +146,7 @@ services:
   # writes infra/.env, which this file reads. Nothing here depends on it, and the
   # apps never talk to it. Loopback only, like the rest of the admin surface.
   vault:
-    image: hashicorp/vault:2.2.1
+    image: hashicorp/vault:2.2.2
     command: server
     volumes:
       - ./vault/vault.hcl:/vault/config/vault.hcl:ro
